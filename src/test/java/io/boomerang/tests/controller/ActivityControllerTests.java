@@ -14,6 +14,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -27,6 +28,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import io.boomerang.controller.ActivityController;
@@ -54,6 +56,12 @@ class ActivityControllerTests extends FlowTests {
 
   @Test
   void testGetFlowActivity() {
+
+    FlowUserEntity user = new FlowUserEntity();
+    user.setEmail("amhudson@us.ibm.com");
+    user.setName("Adrienne Hudson");
+    user.setType(UserType.admin);
+    when(service.getCurrentUser()).thenReturn(user);
 
     FlowActivity activity =
         activityController.getFlowActivity("5d1a18c8f6ca2c00014c4325").getBody();

@@ -40,7 +40,7 @@ public class ConfigurationController {
 	try {
 	  userValidationService.validateUserAdminOrOperator();
 	} catch (ResponseStatusException e) {
-	  throw new HttpClientErrorException(e.getStatus());	
+	  throw new HttpClientErrorException(e.getStatusCode());	
 	}
   }
 

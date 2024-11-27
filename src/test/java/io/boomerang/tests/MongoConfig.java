@@ -41,26 +41,28 @@ public class MongoConfig implements InitializingBean, DisposableBean {
     String proxyHost = System.getProperty("http.proxyHost");
     String proxyPort = System.getProperty("http.proxyPort");
 
-    MongodStarter starter = null;
-    ProcessOutput processOutput = enableMongoLogs ? ProcessOutput.getDefaultInstance("mongo")
-        : ProcessOutput.getDefaultInstanceSilent();
-    Command command = Command.MongoD;
-    if (StringUtils.hasText(proxyHost) && StringUtils.hasText(proxyPort)) {
+    MongodStarter starter = MongodStarter.getDefaultInstance();
 
-      final DownloadConfig downloadConfig = Defaults.downloadConfigFor(command)
-          .proxyFactory(new HttpProxyFactory(proxyHost, Integer.parseInt(proxyPort))).build();
+    // MongodStarter starter = null;
+    // ProcessOutput processOutput = enableMongoLogs ? ProcessOutput.getDefaultInstance("mongo")
+    //     : ProcessOutput.getDefaultInstanceSilent();
+    // Command command = Command.MongoD;
+    // if (StringUtils.hasText(proxyHost) && StringUtils.hasText(proxyPort)) {
 
-      RuntimeConfig runtimeConfig = Defaults.runtimeConfigFor(command).processOutput(processOutput)
-          .artifactStore(
-              Defaults.extractedArtifactStoreFor(command).withDownloadConfig(downloadConfig))
-          .build();
+    //   final DownloadConfig downloadConfig = Defaults.downloadConfigFor(command)
+    //       .proxyFactory(new HttpProxyFactory(proxyHost, Integer.parseInt(proxyPort))).build();
 
-      starter = MongodStarter.getInstance(runtimeConfig);
-    } else {
-      RuntimeConfig runtimeConfig =
-          Defaults.runtimeConfigFor(command).processOutput(processOutput).build();
-      starter = MongodStarter.getInstance(runtimeConfig);
-    }
+    //   RuntimeConfig runtimeConfig = Defaults.runtimeConfigFor(command).processOutput(processOutput)
+    //       .artifactStore(
+    //           Defaults.extractedArtifactStoreFor(command).withDownloadConfig(downloadConfig))
+    //       .build();
+
+    //   starter = MongodStarter.getInstance(runtimeConfig);
+    // } else {
+    //   RuntimeConfig runtimeConfig =
+    //       Defaults.runtimeConfigFor(command).processOutput(processOutput).build();
+    //   starter = MongodStarter.getInstance(runtimeConfig);
+    // }
     if (starter != null) {
 
       MongodConfig mongodConfig = MongodConfig.builder().version(Version.Main.PRODUCTION).build();

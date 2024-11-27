@@ -10,7 +10,14 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.stereotype.Component;
-import com.mongodb.MongoClient;
+
+import com.mongodb.client.MongoClients;
+
+import com.mongodb.client.MongoClient;
+
+
+
+// import com.mongodb.MongoClient;
 import de.flapdoodle.embed.mongo.MongoImportExecutable;
 import de.flapdoodle.embed.mongo.MongoImportProcess;
 import de.flapdoodle.embed.mongo.MongoImportStarter;
@@ -31,7 +38,7 @@ public class BoomerangTestConfiguration {
 
   private static final String BIND_IP = "localhost";
   private static final int PORT = 13345;
-  private static final Pattern pattern = Pattern.compile("[.][^.]+$");
+  private static final Pattern pattern = Pattern.compile("[.][^.]+");
 
   private String database = "local";
   private MongodProcess mongod;
@@ -57,7 +64,9 @@ public class BoomerangTestConfiguration {
 
     MongodExecutable mongodExecutable = starter.prepare(mongodConfig);
     mongod = mongodExecutable.start();
-    mongo = new MongoClient(BIND_IP, PORT);
+
+    mongo = MongoClients.create("mongodb://" + BIND_IP + ":" + PORT);
+
   }
 
   public void loadSampleData() throws IOException {

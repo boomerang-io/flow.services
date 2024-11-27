@@ -8,15 +8,30 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.net.ssl.SSLContext;
-import org.apache.http.HttpHost;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.conn.ConnectionKeepAliveStrategy;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustStrategy;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+
+import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
+import org.apache.hc.core5.ssl.TrustStrategy;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
+// import org.apache.http.HttpHost;
+// import org.apache.http.client.config.RequestConfig;
+// import org.apache.http.conn.ConnectionKeepAliveStrategy;
+// import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+// import org.apache.http.conn.ssl.TrustStrategy;
+// import org.apache.http.impl.client.CloseableHttpClient;
+// import org.apache.http.impl.client.HttpClientBuilder;
+// import org.apache.http.impl.client.HttpClients;
+// import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -50,8 +65,8 @@ public class RestConfig {
         && this.boomerangProxyPort.isPresent() && !this.boomerangProxyPort.get().isBlank()) {
       HttpComponentsClientHttpRequestFactory clientHttpRequestFactory =
           new HttpComponentsClientHttpRequestFactory(
-              HttpClientBuilder.create().setProxy(new HttpHost(this.boomerangProxyHost.get(),
-                  Integer.valueOf(this.boomerangProxyPort.get()), "http")).build());
+              HttpClientBuilder.create().setProxy(new HttpHost( "http",this.boomerangProxyHost.get(),
+                  Integer.valueOf(this.boomerangProxyPort.get()))).build());
       return new RestTemplate(clientHttpRequestFactory);
     }
     return internalRestTemplate();
@@ -63,11 +78,16 @@ public class RestConfig {
       throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
 
     final TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
-    final SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
-        .loadTrustMaterial(null, acceptingTrustStrategy).build();
+    // final SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
+    //     .loadTrustMaterial(acceptingTrustStrategy).build();
+        final SSLContext sslContext = SSLContextBuilder.create()
+        .loadTrustMaterial(null,acceptingTrustStrategy).build();
 
     final SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
-    final CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
+    final CloseableHttpClient httpClient = HttpClients.custom()
+    .setConnectionManager(
+        PoolingHttpClientConnectionManagerBuilder.create()
+            .setSSLSocketFactory(csf).build()).build();
     final HttpComponentsClientHttpRequestFactory requestFactory =
         new HttpComponentsClientHttpRequestFactory();
     requestFactory.setHttpClient(httpClient);
@@ -109,8 +129,9 @@ public class RestConfig {
   }
 
   public CloseableHttpClient httpClient() {
-    RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(CONNECTION_TIMEOUT)
-        .setConnectionRequestTimeout(REQUEST_TIMEOUT).setSocketTimeout(SOCKET_TIMEOUT).build();
+  
+    RequestConfig requestConfig = RequestConfig.custom().
+        setConnectionRequestTimeout(Timeout.ofMinutes(CONNECTION_TIMEOUT)).build();
     return HttpClients.custom().setDefaultRequestConfig(requestConfig)
         .setConnectionManager(poolingConnectionManager())
         .setKeepAliveStrategy(connectionKeepAliveStrategy()).build();
@@ -121,12 +142,16 @@ public class RestConfig {
         new PoolingHttpClientConnectionManager();
     poolingConnectionManager.setMaxTotal(MAX_TOTAL_CONNECTIONS);
     poolingConnectionManager.setDefaultMaxPerRoute(MAX_ROUTE_CONNECTIONS);
+    poolingConnectionManager.setDefaultConnectionConfig(ConnectionConfig.custom()
+    .setSocketTimeout(Timeout.ofMinutes(1))
+    .setConnectTimeout(Timeout.ofMinutes(1))
+    .build());
     return poolingConnectionManager;
   }
 
   public ConnectionKeepAliveStrategy connectionKeepAliveStrategy() {
     return (httpResponse, httpContext) -> {
-      return DEFAULT_KEEP_ALIVE_TIME;
+      return TimeValue.MAX_VALUE ;
     };
   }
 }

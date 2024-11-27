@@ -84,7 +84,7 @@ public class WorkflowController {
       userValidationService.validateUserAccessForWorkflow(entity.getScope(), 
     		  entity.getFlowTeamId(), entity.getOwnerUserId(), false);
     } catch (ResponseStatusException e) {
-      throw new HttpClientErrorException(e.getStatus());
+      throw new HttpClientErrorException(e.getStatusCode());
     }
     return workflowVersionService.getLatestWorkflowVersion(workFlowId);
   }

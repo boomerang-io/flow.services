@@ -2,13 +2,20 @@ package io.boomerang.security.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+// import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+// import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import io.boomerang.mongo.service.FlowSettingsService;
 import io.boomerang.mongo.service.FlowTokenService;
@@ -17,8 +24,8 @@ import io.boomerang.security.filters.FlowAuthorizationFilter;
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, proxyTargetClass = true)
-public class WebSecurity extends WebSecurityConfigurerAdapter {
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, proxyTargetClass = true)
+public class WebSecurity{
 
   private static final String INFO = "/info";
 
@@ -44,33 +51,53 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
   @Autowired
   private FlowSettingsService flowSettingsService;
 
+
   @Value("${boomerang.authorization.enabled:false}")
   private boolean boomerangAuthorization;
 
   @Value("${boomerang.authorization.basic.password:}")
   private String basicPassword;
 
-  @Override
-  protected void configure(HttpSecurity http) throws Exception {
+  // @Override
+  @Bean
+  protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
+    
     if (boomerangAuthorization) {
       setupJWT(http);
     } else {
       setupNone(http);
     }
+        return setupNone(http);
+        
   }
 
-  private void setupJWT(HttpSecurity http)
+  @Bean
+  public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+      return authenticationConfiguration.getAuthenticationManager();
+  }
+
+  private SecurityFilterChain setupJWT(HttpSecurity http)
       throws Exception {
     final FlowAuthorizationFilter jwtFilter = new FlowAuthorizationFilter(tokenService,
-        authenticationManager(), flowUserService, flowSettingsService, basicPassword);
-    http.csrf().disable().authorizeRequests().antMatchers(HEALTH, API_DOCS, INFO, INTERNAL, WEBJARS, SLACK_INSTALL)
-        .permitAll().and().authorizeRequests().anyRequest().authenticated().and()
-        .addFilterBefore(jwtFilter, BasicAuthenticationFilter.class).sessionManagement()
-        .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    authenticationManager(http.getSharedObject(AuthenticationConfiguration.class)), flowUserService, flowSettingsService, basicPassword);
+
+        
+    // http.csrf().disable().authorizeRequests().requestMatchers(HEALTH, API_DOCS, INFO, INTERNAL, WEBJARS, SLACK_INSTALL)
+    //     .permitAll().and().authorizeRequests().anyRequest().authenticated().and()
+    //     .addFilterBefore(jwtFilter, BasicAuthenticationFilter.class).sessionManagement()
+    //     .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+        return http.csrf(csrf->csrf.disable()).authorizeHttpRequests(req->req.requestMatchers(HEALTH, API_DOCS, INFO, INTERNAL, WEBJARS, SLACK_INSTALL).permitAll())
+        .authorizeHttpRequests(httpreq->httpreq.anyRequest().authenticated())
+        .addFilterBefore(jwtFilter, BasicAuthenticationFilter.class).sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).build();
+        
   }
 
-  private void setupNone(HttpSecurity http) throws Exception {
-    http.csrf().disable().anonymous().authorities(AuthorityUtils.createAuthorityList("ROLE_admin"));
+  private SecurityFilterChain setupNone(HttpSecurity http) throws Exception {
+    return http.csrf(cs->cs.disable()).anonymous(a->a.authorities(AuthorityUtils.createAuthorityList("ROLE_admin"))).build();
+
+    // http.csrf().disable().anonymous().authorities(AuthorityUtils.createAuthorityList("ROLE_admin"));
   }
+
 
 }
