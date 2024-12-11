@@ -16,7 +16,7 @@ import com.mongodb.client.MongoDatabase;
 
 public abstract class AbstractFlowTests {
 
-  private static final Logger LOGGER = Logger.getLogger(BoomerangTestConfiguration.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(AbstractFlowTests.class.getName());
 
   @Autowired
   private MongoTemplate mongoTemplate;
