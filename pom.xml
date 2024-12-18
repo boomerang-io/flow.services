@@ -44,11 +44,9 @@
 				<artifactId>snakeyaml</artifactId>
 				<version>2.3</version>
 			</dependency>
-			<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-databind</artifactId>
-				<!-- <version>2.18.1</version> -->
 			</dependency>
 
 		</dependencies>
@@ -83,7 +81,6 @@
 			<artifactId>distributed-lock</artifactId>
 			<version>2.1.0</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/io.cloudevents/cloudevents-api -->
 		<dependency>
 			<groupId>io.cloudevents</groupId>
 			<artifactId>cloudevents-api</artifactId>
@@ -182,18 +179,6 @@
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver-sync</artifactId>
 		</dependency>
-		<!-- <dependency>
-			<groupId>org.mongodb</groupId>
-			<artifactId>mongo-java-driver</artifactId>
-			<version>3.12.10</version>
-			<scope>test</scope>
-		</dependency> -->
-		<!-- https://mvnrepository.com/artifact/org.mongodb/mongodb-driver-sync -->
-		<!-- <dependency>
-			<groupId>org.mongodb</groupId>
-			<artifactId>mongodb-driver-sync</artifactId>
-			<version>5.2.1</version>
-		</dependency> -->
 
 		<dependency>
 			<groupId>de.flapdoodle.embed</groupId>
@@ -240,8 +225,6 @@
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-config</artifactId>
 		</dependency>
-		<!--
-		https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-security -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
@@ -268,11 +251,6 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<!--		<dependency>-->
-		<!--			<groupId>javax.servlet</groupId>-->
-		<!--			<artifactId>javax.servlet-api</artifactId>-->
-		<!--			<scope>provided</scope>-->
-		<!--		</dependency>-->
 		<dependency>
 			<groupId>jakarta.servlet</groupId>
 			<artifactId>jakarta.servlet-api</artifactId>
@@ -283,15 +261,10 @@
 			<artifactId>commons-text</artifactId>
 			<version>1.10.0</version>
 		</dependency>
-		<!-- <dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<version>4.5.13</version>
-		</dependency> -->
 		<dependency>
 			<groupId>org.apache.httpcomponents.client5</groupId>
 			<artifactId>httpclient5</artifactId>
-			<version>5.2</version> <!-- Or latest version compatible with Spring Boot 3 -->
+			<version>5.2</version>
 		</dependency>
 		<dependency>
 			<groupId>io.boomerang</groupId>
@@ -308,7 +281,6 @@
 			<artifactId>cron-utils</artifactId>
 			<version>9.2.0</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.slack.api/slack-api-client -->
 		<dependency>
 			<groupId>com.slack.api</groupId>
 			<artifactId>slack-api-client</artifactId>

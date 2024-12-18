@@ -23,15 +23,6 @@ import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.apache.hc.core5.ssl.TrustStrategy;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
-// import org.apache.http.HttpHost;
-// import org.apache.http.client.config.RequestConfig;
-// import org.apache.http.conn.ConnectionKeepAliveStrategy;
-// import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-// import org.apache.http.conn.ssl.TrustStrategy;
-// import org.apache.http.impl.client.CloseableHttpClient;
-// import org.apache.http.impl.client.HttpClientBuilder;
-// import org.apache.http.impl.client.HttpClients;
-// import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -78,8 +69,6 @@ public class RestConfig {
       throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
 
     final TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
-    // final SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()
-    //     .loadTrustMaterial(acceptingTrustStrategy).build();
         final SSLContext sslContext = SSLContextBuilder.create()
         .loadTrustMaterial(null,acceptingTrustStrategy).build();
 

@@ -11,6 +11,9 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Map;
+
+import org.springframework.util.StreamUtils;
+
 import jakarta.servlet.AsyncContext;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.ReadListener;
@@ -27,7 +30,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpUpgradeHandler;
 import jakarta.servlet.http.Part;
-import org.springframework.util.StreamUtils;
 
 /*
  * Reference: https://www.baeldung.com/spring-reading-httpservletrequest-multiple-times
@@ -215,10 +217,6 @@ public class MultiReadHttpServletRequest implements HttpServletRequest {
     return request.isRequestedSessionIdFromURL();
   }
 
-  // @Override
-  // public boolean isRequestedSessionIdFromUrl() {
-  //   return request.isRequestedSessionIdFromURL(); // NOSONAR
-  // }
 
   @Override
   public boolean authenticate(HttpServletResponse response) throws IOException, ServletException {
@@ -365,11 +363,6 @@ public class MultiReadHttpServletRequest implements HttpServletRequest {
   public RequestDispatcher getRequestDispatcher(String path) {
     return request.getRequestDispatcher(path);
   }
-
-  // @Override
-  // public String getRealPath(String path) {
-  //   return request.getRealPath(path); // NOSONAR
-  // }
 
   @Override
   public int getRemotePort() {

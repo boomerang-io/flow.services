@@ -6,18 +6,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-// import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-// import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+
 import io.boomerang.mongo.service.FlowSettingsService;
 import io.boomerang.mongo.service.FlowTokenService;
 import io.boomerang.mongo.service.FlowUserService;
@@ -26,7 +23,7 @@ import io.boomerang.security.filters.FlowAuthorizationFilter;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, proxyTargetClass = true)
-public class WebSecurity{
+public class WebSecurity {
 
   private static final String INFO = "/info";
 
@@ -45,13 +42,12 @@ public class WebSecurity{
 
   @Autowired
   private FlowTokenService tokenService;
-  
+
   @Autowired
   private FlowUserService flowUserService;
-  
+
   @Autowired
   private FlowSettingsService flowSettingsService;
-
 
   @Value("${boomerang.authorization.enabled:false}")
   private boolean boomerangAuthorization;
@@ -59,17 +55,16 @@ public class WebSecurity{
   @Value("${boomerang.authorization.basic.password:}")
   private String basicPassword;
 
-  // @Override
   @Bean
   public SecurityFilterChain configure(HttpSecurity http) throws Exception {
-    
+
     if (boomerangAuthorization) {
       setupJWT(http);
     } else {
       setupNone(http);
     }
-        return setupNone(http);
-        
+    return setupNone(http);
+
   }
 
   @Bean
@@ -81,32 +76,24 @@ public class WebSecurity{
   public SecurityFilterChain setupJWT(HttpSecurity http)
       throws Exception {
     final FlowAuthorizationFilter jwtFilter = new FlowAuthorizationFilter(tokenService,
-    authenticationManager(http.getSharedObject(AuthenticationConfiguration.class)), flowUserService, flowSettingsService, basicPassword);
+        authenticationManager(http.getSharedObject(AuthenticationConfiguration.class)), flowUserService,
+        flowSettingsService, basicPassword);
 
-        
-    // http.csrf().disable().authorizeRequests().requestMatchers(HEALTH, API_DOCS, INFO, INTERNAL, WEBJARS, SLACK_INSTALL)
-    //     .permitAll().and().authorizeRequests().anyRequest().authenticated().and()
-    //     .addFilterBefore(jwtFilter, BasicAuthenticationFilter.class).sessionManagement()
-    //     .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-
-        return http.csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(auth -> 
-        auth.requestMatchers(HEALTH, API_DOCS, INFO, INTERNAL, WEBJARS, SLACK_INSTALL).permitAll())
-        .authorizeHttpRequests(request ->{
+    return http.csrf(AbstractHttpConfigurer::disable)
+        .authorizeHttpRequests(
+            auth -> auth.requestMatchers(HEALTH, API_DOCS, INFO, INTERNAL, WEBJARS, SLACK_INSTALL).permitAll())
+        .authorizeHttpRequests(request -> {
           request.anyRequest().authenticated();
         })
-        .addFilterBefore(jwtFilter, BasicAuthenticationFilter.class).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).build();
+        .addFilterBefore(jwtFilter, BasicAuthenticationFilter.class)
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).build();
 
-
-        
   }
+
   @Bean
   public SecurityFilterChain setupNone(HttpSecurity http) throws Exception {
     return http.csrf(csrf -> csrf.disable())
-    .anonymous(a->a.authorities(AuthorityUtils.createAuthorityList("ROLE_admin"))).build();
-
-    // http.csrf().disable().anonymous().authorities(AuthorityUtils.createAuthorityList("ROLE_admin"));
+        .anonymous(a -> a.authorities(AuthorityUtils.createAuthorityList("ROLE_admin"))).build();
   }
-
 
 }
