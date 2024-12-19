@@ -30,11 +30,10 @@ import io.boomerang.model.FlowActivity;
 import io.boomerang.model.teams.Action;
 import io.boomerang.mongo.model.TaskStatus;
 import io.boomerang.tests.IntegrationTests;
-import io.boomerang.tests.MongoConfig;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {Application.class, MongoConfig.class})
+@ContextConfiguration(classes = {Application.class})
 @ActiveProfiles("test")
 @Disabled
 public class DefaultPathTests extends IntegrationTests {

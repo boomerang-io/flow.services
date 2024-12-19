@@ -909,7 +909,7 @@ public class TeamServiceImpl implements TeamService {
     try {
 	  userValidationService.validateUserAdminOrOperator();
 	} catch (ResponseStatusException e) {
-	  throw new HttpClientErrorException(e.getStatus());	
+	  throw new HttpClientErrorException(e.getStatusCode());	
    	}
   }
 
