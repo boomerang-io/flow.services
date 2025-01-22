@@ -59,11 +59,11 @@ public class WebSecurity {
   public SecurityFilterChain configure(HttpSecurity http) throws Exception {
 
     if (boomerangAuthorization) {
-      setupJWT(http);
+      return setupJWT(http);
     } else {
-      setupNone(http);
+      return setupNone(http);
     }
-    return setupNone(http);
+     
 
   }
 
@@ -79,7 +79,7 @@ public class WebSecurity {
         authenticationManager(http.getSharedObject(AuthenticationConfiguration.class)), flowUserService,
         flowSettingsService, basicPassword);
 
-    return http.csrf(AbstractHttpConfigurer::disable)
+    return http.csrf(csrf -> csrf.disable())
         .authorizeHttpRequests(
             auth -> auth.requestMatchers(HEALTH, API_DOCS, INFO, INTERNAL, WEBJARS, SLACK_INSTALL).permitAll())
         .authorizeHttpRequests(request -> {
