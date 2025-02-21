@@ -3,6 +3,8 @@ package io.boomerang.integrations.service;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
+
+import io.boomerang.service.RelationshipService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +24,6 @@ import io.boomerang.integrations.model.GHInstallationsResponse;
 import io.boomerang.integrations.model.GHLinkRequest;
 import io.boomerang.model.enums.RelationshipLabel;
 import io.boomerang.model.enums.RelationshipType;
-import io.boomerang.service.RelationshipService;
-import io.boomerang.service.RelationshipServiceImpl;
 import io.boomerang.service.SettingsService;
 
 @Service
@@ -35,7 +35,7 @@ public class GitHubServiceImpl implements GitHubService {
   private SettingsService settingsService;
   
   @Autowired
-  private RelationshipServiceImpl relationshipServiceImpl;
+  private RelationshipService relationshipService;
   
   @Autowired
   private IntegrationsRepository integrationsRepository;
@@ -67,7 +67,7 @@ public class GitHubServiceImpl implements GitHubService {
   @Override
   public ResponseEntity<?> getInstallationForTeam(String team) {
     List<String> rels =
-        relationshipServiceImpl.getFilteredRefs(Optional.of(RelationshipType.INTEGRATION),
+        relationshipService.getFilteredRefs(Optional.of(RelationshipType.INTEGRATION),
             Optional.empty(), RelationshipLabel.BELONGSTO,
             RelationshipType.TEAM, team, false);
     if (!rels.isEmpty()) {
@@ -78,21 +78,21 @@ public class GitHubServiceImpl implements GitHubService {
     }
     throw new BoomerangException(BoomerangError.ACTION_INVALID_REF);
   }
-
   private GithubAppClient getGitHubAppClient(Integer installationId) {
     final String appId = settingsService.getSettingConfig("integration", "github.appId").getValue();
     final GitHubClient githubClient =
         GitHubClient.create(
-          URI.create("https://api.github.com/"),
-          this.getPEMBytes(),
-          Integer.valueOf(appId),
-          installationId);
-    
+            URI.create("https://api.github.com/"),
+            this.getPEMBytes(),
+            Integer.valueOf(appId),
+            installationId);
+
     final OrganisationClient orgClient = githubClient.createOrganisationClient("");
-    
+
     final GithubAppClient appClient = orgClient.createGithubAppClient();
     return appClient;
-  }  
+  }
+
   
   private byte[] getPEMBytes() {
     final String pem = settingsService.getSettingConfig("integration", "github.jwt").getValue();
@@ -121,7 +121,7 @@ public class GitHubServiceImpl implements GitHubService {
     if (optEntity.isPresent()) {
       IntegrationsEntity entity = optEntity.get();
 //      relationshipService.addRelationshipRef(RelationshipType.INTEGRATION, entity.getId(), RelationshipLabel.BELONGSTO, RelationshipType.TEAM, Optional.of(request.getTeam()), Optional.empty());
-      relationshipServiceImpl.upsertTeamConnection(RelationshipType.INTEGRATION, entity.getId(), RelationshipLabel.INTEGRATIONFOR, request.getTeam(), Optional.empty());
+      relationshipService.upsertTeamConnection(RelationshipType.INTEGRATION, entity.getId(), RelationshipLabel.INTEGRATIONFOR, request.getTeam(), Optional.empty());
       return ResponseEntity.ok().build();
     }
     return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -133,7 +133,7 @@ public class GitHubServiceImpl implements GitHubService {
     Optional<IntegrationsEntity> optEntity = integrationsRepository.findById(request.getRef());
     if (optEntity.isPresent()) {
       IntegrationsEntity entity = optEntity.get();
-      relationshipServiceImpl.removeTeamConnection(RelationshipType.INTEGRATION, List.of(entity.getId()), request.getTeam());
+      relationshipService.removeTeamConnection(RelationshipType.INTEGRATION, List.of(entity.getId()), request.getTeam());
       integrationsRepository.delete(optEntity.get());
     }
   }

@@ -21,7 +21,7 @@ import io.boomerang.model.ref.ChangeLogVersion;
 import io.boomerang.model.ref.Workflow;
 import io.boomerang.model.ref.WorkflowRun;
 import io.boomerang.model.ref.WorkflowSubmitRequest;
-import io.boomerang.security.interceptors.AuthScope;
+import io.boomerang.security.AuthScope;
 import io.boomerang.security.model.PermissionAction;
 import io.boomerang.security.model.PermissionScope;
 import io.boomerang.security.model.AuthType;

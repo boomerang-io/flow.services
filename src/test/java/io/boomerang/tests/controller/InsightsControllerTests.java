@@ -21,7 +21,6 @@ import io.boomerang.data.entity.UserEntity;
 import io.boomerang.misc.FlowTests;
 import io.boomerang.model.InsightsSummary;
 import io.boomerang.model.enums.UserType;
-import io.boomerang.security.service.IdentityService;
 import io.boomerang.v3.mongo.model.TokenScope;
 
 @ExtendWith(SpringExtension.class)

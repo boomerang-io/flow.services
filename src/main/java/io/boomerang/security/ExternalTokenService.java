@@ -1,4 +1,4 @@
-package io.boomerang.security.service;
+package io.boomerang.security;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -12,27 +12,24 @@ import io.jsonwebtoken.security.InvalidKeyException;
 import io.jsonwebtoken.security.Keys;
 
 @Service
-public class ExternalTokenServiceImpl implements ExternalTokenService {
+public class ExternalTokenService {
 
   @Value("${api.token:boomerangsecuritytokenvalid12345}")
   private String apiToken;
 
-  @Override
-  @NoLogging
+  
   public String createJWTToken() {
     final Date expiryDate = getFutureDate();
     final String subject = "boomerang@us.ibm.com";
     return createToken(subject, expiryDate);
   }
 
-  @Override
-  @NoLogging
+  
   public String createJWTToken(String email) {
     final Date expiryDate = getFutureDate();
     return createToken(email, expiryDate);
   }
 
-  @NoLogging
   private String createToken(String subject, Date expiryDate) {
     String jwt;
     try {
@@ -45,7 +42,6 @@ public class ExternalTokenServiceImpl implements ExternalTokenService {
     return jwt;
   }
 
-  @NoLogging
   private Date getFutureDate() {
     final Calendar now = Calendar.getInstance();
     now.add(Calendar.MINUTE, 10);

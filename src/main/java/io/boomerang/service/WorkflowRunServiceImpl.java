@@ -35,7 +35,7 @@ public class WorkflowRunServiceImpl implements WorkflowRunService {
   private EngineClient engineClient;
 
   @Autowired
-  private RelationshipServiceImpl relationshipServiceImpl;
+  private RelationshipService relationshipService;
 
   @Autowired
   private ActionService actionService;
@@ -51,7 +51,7 @@ public class WorkflowRunServiceImpl implements WorkflowRunService {
       throw new BoomerangException(BoomerangError.WORKFLOWRUN_INVALID_REF);
     }
 
-    if (relationshipServiceImpl.hasTeamRelationship(Optional.of(RelationshipType.WORKFLOWRUN),
+    if (relationshipService.hasTeamRelationship(Optional.of(RelationshipType.WORKFLOWRUN),
         Optional.of(workflowRunId), RelationshipLabel.BELONGSTO, team, false)) {
       WorkflowRun wfRun = engineClient.getWorkflowRun(workflowRunId, withTasks);
       return ResponseEntity.ok(wfRun);
@@ -81,7 +81,7 @@ public class WorkflowRunServiceImpl implements WorkflowRunService {
     
     // Check the queryWorkflows
 //    if (queryWorkflows.isPresent()) {
-      List<String> wfRefs = relationshipServiceImpl.getFilteredRefs(Optional.of(RelationshipType.WORKFLOW), queryWorkflows, RelationshipLabel.BELONGSTO, RelationshipType.TEAM, queryTeam, false);
+      List<String> wfRefs = relationshipService.getFilteredRefs(Optional.of(RelationshipType.WORKFLOW), queryWorkflows, RelationshipLabel.BELONGSTO, RelationshipType.TEAM, queryTeam, false);
       LOGGER.debug("Workflow Refs: {}", wfRefs.toString());
 //      queryWorkflows.get().clear();
 //      queryWorkflows.get().addAll(wfRefs);
@@ -118,7 +118,7 @@ public class WorkflowRunServiceImpl implements WorkflowRunService {
 //    }
     
     // Check the queryWorkflows
-      List<String> wfRefs = relationshipServiceImpl.getFilteredRefs(Optional.of(RelationshipType.WORKFLOW), queryWorkflows, RelationshipLabel.BELONGSTO, RelationshipType.TEAM, queryTeam, false);
+      List<String> wfRefs = relationshipService.getFilteredRefs(Optional.of(RelationshipType.WORKFLOW), queryWorkflows, RelationshipLabel.BELONGSTO, RelationshipType.TEAM, queryTeam, false);
       LOGGER.debug("Workflow Refs: {}", wfRefs.toString());
       
     return engineClient.insightWorkflowRuns(queryLabels, Optional.empty(), Optional.of(wfRefs), from, to);
@@ -129,7 +129,7 @@ public class WorkflowRunServiceImpl implements WorkflowRunService {
    */
   @Override
   public WorkflowRunCount count(String queryTeam, Optional<Long> from, Optional<Long> to,  Optional<List<String>> queryLabels, Optional<List<String>> queryWorkflows) {
-    List<String> wfRefs = relationshipServiceImpl.getFilteredRefs(Optional.of(RelationshipType.WORKFLOW), queryWorkflows, RelationshipLabel.BELONGSTO, RelationshipType.TEAM, queryTeam, false);
+    List<String> wfRefs = relationshipService.getFilteredRefs(Optional.of(RelationshipType.WORKFLOW), queryWorkflows, RelationshipLabel.BELONGSTO, RelationshipType.TEAM, queryTeam, false);
     LOGGER.debug("Workflow Refs: {}", wfRefs.toString());
     
     return engineClient.countWorkflowRuns(queryLabels, Optional.of(wfRefs), from, to);
@@ -146,7 +146,7 @@ public class WorkflowRunServiceImpl implements WorkflowRunService {
     if (workflowRunId == null || workflowRunId.isBlank()) {
       throw new BoomerangException(BoomerangError.WORKFLOWRUN_INVALID_REF);
     }
-    if (relationshipServiceImpl.hasTeamRelationship(Optional.of(RelationshipType.WORKFLOWRUN),
+    if (relationshipService.hasTeamRelationship(Optional.of(RelationshipType.WORKFLOWRUN),
         Optional.of(workflowRunId), RelationshipLabel.BELONGSTO, team, false)) {
       WorkflowRun wfRun = engineClient.startWorkflowRun(workflowRunId, optRunRequest);
       return ResponseEntity.ok(wfRun);
@@ -165,7 +165,7 @@ public class WorkflowRunServiceImpl implements WorkflowRunService {
     if (workflowRunId == null || workflowRunId.isBlank()) {
       throw new BoomerangException(BoomerangError.WORKFLOWRUN_INVALID_REF);
     }
-    if (relationshipServiceImpl.hasTeamRelationship(Optional.of(RelationshipType.WORKFLOWRUN),
+    if (relationshipService.hasTeamRelationship(Optional.of(RelationshipType.WORKFLOWRUN),
         Optional.of(workflowRunId), RelationshipLabel.BELONGSTO, team, false)) {
       WorkflowRun wfRun = engineClient.finalizeWorkflowRun(workflowRunId);
       return ResponseEntity.ok(wfRun);
@@ -182,7 +182,7 @@ public class WorkflowRunServiceImpl implements WorkflowRunService {
     if (workflowRunId == null || workflowRunId.isBlank()) {
       throw new BoomerangException(BoomerangError.WORKFLOWRUN_INVALID_REF);
     }
-    if (relationshipServiceImpl.hasTeamRelationship(Optional.of(RelationshipType.WORKFLOWRUN),
+    if (relationshipService.hasTeamRelationship(Optional.of(RelationshipType.WORKFLOWRUN),
         Optional.of(workflowRunId), RelationshipLabel.BELONGSTO, team, false)) {
       WorkflowRun wfRun = engineClient.cancelWorkflowRun(workflowRunId);
       actionService.cancelAllByWorkflowRun(workflowRunId);
@@ -201,12 +201,12 @@ public class WorkflowRunServiceImpl implements WorkflowRunService {
     if (workflowRunId == null || workflowRunId.isBlank()) {
       throw new BoomerangException(BoomerangError.WORKFLOWRUN_INVALID_REF);
     }
-    if (relationshipServiceImpl.hasTeamRelationship(Optional.of(RelationshipType.WORKFLOWRUN),
+    if (relationshipService.hasTeamRelationship(Optional.of(RelationshipType.WORKFLOWRUN),
         Optional.of(workflowRunId), RelationshipLabel.BELONGSTO, team, false)) {
       WorkflowRun wfRun = engineClient.retryWorkflowRun(workflowRunId);
 
       // Creates relationship with owning team
-      relationshipServiceImpl.createNodeWithTeamConnection(RelationshipType.WORKFLOWRUN, wfRun.getId(), "", team, Optional.empty());
+      relationshipService.createNodeWithTeamConnection(RelationshipType.WORKFLOWRUN, wfRun.getId(), "", team, Optional.empty());
       return ResponseEntity.ok(wfRun);
     } else {
       throw new BoomerangException(BoomerangError.WORKFLOWRUN_INVALID_REF);

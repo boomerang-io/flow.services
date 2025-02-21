@@ -1,4 +1,4 @@
-package io.boomerang.security.interceptors;
+package io.boomerang.security;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

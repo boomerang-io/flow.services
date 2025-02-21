@@ -3,7 +3,10 @@ package io.boomerang.controller;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import javax.validation.Valid;
+
+import io.boomerang.security.TokenService;
+import io.boomerang.security.model.*;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort.Direction;
@@ -16,14 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import io.boomerang.security.interceptors.AuthScope;
-import io.boomerang.security.model.AuthType;
-import io.boomerang.security.model.CreateTokenRequest;
-import io.boomerang.security.model.CreateTokenResponse;
-import io.boomerang.security.model.PermissionAction;
-import io.boomerang.security.model.PermissionScope;
-import io.boomerang.security.model.Token;
-import io.boomerang.security.service.TokenService;
+import io.boomerang.security.AuthScope;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -41,7 +37,7 @@ public class TokenV2Controller {
   @AuthScope(types = {AuthType.global, AuthType.user, AuthType.team, AuthType.workflow},
       scope = PermissionScope.TOKEN, action = PermissionAction.WRITE)
   @Operation(summary = "Create Token")
-  public CreateTokenResponse createToken(@Valid @RequestBody CreateTokenRequest request) {
+  public TokenCreateResponse createToken(@Valid @RequestBody TokenCreateRequest request) {
     return tokenService.create(request);
   }
 

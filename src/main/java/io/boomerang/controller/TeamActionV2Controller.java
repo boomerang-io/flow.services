@@ -22,7 +22,7 @@ import io.boomerang.model.ActionRequest;
 import io.boomerang.model.ActionSummary;
 import io.boomerang.model.enums.ref.ActionStatus;
 import io.boomerang.model.enums.ref.ActionType;
-import io.boomerang.security.interceptors.AuthScope;
+import io.boomerang.security.AuthScope;
 import io.boomerang.security.model.AuthType;
 import io.boomerang.security.model.PermissionAction;
 import io.boomerang.security.model.PermissionScope;

@@ -12,6 +12,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
+
+import io.boomerang.security.IdentityService;
+import io.boomerang.security.UserService;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -55,9 +58,8 @@ import io.boomerang.model.ref.WorkflowRunInsight;
 import io.boomerang.security.entity.RoleEntity;
 import io.boomerang.security.model.Role;
 import io.boomerang.security.model.RoleEnum;
-import io.boomerang.security.repository.RoleRepository;
-import io.boomerang.security.service.IdentityService;
-import io.boomerang.security.service.TokenServiceImpl;
+import io.boomerang.security.RoleRepository;
+import io.boomerang.security.TokenService;
 import io.boomerang.util.DataAdapterUtil.FieldType;
 import io.boomerang.util.StringUtil;
 
@@ -83,6 +85,9 @@ public class TeamServiceImpl implements TeamService {
   private IdentityService identityService;
 
   @Autowired
+  private UserService userService;
+
+  @Autowired
   private ApproverGroupRepository approverGroupRepository;
 
   @Autowired
@@ -92,7 +97,7 @@ public class TeamServiceImpl implements TeamService {
   private SettingsService settingsService;
 
   @Autowired
-  private RelationshipServiceImpl relationshipServiceImpl;
+  private RelationshipService relationshipServiceImpl;
 
   @Autowired
   private MongoTemplate mongoTemplate;
@@ -104,7 +109,7 @@ public class TeamServiceImpl implements TeamService {
   private WorkflowService workflowService;
 
   @Autowired
-  private TokenServiceImpl tokenService;
+  private TokenService tokenService;
 
   @Autowired
   private TaskService taskTemplateService;
@@ -403,9 +408,9 @@ public class TeamServiceImpl implements TeamService {
       for (TeamMember userSummary : request) {
         Optional<User> userEntity = Optional.empty();
         if (!userSummary.getId().isEmpty()) {
-          userEntity = identityService.getUserByID(userSummary.getId());
+          userEntity = userService.getUserByID(userSummary.getId());
         } else if (!userSummary.getEmail().isEmpty()) {
-          userEntity = identityService.getUserByEmail(userSummary.getEmail());
+          userEntity = userService.getUserByEmail(userSummary.getEmail());
         }
         if (userEntity.isPresent()) {
           userRefs.add(userEntity.get().getId());
@@ -823,7 +828,7 @@ public class TeamServiceImpl implements TeamService {
     ApproverGroup ag = new ApproverGroup(age);
     if (!age.getApprovers().isEmpty()) {
       age.getApprovers().forEach(ref -> {
-        Optional<User> ue = identityService.getUserByID(ref);
+        Optional<User> ue = userService.getUserByID(ref);
         if (ue.isPresent()) {
           TeamMember u = new TeamMember(ue.get());
           ag.getApprovers().add(u);
@@ -841,7 +846,7 @@ public class TeamServiceImpl implements TeamService {
     List<TeamMember> teamUsers = new LinkedList<>();
     if (!memberRoleMap.isEmpty()) {
       memberRoleMap.forEach((m, r) -> {
-        Optional<User> ue = identityService.getUserByID(m);
+        Optional<User> ue = userService.getUserByID(m);
         if (ue.isPresent()) {
           String role = RoleEnum.READER.getLabel();
           if (!r.isEmpty()) {
@@ -866,16 +871,16 @@ public class TeamServiceImpl implements TeamService {
         Optional<User> userEntity = Optional.empty();
         //Find user by ID or Email - UI allows adding from existing or new (email)
         if (userSummary.getId() != null && !userSummary.getId().isEmpty()) {
-          userEntity = identityService.getUserByID(userSummary.getId());
+          userEntity = userService.getUserByID(userSummary.getId());
         } else if (userSummary.getEmail() != null && !userSummary.getEmail().isEmpty()) {
-          userEntity = identityService.getUserByEmail(userSummary.getEmail());
+          userEntity = userService.getUserByEmail(userSummary.getEmail());
         }
         if (!userEntity.isPresent()) {
           //Create new user record & relationship
           //TODO - invite the user rather than create a relationship
           //TODO - throw error for user that can't be created or is that handled?
-          Optional<UserEntity> newUser = identityService.getAndRegisterUser(userSummary.getEmail(), null, null, Optional.of(UserType.user), false);
-          userEntity = identityService.getUserByID(newUser.get().getId());
+          Optional<UserEntity> newUser = userService.getAndRegisterUser(userSummary.getEmail(), null, null, Optional.of(UserType.user), false);
+          userEntity = userService.getUserByID(newUser.get().getId());
         }
         //Check the provided role is valid in our system
         if (RoleEnum.hasLabel(userSummary.getRole())) {

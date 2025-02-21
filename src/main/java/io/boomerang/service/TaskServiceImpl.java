@@ -4,6 +4,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import io.boomerang.security.IdentityService;
+import io.boomerang.security.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +22,6 @@ import io.boomerang.model.enums.RelationshipType;
 import io.boomerang.model.ref.ChangeLog;
 import io.boomerang.model.ref.ChangeLogVersion;
 import io.boomerang.model.ref.Task;
-import io.boomerang.security.service.IdentityService;
 import io.boomerang.tekton.TektonConverter;
 import io.boomerang.tekton.TektonTask;
 import io.boomerang.util.ParameterUtil;
@@ -43,10 +45,13 @@ public class TaskServiceImpl implements TaskService {
   private EngineClient engineClient;
 
   @Autowired
-  private RelationshipServiceImpl relationshipServiceImpl;
+  private RelationshipService relationshipServiceImpl;
 
   @Autowired
   private IdentityService identityService;
+
+  @Autowired
+  private UserService userService;
 
   /*
    * Retrieve a TASK by name and optional version. If no version specified, will retrieve the latest.
@@ -303,7 +308,7 @@ public class TaskServiceImpl implements TaskService {
   //TODO - need to make more performant
   private void switchChangeLogAuthorToUserName(ChangeLog changelog) {
     if (changelog != null && changelog.getAuthor() != null) {
-      Optional<User> user = identityService.getUserByID(changelog.getAuthor());
+      Optional<User> user = userService.getUserByID(changelog.getAuthor());
       if (user.isPresent()) {
         changelog.setAuthor(user.get().getDisplayName().isEmpty() ? user.get().getName() : user.get().getDisplayName());
       } else {

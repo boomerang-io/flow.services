@@ -3,6 +3,10 @@ package io.boomerang.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import io.boomerang.security.ExternalTokenService;
+import io.boomerang.security.IdentityService;
+import io.boomerang.security.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,8 +22,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import io.boomerang.model.Features;
 import io.boomerang.model.Navigation;
 import io.boomerang.model.NavigationType;
-import io.boomerang.security.service.ExternalTokenService;
-import io.boomerang.security.service.IdentityService;
 
 @Service
 public class NavigationServiceImpl implements NavigationService {
@@ -44,7 +46,7 @@ public class NavigationServiceImpl implements NavigationService {
   private String flowAppsUrl;
 
   @Autowired
-  private IdentityService identityService;
+  private UserService userService;
 
   @Override
   public List<Navigation> getNavigation(boolean isUserAdmin, Optional<String> optTeamId) {
@@ -227,7 +229,7 @@ public class NavigationServiceImpl implements NavigationService {
 
       HttpHeaders headers = new HttpHeaders();
       headers.add(AUTHORIZATION_HEADER, TOKEN_PREFIX
-          + apiTokenService.createJWTToken(identityService.getCurrentUser().getEmail()));
+          + apiTokenService.createJWTToken(userService.getCurrentUser().getEmail()));
       HttpEntity<String> request = new HttpEntity<>(headers);
       ResponseEntity<List<Navigation>> response = restTemplate.exchange(uriComponents.toUriString(),
           HttpMethod.GET, request, new ParameterizedTypeReference<List<Navigation>>() {});

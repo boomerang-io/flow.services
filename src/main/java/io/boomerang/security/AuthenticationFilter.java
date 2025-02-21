@@ -1,4 +1,4 @@
-package io.boomerang.security.filters;
+package io.boomerang.security;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -6,30 +6,27 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.WordUtils;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.filter.OncePerRequestFilter;
 import com.slack.api.app_backend.SlackSignature.Generator;
 import com.slack.api.app_backend.SlackSignature.Verifier;
-import io.boomerang.security.AuthorizationException;
 import io.boomerang.security.model.Token;
-import io.boomerang.security.service.TokenService;
 import io.boomerang.service.SettingsService;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.impl.DefaultJwtParser;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.PlainJWT;
 
 /*
  * The Filter ensures that the user is Authenticated prior to the Interceptor which validates
@@ -45,13 +42,12 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
   private static final String X_FORWARDED_USER = "x-forwarded-user";
   private static final String X_FORWARDED_EMAIL = "x-forwarded-email";
-  private static final String X_ACCESS_TOKEN = "x-access-token";
   private static final String TOKEN_URL_PARAM_NAME = "access_token";
   private static final String AUTHORIZATION_HEADER = "Authorization";
-  private static final String X_SLACK_SIGNATURE = "X-Slack-Signature";
-  private static final String X_SLACK_TIMESTAMP = "X-Slack-Request-Timestamp";
+//  private static final String X_SLACK_SIGNATURE = "X-Slack-Signature";
+//  private static final String X_SLACK_TIMESTAMP = "X-Slack-Request-Timestamp";
   private static final String PATH_ACTIVATE = "/api/v2/activate";
-  private static final String PATH_PROFILE = "/api/v2/user/profile";
+  private static final String PATH_PROFILE = "/api/v2/profile";
   private static final String TOKEN_PATTERN = "Bearer\\sbf._(.)+";
 
   private TokenService tokenService;
@@ -66,58 +62,47 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     this.basicPassword = basicPassword;
   }
 
+  /*
+    * Filter to ensure the user is authenticated
+    *
+    * //DEPRECATED: X_ACCESS_TOKEN in favor of AUTHORIZATION_HEADER
+   */
   @Override
   protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res,
       FilterChain chain) throws IOException, ServletException {
     LOGGER.debug("In AuthFilter()");
     try {
-      // MultiReadHttpServletRequest multiReadRequest = new MultiReadHttpServletRequest(req);
       Authentication authentication = null;
 
+      // Rely on Authorization header and Bearer tokens
+      // Fall back on token in URL param (some integrations can only set a URL and not the
+      // headers
       if (req.getHeader(AUTHORIZATION_HEADER) != null) {
         if (req.getHeader(AUTHORIZATION_HEADER).matches(TOKEN_PATTERN)) {
           authentication = getTokenAuthentication(req.getHeader(AUTHORIZATION_HEADER));
         } else {
           authentication = getUserSessionAuthentication(req);
         }
-      } else if (req.getHeader(X_ACCESS_TOKEN) != null) {
-        //TODO - deprecate this form of header an only rely on AUTHORIZATION_HEADER
-        authentication = getTokenAuthentication(req.getHeader(X_ACCESS_TOKEN));
       } else if (req.getParameter(TOKEN_URL_PARAM_NAME) != null) {
         authentication = getTokenAuthentication(req.getParameter(TOKEN_URL_PARAM_NAME));
       } else if (req.getHeader(X_FORWARDED_EMAIL) != null) {
         authentication = getGithubUserAuthentication(req);
       } 
 
-      // if (multiReadRequest.getHeader(X_SLACK_SIGNATURE) != null) {
-      // InputStream inputStream = multiReadRequest.getInputStream();
-      // byte[] body = StreamUtils.copyToByteArray(inputStream);
-      // String signature = multiReadRequest.getHeader(X_SLACK_SIGNATURE);
-      // String timestamp = multiReadRequest.getHeader(X_SLACK_TIMESTAMP);
-      //
-      // if (!verifySignature(signature, timestamp, new String(body))) {
-      // LOGGER.error("Fail SlackSignatureVerificationFilter()");
-      // res.sendError(401);
-      // return;
-      // }
-      // }
       if (authentication != null) {
         LOGGER.debug("AuthFilter() - authorized.");
         SecurityContextHolder.getContext().setAuthentication(authentication);
         chain.doFilter(req, res);
-        return;
+      } else {
+        LOGGER.error("AuthFilter() - not authorized.");
+        res.sendError(401);
       }
-      LOGGER.error("AuthFilter() - not authorized.");
+    } catch (final HttpClientErrorException ex) {
+      LOGGER.error(ex);
+      res.sendError(ex.getRawStatusCode());
+    } catch (AccessDeniedException | AuthenticationException ex) {
+      LOGGER.error(ex);
       res.sendError(401);
-      return;
-    } catch (final HttpClientErrorException e2) {
-      LOGGER.error(e2);
-      res.sendError(e2.getRawStatusCode());
-      return;
-    } catch (final AuthorizationException e) {
-      LOGGER.error(e);
-      res.sendError(401);
-      return;
     }
   }
 
@@ -125,7 +110,6 @@ public class AuthenticationFilter extends OncePerRequestFilter {
    * Authorization Header Bearer Token
    * 
    * Populated by the app via OAuth2_Proxy
-   * 
    * TODO: figure out a way to ensure it comes via the OAuth2_Proxy
    */
   private UsernamePasswordAuthenticationToken getUserSessionAuthentication(HttpServletRequest request) // NOSONAR
@@ -144,49 +128,46 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
     if (token.startsWith("Bearer ")) {
       final String jws = token.replace("Bearer ", "");
-      Claims claims;
+      JWTClaimsSet claims;
       String withoutSignature = jws.substring(0, jws.lastIndexOf('.') + 1);
 
       try {
-        claims = (Claims) new DefaultJwtParser().parse(withoutSignature).getBody();
-      } catch (ExpiredJwtException e) {
-        claims = e.getClaims();
+        PlainJWT jwt = PlainJWT.parse(withoutSignature);
+        claims = jwt.getJWTClaimsSet();
+      } catch (Exception e) {
+        return null;
       }
       LOGGER.debug("AuthFilter() - claims: " + claims.toString());
       String email = null;
-      if (claims.get("emailAddress") != null) {
-        email = (String) claims.get("emailAddress");
-      } else if (claims.get("email") != null) {
-        email = (String) claims.get("email");
+      if (claims.getClaim("emailAddress") != null) {
+        email = (String) claims.getClaim("emailAddress");
+      } else if (claims.getClaim("email") != null) {
+        email = (String) claims.getClaim("email");
       }
 
       String firstName = null;
-      if (claims.get("firstName") != null) {
-        firstName = (String) claims.get("firstName");
-      } else if (claims.get("given_name") != null) {
-        firstName = (String) claims.get("given_name");
+      if (claims.getClaim("firstName") != null) {
+        firstName = (String) claims.getClaim("firstName");
+      } else if (claims.getClaim("given_name") != null) {
+        firstName = (String) claims.getClaim("given_name");
       }
 
       String lastName = null;
-      if (claims.get("lastName") != null) {
-        lastName = (String) claims.get("lastName");
-      } else if (claims.get("family_name") != null) {
-        lastName = (String) claims.get("family_name");
+      if (claims.getClaim("lastName") != null) {
+        lastName = (String) claims.getClaim("lastName");
+      } else if (claims.getClaim("family_name") != null) {
+        lastName = (String) claims.getClaim("family_name");
       }
 
-      firstName = sanitize(firstName);
-      lastName = sanitize(lastName);
-
       if (email != null && !email.isBlank()) {
-        final Token userSessionToken =
-            tokenService.createUserSessionToken(email, firstName, lastName, allowActivation, allowUserCreation);
+        final Token sessionToken =
+            tokenService.createSessionToken(email, firstName, lastName, allowActivation, allowUserCreation);
         final List<GrantedAuthority> authorities = new ArrayList<>();
         final UsernamePasswordAuthenticationToken authToken =
             new UsernamePasswordAuthenticationToken(email, null, authorities);
-        authToken.setDetails(userSessionToken);
+        authToken.setDetails(sessionToken);
         return authToken;
       }
-      return null;
     } else if (token.startsWith("Basic ")) {
       String base64Credentials =
           request.getHeader(AUTHORIZATION_HEADER).substring("Basic".length()).trim();
@@ -207,44 +188,14 @@ public class AuthenticationFilter extends OncePerRequestFilter {
       }
 
       if (email != null && !email.isBlank()) {
-        final Token userSessionToken =
-            tokenService.createUserSessionToken(email, null, null, allowActivation, allowUserCreation);
+        final Token sessionToken =
+            tokenService.createSessionToken(email, null, null, allowActivation, allowUserCreation);
         final List<GrantedAuthority> authorities = new ArrayList<>();
         final UsernamePasswordAuthenticationToken authToken =
             new UsernamePasswordAuthenticationToken(email, password, authorities);
-        authToken.setDetails(userSessionToken);
+        authToken.setDetails(sessionToken);
         return authToken;
       }
-      return null;
-    }
-    return null;
-  }
-
-  /*
-   * Validate and Bump GitHub Protected Auth
-   * 
-   * TODO: what is the value for X_FORWARDED_USER
-   */
-  private Authentication getGithubUserAuthentication(HttpServletRequest request) {
-    boolean allowActivation = false;
-    if (request.getServletPath().startsWith(PATH_ACTIVATE)) {
-      allowActivation = true;
-    }
-    
-    boolean allowUserCreation = false;
-    if (request.getServletPath().startsWith(PATH_PROFILE)) {
-      allowUserCreation = true;
-    }
-    String email = request.getHeader(X_FORWARDED_EMAIL);
-    String userName = request.getHeader(X_FORWARDED_USER);
-    final Token token =
-        tokenService.createUserSessionToken(email, userName, null, allowActivation, allowUserCreation);
-    if (email != null && !email.isBlank()) {
-      final List<GrantedAuthority> authorities = new ArrayList<>();
-      final UsernamePasswordAuthenticationToken authToken =
-          new UsernamePasswordAuthenticationToken(token.getPrincipal(), null, authorities);
-      authToken.setDetails(token);
-      return authToken;
     }
     return null;
   }
@@ -252,7 +203,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
   /*
    * Validate and hoist Token Based Auth
    * 
-   * Handles the token coming from AUTHORIZATION_HEADER, X_ACCESS_TOKEN, or TOKEN_URL_PARAM_NAME in
+   * Handles the token coming from AUTHORIZATION_HEADER or TOKEN_URL_PARAM_NAME in
    * that order
    */
   private Authentication getTokenAuthentication(String accessToken) {
@@ -272,24 +223,36 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     return null;
   }
 
-  private String sanitize(String value) {
-    if (StringUtils.isBlank(value)) {
-      return value;
+  /*
+   * Validate and Bump GitHub Protected Auth
+   */
+  private Authentication getGithubUserAuthentication(HttpServletRequest request) {
+    boolean allowActivation = false;
+    if (request.getServletPath().startsWith(PATH_ACTIVATE)) {
+      allowActivation = true;
     }
-    String cleanString = value;
-    try {
-      cleanString = java.net.URLDecoder.decode(value, "UTF-8");
-    } catch (final UnsupportedEncodingException e) {
-      return value;
+
+    boolean allowUserCreation = false;
+    if (request.getServletPath().startsWith(PATH_PROFILE)) {
+      allowUserCreation = true;
     }
-    cleanString = cleanString.toLowerCase();
-    cleanString = WordUtils.capitalizeFully(cleanString);
-    return cleanString;
+    String email = request.getHeader(X_FORWARDED_EMAIL);
+    String userName = request.getHeader(X_FORWARDED_USER);
+    final Token token =
+        tokenService.createSessionToken(email, userName, null, allowActivation, allowUserCreation);
+    if (email != null && !email.isBlank()) {
+      final List<GrantedAuthority> authorities = new ArrayList<>();
+      final UsernamePasswordAuthenticationToken authToken =
+          new UsernamePasswordAuthenticationToken(token.getPrincipal(), null, authorities);
+      authToken.setDetails(token);
+      return authToken;
+    }
+    return null;
   }
 
   /*
    * Utlity method for verifying requests are signed by Slack
-   * 
+   *
    * <h4>Specifications</h4> <ul> <li><a
    * href="https://api.slack.com/authentication/verifying-requests-from-slack">Verifying Requests
    * from Slack</a></li> </ul>

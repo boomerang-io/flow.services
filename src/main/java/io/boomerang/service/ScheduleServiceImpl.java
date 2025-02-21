@@ -62,7 +62,7 @@ public class ScheduleServiceImpl implements ScheduleService {
   private WorkflowService workflowService;
   
   @Autowired
-  private RelationshipServiceImpl relationshipServiceImpl;
+  private RelationshipService relationshipService;
 
   @Autowired
   private EngineClient engineClient;
@@ -78,7 +78,7 @@ public class ScheduleServiceImpl implements ScheduleService {
   @Override
   public WorkflowSchedule get(String team, String scheduleId) {
     final Optional<WorkflowScheduleEntity> scheduleEntity = scheduleRepository.findById(scheduleId);
-    if (scheduleEntity.isPresent() && relationshipServiceImpl.hasTeamRelationship(Optional.of(RelationshipType.WORKFLOW),
+    if (scheduleEntity.isPresent() && relationshipService.hasTeamRelationship(Optional.of(RelationshipType.WORKFLOW),
           Optional.of(scheduleEntity.get().getWorkflowRef()), RelationshipLabel.BELONGSTO, team, false)) {
       return convertScheduleEntityToModel(scheduleEntity.get());
     }
@@ -106,7 +106,7 @@ public class ScheduleServiceImpl implements ScheduleService {
    */
   @Override
   public Page<WorkflowSchedule> query(String queryTeam, int page, int limit, Sort sort, Optional<List<String>> queryStatus, Optional<List<String>> queryTypes, Optional<List<String>> queryWorkflows) {
-    List<String> refs = relationshipServiceImpl.getFilteredRefs(Optional.of(RelationshipType.WORKFLOW), queryWorkflows, RelationshipLabel.BELONGSTO, RelationshipType.TEAM, queryTeam, false);
+    List<String> refs = relationshipService.getFilteredRefs(Optional.of(RelationshipType.WORKFLOW), queryWorkflows, RelationshipLabel.BELONGSTO, RelationshipType.TEAM, queryTeam, false);
     if (!refs.isEmpty()) {
       List<Criteria> criteriaList = new ArrayList<>();
       Criteria criteria = Criteria.where("workflowRef").in(refs);
@@ -158,7 +158,7 @@ public class ScheduleServiceImpl implements ScheduleService {
    */
   @Override
   public WorkflowSchedule create(String team, final WorkflowSchedule schedule) {
-    if (schedule != null && schedule.getWorkflowRef() != null && relationshipServiceImpl.hasTeamRelationship(Optional.of(RelationshipType.WORKFLOW),
+    if (schedule != null && schedule.getWorkflowRef() != null && relationshipService.hasTeamRelationship(Optional.of(RelationshipType.WORKFLOW),
         Optional.of(schedule.getWorkflowRef()), RelationshipLabel.BELONGSTO, team, false)) {
         WorkflowScheduleEntity scheduleEntity = internalCreate(team, schedule);
         return convertScheduleEntityToModel(scheduleEntity);
@@ -236,7 +236,7 @@ public class ScheduleServiceImpl implements ScheduleService {
    */
   @Override
   public List<WorkflowScheduleCalendar> getCalendarsForWorkflow(String team, final String workflowId, Date fromDate, Date toDate) {
-    if (relationshipServiceImpl.hasTeamRelationship(Optional.of(RelationshipType.WORKFLOW),
+    if (relationshipService.hasTeamRelationship(Optional.of(RelationshipType.WORKFLOW),
         Optional.of(workflowId), RelationshipLabel.BELONGSTO, team, false)) {
       List<WorkflowScheduleCalendar> scheduleCalendars = new LinkedList<>();
       final Optional<List<WorkflowScheduleEntity>> scheduleEntities = scheduleRepository.findByWorkflowRefInAndStatusIn(List.of(workflowId), getStatusesNotCompletedOrDeleted());
@@ -462,7 +462,7 @@ public class ScheduleServiceImpl implements ScheduleService {
   @Override
   public void delete(String team, final String scheduleId) {
     final Optional<WorkflowScheduleEntity> schedule = scheduleRepository.findById(scheduleId);
-    if (schedule.isPresent() && relationshipServiceImpl.hasTeamRelationship(Optional.of(RelationshipType.WORKFLOW),
+    if (schedule.isPresent() && relationshipService.hasTeamRelationship(Optional.of(RelationshipType.WORKFLOW),
         Optional.of(schedule.get().getWorkflowRef()), RelationshipLabel.BELONGSTO, team, false)) {
       this.internalDelete(schedule.get());
     }

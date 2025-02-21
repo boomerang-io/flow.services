@@ -3,6 +3,8 @@ package io.boomerang.controller;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+
+import io.boomerang.security.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
@@ -21,11 +23,10 @@ import io.boomerang.model.HeaderNavigationResponse;
 import io.boomerang.model.Navigation;
 import io.boomerang.model.OneTimeCode;
 import io.boomerang.model.Setting;
-import io.boomerang.security.interceptors.AuthScope;
+import io.boomerang.security.AuthScope;
 import io.boomerang.security.model.AuthType;
 import io.boomerang.security.model.PermissionAction;
 import io.boomerang.security.model.PermissionScope;
-import io.boomerang.security.service.IdentityService;
 import io.boomerang.service.ContextService;
 import io.boomerang.service.FeatureService;
 import io.boomerang.service.GlobalParamService;
@@ -47,7 +48,7 @@ public class SystemV2Controller {
   private SettingsService settingsService;
 
   @Autowired
-  private IdentityService identityService;
+  private UserService userService;
   
   @Autowired
   private GlobalParamService paramService;
@@ -85,14 +86,14 @@ public class SystemV2Controller {
   @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
       @ApiResponse(responseCode = "400", description = "Bad Request")})
   public ResponseEntity<Boolean> register(@RequestBody(required = false) OneTimeCode otc) {
-    return identityService.activateSetup(otc);
+    return userService.activateSetup(otc);
   }
 
   @GetMapping(value = "/context")
   @AuthScope(action = PermissionAction.READ, scope = PermissionScope.SYSTEM, types = {AuthType.session, AuthType.user, AuthType.global})
   @Operation(summary = "Retrieve this instances context, features, and navigation.")
   public HeaderNavigationResponse getHeaderNavigation() {
-    return this.contextService.getHeaderNavigation(identityService.isCurrentUserAdmin());
+    return this.contextService.getHeaderNavigation(userService.isCurrentUserAdmin());
   }
   
   @GetMapping(value = "/features")
@@ -110,7 +111,7 @@ public class SystemV2Controller {
   @Operation(summary = "Retrieve navigation.")
   public ResponseEntity<List<Navigation>> getNavigation(@Parameter(name = "team", description = "Team as owner reference", example = "my-amazing-team",
       required = false) @RequestParam(required = false) Optional<String> team) {
-    List<Navigation> response = navigationService.getNavigation(identityService.isCurrentUserAdmin(), team);
+    List<Navigation> response = navigationService.getNavigation(userService.isCurrentUserAdmin(), team);
     
     CacheControl cacheControl = CacheControl.maxAge(1, TimeUnit.HOURS);
 

@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.boomerang.error.BoomerangException;
 import io.boomerang.model.WorkflowSchedule;
 import io.boomerang.model.WorkflowScheduleCalendar;
-import io.boomerang.security.interceptors.AuthScope;
+import io.boomerang.security.AuthScope;
 import io.boomerang.security.model.AuthType;
 import io.boomerang.security.model.PermissionAction;
 import io.boomerang.security.model.PermissionScope;

@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -29,7 +28,7 @@ public class InsightsServiceImpl implements InsightsService {
   private static final Logger LOGGER = LogManager.getLogger();
 
   @Autowired
-  private RelationshipServiceImpl relationshipServiceImpl;
+  private RelationshipService relationshipService;
 
   @Autowired
   private AuditRepository auditRepository;
@@ -59,7 +58,7 @@ public class InsightsServiceImpl implements InsightsService {
           wfRefs = workflowAEList.stream().map(AuditEntity::getSelfRef).toList();
         }
       } else {
-        wfRefs = relationshipServiceImpl.getFilteredRefs(Optional.of(RelationshipType.WORKFLOW), workflowRefs, RelationshipLabel.BELONGSTO, RelationshipType.TEAM, team, false);
+        wfRefs = relationshipService.getFilteredRefs(Optional.of(RelationshipType.WORKFLOW), workflowRefs, RelationshipLabel.BELONGSTO, RelationshipType.TEAM, team, false);
       }
       LOGGER.debug("Workflow Refs: {}", wfRefs.toString());      
       if (!wfRefs.isEmpty()) {
