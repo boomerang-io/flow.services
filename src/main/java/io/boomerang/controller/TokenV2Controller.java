@@ -37,7 +37,7 @@ public class TokenV2Controller {
   @AuthScope(types = {AuthType.global, AuthType.user, AuthType.team, AuthType.workflow},
       scope = PermissionScope.TOKEN, action = PermissionAction.WRITE)
   @Operation(summary = "Create Token")
-  public TokenCreateResponse createToken(@Valid @RequestBody TokenCreateRequest request) {
+  public TokenCreateResponse createToken(@RequestBody TokenCreateRequest request) {
     return tokenService.create(request);
   }
 
