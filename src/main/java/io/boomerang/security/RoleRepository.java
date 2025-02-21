@@ -1,4 +1,4 @@
-package io.boomerang.security.repository;
+package io.boomerang.security;
 
 import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;

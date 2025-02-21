@@ -27,14 +27,4 @@ public enum TokenTypePrefix {
   public static TokenTypePrefix valueOfPrefix(String prefix) {
     return BY_PREFIX.get(prefix);
   }
-  
-//  public final String prefix;
-//
-//  TokenTypePrefix(String prefix) {
-//    this.prefix = prefix;
-//  }
-//
-//  public String valueOf() {
-//    return prefix;
-//  }
 }

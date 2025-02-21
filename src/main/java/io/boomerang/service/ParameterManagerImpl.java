@@ -15,7 +15,7 @@ import io.boomerang.model.ref.ParamSpec;
 import io.boomerang.model.ref.Workflow;
 import io.boomerang.security.entity.TokenEntity;
 import io.boomerang.security.model.AuthType;
-import io.boomerang.security.repository.TokenRepository;
+import io.boomerang.security.TokenRepository;
 
 /*
  * This is one half of the Param Layers. It collects the Global, Team, and Context Layers.

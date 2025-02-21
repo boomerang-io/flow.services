@@ -2,6 +2,8 @@ package io.boomerang.quartz;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import io.boomerang.service.RelationshipService;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -20,8 +22,7 @@ import io.boomerang.model.enums.TriggerEnum;
 import io.boomerang.model.enums.WorkflowScheduleType;
 import io.boomerang.model.ref.WorkflowSubmitRequest;
 import io.boomerang.security.model.Token;
-import io.boomerang.security.service.TokenServiceImpl;
-import io.boomerang.service.RelationshipServiceImpl;
+import io.boomerang.security.TokenService;
 import io.boomerang.service.ScheduleServiceImpl;
 import io.boomerang.service.WorkflowServiceImpl;
 
@@ -66,8 +67,8 @@ public class QuartzSchedulerJob extends QuartzJobBean {
         applicationContext.getBean(WorkflowServiceImpl.class);
     ScheduleServiceImpl workflowScheduleService =
         applicationContext.getBean(ScheduleServiceImpl.class);
-    TokenServiceImpl tokenService = applicationContext.getBean(TokenServiceImpl.class);
-    RelationshipServiceImpl relationshipService = applicationContext.getBean(RelationshipServiceImpl.class);
+    TokenService tokenService = applicationContext.getBean(TokenService.class);
+    RelationshipService relationshipService = applicationContext.getBean(RelationshipService.class);
 
     WorkflowSchedule schedule = workflowScheduleService.internalGet(jobDetail.getKey().getName());
     if (schedule != null) {

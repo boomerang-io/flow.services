@@ -1,4 +1,4 @@
-package io.boomerang.security.service;
+package io.boomerang.security;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -8,11 +8,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import io.boomerang.service.RelationshipService;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,7 +27,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import io.boomerang.client.ExternalUserProfile;
 import io.boomerang.client.ExternalUserService;
@@ -47,15 +47,11 @@ import io.boomerang.model.enums.RelationshipLabel;
 import io.boomerang.model.enums.RelationshipType;
 import io.boomerang.model.enums.TeamStatus;
 import io.boomerang.model.enums.UserType;
-import io.boomerang.security.model.AuthType;
-import io.boomerang.security.model.Token;
-import io.boomerang.security.repository.RoleRepository;
 import io.boomerang.service.RelationshipService;
-import io.boomerang.service.RelationshipServiceImpl;
 import io.boomerang.service.TeamService;
 
 @Service
-public class IdentityServiceImpl implements IdentityService {
+public class UserService {
 
   private static final Logger LOGGER = LogManager.getLogger();
 
@@ -65,28 +61,31 @@ public class IdentityServiceImpl implements IdentityService {
   @Value("${flow.otc}")
   private String corePlatformOTC;
 
-  @Autowired
-  private ExternalUserService extUserService;
+  private final UserRepository userRepository;
+  private final IdentityService identityService;
+  private final ExternalUserService extUserService;
+  private final TeamRepository teamRepository;
+  private final RoleRepository roleRepository;
+  private final RelationshipService relationshipService;
+  private final MongoTemplate mongoTemplate;
 
-  @Autowired
-  private UserRepository userRepository;
-
-  @Autowired
-  private RelationshipServiceImpl relationshipServiceImpl;
-
-  @Autowired
-  private TeamService teamService;
-
-  @Autowired
-  private TeamRepository teamRepository;
-
-  @Autowired
-  private RoleRepository roleRepository;
-
-  @Autowired
-  private MongoTemplate mongoTemplate;
-
-  @Override
+  UserService(
+      MongoTemplate mongoTemplate,
+      IdentityService identityService,
+      ExternalUserService extUserService,
+      TeamRepository teamRepository,
+      RoleRepository roleRepository,
+      RelationshipService relationshipService,
+      UserRepository userRepository) {
+    this.userRepository = userRepository;
+    this.identityService = identityService;
+    this.extUserService = extUserService;
+    this.teamRepository = teamRepository;
+    this.roleRepository = roleRepository;
+    this.relationshipService = relationshipService;
+    this.mongoTemplate = mongoTemplate;
+  }
+  
   public ResponseEntity<Boolean> activateSetup(OneTimeCode otc) {
     if (externalUserUrl.isBlank()) {
       if (corePlatformOTC.equals(otc.getOtc())) {
@@ -99,7 +98,7 @@ public class IdentityServiceImpl implements IdentityService {
   /*
    * Used by the CreateUserSession to check if instance is activated
    */
-  @Override
+  
   public boolean isActivated() {
     if (externalUserUrl.isBlank() && userRepository.count() == 0) {
       return false;
@@ -110,7 +109,6 @@ public class IdentityServiceImpl implements IdentityService {
   /*
    * Used by the AuthenticationFilter to Retrieve the user and create the Users Team
    */
-  @Override
   public Optional<UserEntity> getAndRegisterUser(String email, String firstName, String lastName,
       Optional<UserType> usertype, boolean allowUserCreation) {
     if (email == null || email.isBlank()) {
@@ -150,7 +148,7 @@ public class IdentityServiceImpl implements IdentityService {
       //Create User relationship node if entity was created
       //At end due to the save only happening at the end.
       if (createRelationshipNode) {        
-        relationshipServiceImpl.createNode(RelationshipType.USER, userEntity.get().getId(), email, Optional.empty());
+        relationshipService.createNode(RelationshipType.USER, userEntity.get().getId(), email, Optional.empty());
       }
     }
 
@@ -164,7 +162,7 @@ public class IdentityServiceImpl implements IdentityService {
     }
   }
 
-  @Override
+  
   public Optional<User> getUserByID(String userId) {
     if (externalUserUrl.isBlank()) {
       Optional<UserEntity> userEntity = userRepository.findById(userId);
@@ -183,7 +181,7 @@ public class IdentityServiceImpl implements IdentityService {
     return Optional.empty();
   }
 
-  @Override
+  
   public Optional<User> getUserByEmail(String userEmail) {
     Optional<UserEntity> userEntity = getUserEntityByEmail(userEmail);
     if (userEntity.isPresent()) {
@@ -213,18 +211,20 @@ public class IdentityServiceImpl implements IdentityService {
     return Optional.empty();
   }
 
+  public UserEntity getCurrentUser() {
+    return getUserByID(identityService.getCurrentPrincipal()).get();
+  }
+
   /*
    * Retrieves the profile for current user session
    */
-  @Override
   public UserProfile getCurrentProfile() {
     UserProfile profile = new UserProfile();
     if (externalUserUrl.isBlank()) {
       UserEntity user = getCurrentUser();
       profile = new UserProfile(user);
     } else {
-      String userId = getCurrentPrincipal();
-      ExternalUserProfile extUserProfile = extUserService.getUserProfileById(userId);
+      ExternalUserProfile extUserProfile = extUserService.getUserProfileById(identityService.getCurrentPrincipal());
       if (extUserProfile != null) {
         BeanUtils.copyProperties(extUserProfile, profile);
         convertExternalUserType(extUserProfile, profile);
@@ -232,7 +232,7 @@ public class IdentityServiceImpl implements IdentityService {
     }
     // Add TeamSummaries
 //    Map<String, String> teamRefs = relationshipService.getMyTeamRefsAndRoles(profile.getId());
-    Map<String, String> teamRefs = relationshipServiceImpl.getMyTeamRefsAndRoles(profile.getId());
+    Map<String, String> teamRefs = relationshipService.getMyTeamRefsAndRoles(profile.getId());
     //TODO - change to return an Object with teamId, teamSlug, 
     List<TeamSummary> teamSummaries = new LinkedList<>();
     List<String> permissions = new LinkedList<>();
@@ -242,10 +242,10 @@ public class IdentityServiceImpl implements IdentityService {
         // Generate TeamSummary + Insight
         TeamSummary ts = new TeamSummary(teamEntity.get());
         TeamSummaryInsights tsi = new TeamSummaryInsights();
-        Map<String, String> membersAndRoles = relationshipServiceImpl.getMembersAndRoleForTeam(k);
+        Map<String, String> membersAndRoles = relationshipService.getMembersAndRoleForTeam(k);
         tsi.setMembers(Long.valueOf(membersAndRoles.size()));
         List<String> workflowRefs =
-            relationshipServiceImpl.getFilteredRefs(Optional.of(RelationshipType.WORKFLOW),
+            relationshipService.getFilteredRefs(Optional.of(RelationshipType.WORKFLOW),
                 Optional.empty(), RelationshipLabel.BELONGSTO,
                 RelationshipType.TEAM, k, true);
         tsi.setWorkflows(Long.valueOf(workflowRefs.size()));
@@ -262,9 +262,9 @@ public class IdentityServiceImpl implements IdentityService {
     return profile;
   }
   
-  @Override
+  
   public void updateCurrentProfile(UserRequest request) {
-    String userId = getCurrentPrincipal();
+    String userId = identityService.getCurrentPrincipal();
     request.setId(userId);
     this.apply(request);
   }
@@ -272,7 +272,7 @@ public class IdentityServiceImpl implements IdentityService {
   // /*
   // * Retrieves the profile for a specified user. Does not use current session.
   // */
-  // @Override
+  // 
   // public UserProfile getProfile(String userId) {
   // if (externalUserUrl.isBlank()) {
   // Optional<UserEntity> flowUser = userRepository.findById(userId);
@@ -309,7 +309,7 @@ public class IdentityServiceImpl implements IdentityService {
   /*
    * Query for Users
    */
-  @Override
+  
   public Page<User> query(Optional<Integer> queryPage, Optional<Integer> queryLimit,
       Optional<Direction> queryOrder, Optional<String> querySort,
       Optional<List<String>> queryLabels, Optional<List<String>> queryStatus,
@@ -382,8 +382,7 @@ public class IdentityServiceImpl implements IdentityService {
 
     return pages;
   }
-
-  @Override
+  
   public User create(UserRequest request) {
     if (externalUserUrl.isBlank() && request != null && request.getEmail() != null
         && this.userRepository.countByEmailIgnoreCaseAndStatus(request.getEmail(),
@@ -412,8 +411,7 @@ public class IdentityServiceImpl implements IdentityService {
       return null;
     }
   }
-
-  @Override
+  
   // TODO throw exception if externalUserURL is provided
   public void apply(UserRequest request) {
     Optional<UserEntity> userOptional = Optional.empty();
@@ -440,8 +438,7 @@ public class IdentityServiceImpl implements IdentityService {
       this.userRepository.save(user);
     }
   }
-
-  @Override
+  
   /*
    * Delete User
    * 
@@ -450,63 +447,24 @@ public class IdentityServiceImpl implements IdentityService {
   //TODO - determine if the user needs to be removed from ApproverGroups, and anything else
   public void delete(String userId) {
     Optional<UserEntity> user = userRepository.findById(userId);
-    Map<String, String> teamRefsAndRoles = relationshipServiceImpl.getMyTeamRefsAndRoles(userId);
+    Map<String, String> teamRefsAndRoles = relationshipService.getMyTeamRefsAndRoles(userId);
     if (!teamRefsAndRoles.isEmpty()) {
       throw new BoomerangException(BoomerangError.USER_UNABLE_TO_DELETE);
     }
     if (user.isPresent()) {
       userRepository.deleteById(userId);
-      relationshipServiceImpl.removeNodeByRefOrSlug(RelationshipType.USER, userId);
+      relationshipService.removeNodeByRefOrSlug(RelationshipType.USER, userId);
     }
   }
 
-  @Override
-  @NoLogging
-  public User getCurrentUser() {
-    Token token = this.getCurrentIdentity();
-    return getUserByID(token.getPrincipal()).get();
-  }
-
-  @Override
-  @NoLogging
   public boolean isCurrentUserAdmin() {
     boolean isUserAdmin = false;
-    final UserEntity userEntity = getCurrentUser();
+    final UserEntity userEntity = getUserByID(identityService.getCurrentPrincipal()).get();
     if (userEntity != null && (userEntity.getType() == UserType.admin
         || userEntity.getType() == UserType.operator || userEntity.getType() == UserType.auditor
         || userEntity.getType() == UserType.author)) {
       isUserAdmin = true;
     }
     return isUserAdmin;
-  }
-
-  @Override
-  public String getCurrentPrincipal() {
-    Token token = this.getCurrentIdentity();
-    return token.getPrincipal();
-  }
-
-  @Override
-  public AuthType getCurrentScope() {
-    if (SecurityContextHolder.getContext() != null
-        && SecurityContextHolder.getContext().getAuthentication() != null
-        && SecurityContextHolder.getContext().getAuthentication().getDetails() != null
-        && SecurityContextHolder.getContext().getAuthentication().getDetails() instanceof Token) {
-      Token details = (Token) SecurityContextHolder.getContext().getAuthentication().getDetails();
-      return details.getType();
-    }
-    return null;
-  }
-
-  @Override
-  public Token getCurrentIdentity() {
-    if (SecurityContextHolder.getContext() != null
-        && SecurityContextHolder.getContext().getAuthentication() != null
-        && SecurityContextHolder.getContext().getAuthentication().getDetails() != null) {
-      Object details = SecurityContextHolder.getContext().getAuthentication().getDetails();
-      return (Token) details;
-    } else {
-      return null;
-    }
   }
 }

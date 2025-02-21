@@ -2,6 +2,8 @@ package io.boomerang.controller;
 
 import java.util.List;
 import java.util.Optional;
+
+import io.boomerang.security.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -19,11 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
 import io.boomerang.model.User;
 import io.boomerang.model.UserProfile;
 import io.boomerang.model.UserRequest;
-import io.boomerang.security.interceptors.AuthScope;
+import io.boomerang.security.AuthScope;
 import io.boomerang.security.model.PermissionAction;
 import io.boomerang.security.model.PermissionScope;
 import io.boomerang.security.model.AuthType;
-import io.boomerang.security.service.IdentityService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -39,7 +40,7 @@ public class UserV2Controller {
   private String flowExternalUrlUser;
 
   @Autowired
-  private IdentityService identityService;
+  private UserService userService;
 
   /* 
    * Returns the current users profile
@@ -53,7 +54,7 @@ public class UserV2Controller {
       @ApiResponse(responseCode = "423", description = "OK"),
       @ApiResponse(responseCode = "404", description = "Instance not activated. Profile locked.")})
   public UserProfile getProfile() {
-    return identityService.getCurrentProfile();
+    return userService.getCurrentProfile();
   }
   
   @PatchMapping(value = "/profile")
@@ -63,7 +64,7 @@ public class UserV2Controller {
       @ApiResponse(responseCode = "423", description = "OK"),
       @ApiResponse(responseCode = "404", description = "Instance not activated. Profile locked.")})
   public void updateProfile(@RequestBody UserRequest request) {
-    identityService.updateCurrentProfile(request);
+    userService.updateCurrentProfile(request);
   }
 
   @GetMapping(value = "/{userId}")
@@ -72,7 +73,7 @@ public class UserV2Controller {
   @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
       @ApiResponse(responseCode = "404", description = "Not Found")})
   public ResponseEntity<User> getUserByID(@PathVariable String userId) {
-    Optional<User> user = identityService.getUserByID(userId);
+    Optional<User> user = userService.getUserByID(userId);
     if (user.isPresent()) {
       return ResponseEntity.ok(user.get());
     } else {
@@ -101,7 +102,7 @@ public class UserV2Controller {
   required = false) @RequestParam(defaultValue = "DESC") Optional<Direction> order,
   @Parameter(name = "sort", description = "The element to sort on", example = "0",
   required = false) @RequestParam(defaultValue = "name") Optional<String> sort) {
-    return identityService.query(page, limit, order, sort, labels, statuses, ids);
+    return userService.query(page, limit, order, sort, labels, statuses, ids);
   }
 
   @PostMapping(value = "")
@@ -111,7 +112,7 @@ public class UserV2Controller {
       @ApiResponse(responseCode = "400", description = "Bad Request")})
   public ResponseEntity<User> addUser(@RequestBody UserRequest request) {
     if (isUserManagementAvaliable()) {
-      User flowUserEntity = identityService.create(request);
+      User flowUserEntity = userService.create(request);
       return ResponseEntity.ok(flowUserEntity);
     } else {
       return ResponseEntity.badRequest().build();
@@ -126,7 +127,7 @@ public class UserV2Controller {
   public ResponseEntity<Void> apply(@PathVariable String userId, @RequestBody UserRequest user) {
     user.setId(userId);
     if (isUserManagementAvaliable()) {
-      identityService.apply(user);
+      userService.apply(user);
       return ResponseEntity.ok().build();
     } else {
       return ResponseEntity.badRequest().build();
@@ -140,7 +141,7 @@ public class UserV2Controller {
       @ApiResponse(responseCode = "400", description = "Bad Request")})
   public ResponseEntity<Void> deleteFlowUser(@PathVariable String userId) {
     if (isUserManagementAvaliable()) {
-      identityService.delete(userId);
+      userService.delete(userId);
       return ResponseEntity.ok().build();
     } else {
       return ResponseEntity.badRequest().build();

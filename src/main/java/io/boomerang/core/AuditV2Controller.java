@@ -1,4 +1,4 @@
-package io.boomerang.controller;
+package io.boomerang.core;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

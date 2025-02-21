@@ -2,6 +2,9 @@ package io.boomerang.service;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import io.boomerang.security.ExternalTokenService;
+import io.boomerang.security.UserService;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -21,8 +24,6 @@ import io.boomerang.model.HeaderFeatures;
 import io.boomerang.model.HeaderNavigation;
 import io.boomerang.model.HeaderNavigationResponse;
 import io.boomerang.model.HeaderPlatform;
-import io.boomerang.security.service.ExternalTokenService;
-import io.boomerang.security.service.IdentityService;
 
 @Service
 public class ContextServiceImpl implements ContextService {
@@ -65,11 +66,11 @@ public class ContextServiceImpl implements ContextService {
   private ExternalTokenService apiTokenService;
   
   @Autowired
-  private IdentityService identityService;
+  private UserService userService;
   
   @Override
   public HeaderNavigationResponse getHeaderNavigation(boolean isUserAdmin) {
-    UserEntity user = identityService.getCurrentUser();
+    UserEntity user = userService.getCurrentUser();
     if (user == null) {
       return null;
     }

@@ -3,6 +3,8 @@ package io.boomerang.audit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import io.boomerang.security.IdentityService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.aspectj.lang.JoinPoint;
@@ -16,7 +18,6 @@ import io.boomerang.model.WorkflowCanvas;
 import io.boomerang.model.ref.Workflow;
 import io.boomerang.model.ref.WorkflowRun;
 import io.boomerang.security.model.Token;
-import io.boomerang.security.service.IdentityService;
 
 /*
  * Intercepts all of the Create, Update, Delete, and Actions performed on objects and creates an Audit log

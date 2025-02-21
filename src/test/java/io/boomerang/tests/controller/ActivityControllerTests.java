@@ -35,7 +35,6 @@ import io.boomerang.misc.FlowTests;
 import io.boomerang.model.FlowActivity;
 import io.boomerang.model.ListActivityResponse;
 import io.boomerang.model.enums.UserType;
-import io.boomerang.security.service.IdentityService;
 import io.boomerang.v3.mongo.model.TaskStatus;
 import io.boomerang.v3.mongo.model.TokenScope;
 

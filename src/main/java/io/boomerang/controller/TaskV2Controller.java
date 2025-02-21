@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.boomerang.client.TaskResponsePage;
 import io.boomerang.model.ref.ChangeLogVersion;
 import io.boomerang.model.ref.Task;
-import io.boomerang.security.interceptors.AuthScope;
+import io.boomerang.security.AuthScope;
 import io.boomerang.security.model.AuthType;
 import io.boomerang.security.model.PermissionAction;
 import io.boomerang.security.model.PermissionScope;

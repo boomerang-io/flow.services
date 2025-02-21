@@ -1,5 +1,6 @@
 package io.boomerang.client;
 
+import io.boomerang.security.ExternalTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,7 +14,6 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
-import io.boomerang.security.service.ExternalTokenService;
 
 @Service
 public class ExternalUserServiceImpl implements ExternalUserService {

@@ -5,6 +5,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+
+import io.boomerang.security.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +38,6 @@ import io.boomerang.model.enums.ref.RunStatus;
 import io.boomerang.model.ref.TaskRun;
 import io.boomerang.model.ref.TaskRunEndRequest;
 import io.boomerang.model.ref.Workflow;
-import io.boomerang.security.service.IdentityService;
 
 @Service
 public class ActionServiceImpl implements ActionService {
@@ -53,10 +54,10 @@ public class ActionServiceImpl implements ActionService {
   private EngineClient engineClient;
 
   @Autowired
-  private RelationshipServiceImpl relationshipServiceImpl;
+  private RelationshipService relationshipService;
 
   @Autowired
-  private IdentityService userIdentityService;
+  private UserService userService;
   
   @Autowired
   private MongoTemplate mongoTemplate;
@@ -81,19 +82,19 @@ public class ActionServiceImpl implements ActionService {
       }
 
       // Check if requester has access to the Workflow the Action Entity belongs to
-      if (!relationshipServiceImpl.hasTeamRelationship(Optional.of(RelationshipType.WORKFLOW),
+      if (!relationshipService.hasTeamRelationship(Optional.of(RelationshipType.WORKFLOW),
           Optional.of(actionEntity.getWorkflowRef()), RelationshipLabel.BELONGSTO, team, true)) {
         throw new BoomerangException(BoomerangError.ACTION_INVALID_REF);
       }
       
       boolean canBeActioned = false;
-      UserEntity userEntity = userIdentityService.getCurrentUser();
+      UserEntity userEntity = userService.getCurrentUser();
       if (actionEntity.getType() == ActionType.manual) {
         // Manual tasks only require a single yes or no
         canBeActioned = true;
       } else if (actionEntity.getType() == ActionType.approval) {
         if (actionEntity.getApproverGroupRef() != null) {
-          List<String> approverGroupRefs = relationshipServiceImpl.getFilteredRefs(
+          List<String> approverGroupRefs = relationshipService.getFilteredRefs(
               Optional.of(RelationshipType.APPROVERGROUP), Optional.of(List.of(actionEntity.getApproverGroupRef())),
               RelationshipLabel.BELONGSTO, RelationshipType.TEAM, team, false);
           if (approverGroupRefs.isEmpty()) {
@@ -155,7 +156,7 @@ public class ActionServiceImpl implements ActionService {
 
       action.setNumberOfApprovals(aprovalCount);
       for (Actioner audit : actionEntity.getActioners()) {
-        Optional<User> user = userIdentityService.getUserByID(audit.getApproverId());
+        Optional<User> user = userService.getUserByID(audit.getApproverId());
         if (user.isPresent()) {
           audit.setApproverName(user.get().getName());
           audit.setApproverEmail(user.get().getEmail());
@@ -199,7 +200,7 @@ public class ActionServiceImpl implements ActionService {
       Optional<List<ActionType>> types, Optional<List<ActionStatus>> status,
       Optional<List<String>> workflowIds) {
     List<String> workflowRefs =
-        relationshipServiceImpl.getFilteredRefs(Optional.of(RelationshipType.WORKFLOW), workflowIds,
+        relationshipService.getFilteredRefs(Optional.of(RelationshipType.WORKFLOW), workflowIds,
             RelationshipLabel.BELONGSTO, RelationshipType.TEAM, team, false);
 
     Criteria criteria = buildCriteriaList(from, to, Optional.of(workflowRefs), types, status);
@@ -222,7 +223,7 @@ public class ActionServiceImpl implements ActionService {
   @Override
   public ActionSummary summary(String team, Optional<Date> fromDate, Optional<Date> toDate, Optional<List<String>> workflowIds) {
     List<String> workflowRefs =
-        relationshipServiceImpl.getFilteredRefs(Optional.of(RelationshipType.WORKFLOW), workflowIds,
+        relationshipService.getFilteredRefs(Optional.of(RelationshipType.WORKFLOW), workflowIds,
             RelationshipLabel.BELONGSTO, RelationshipType.TEAM, team, false);
     
     long approvalCount = this.getActionCountForType(ActionType.approval, fromDate,

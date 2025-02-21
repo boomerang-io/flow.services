@@ -52,7 +52,7 @@ public class TriggersServiceImpl implements TriggerService {
   private IntegrationService integrationService;
 
   @Autowired
-  private RelationshipServiceImpl relationshipServiceImpl;
+  private RelationshipService relationshipService;
 
   /*
    * Receives request and checks if its a supported event. Processing done async.
@@ -80,7 +80,7 @@ public class TriggersServiceImpl implements TriggerService {
     LOGGER.debug("Webhook Request: " + request.toString());
     
     // Get the Workflows team
-    String teamRef = relationshipServiceImpl.getTeamSlugFromChild(RelationshipType.WORKFLOW, workflowRef);
+    String teamRef = relationshipService.getTeamSlugFromChild(RelationshipType.WORKFLOW, workflowRef);
     if (teamRef.isEmpty()) {
       throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
     }
@@ -101,7 +101,7 @@ public class TriggersServiceImpl implements TriggerService {
     LOGGER.debug("Webhook Request: " + request.toString());
     
     // Get the Workflows team
-    String teamRef = relationshipServiceImpl.getTeamSlugFromChild(RelationshipType.WORKFLOW, workflowRef);
+    String teamRef = relationshipService.getTeamSlugFromChild(RelationshipType.WORKFLOW, workflowRef);
     if (teamRef.isEmpty()) {
       throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
     }

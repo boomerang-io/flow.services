@@ -1,20 +1,19 @@
-package io.boomerang.security.config;
+package io.boomerang.security;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, proxyTargetClass = true)
-@ConditionalOnProperty(name = "flow.authorization.enabled", havingValue = "false")
+@ConditionalOnProperty(name = "flow.auth.enabled", havingValue = "false")
 public class SecurityDisabledConfiguration {
-  
+
   @Bean
   SecurityFilterChain unauthenticatedFilterChain(HttpSecurity http) throws Exception {
-    return http.csrf().disable().authorizeHttpRequests((authz) -> authz.anyRequest().permitAll()).build();
+    return http.csrf(csrf -> csrf.disable())
+        .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
+        .build();
   }
-  
 }

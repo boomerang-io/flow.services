@@ -20,7 +20,7 @@ import io.boomerang.model.Team;
 import io.boomerang.model.TeamMember;
 import io.boomerang.model.TeamNameCheckRequest;
 import io.boomerang.model.TeamRequest;
-import io.boomerang.security.interceptors.AuthScope;
+import io.boomerang.security.AuthScope;
 import io.boomerang.security.model.AuthType;
 import io.boomerang.security.model.PermissionAction;
 import io.boomerang.security.model.PermissionScope;

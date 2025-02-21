@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.boomerang.client.EngineClient;
 import io.boomerang.client.WorkflowTemplateResponsePage;
 import io.boomerang.model.ref.WorkflowTemplate;
-import io.boomerang.security.interceptors.AuthScope;
+import io.boomerang.security.AuthScope;
 import io.boomerang.security.model.PermissionAction;
 import io.boomerang.security.model.PermissionScope;
 import io.boomerang.security.model.AuthType;
