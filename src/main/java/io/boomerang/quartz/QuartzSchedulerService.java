@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TimeZone;
+
+import io.boomerang.workflow.ScheduleService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,9 +26,8 @@ import org.quartz.spi.OperableTrigger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.stereotype.Component;
-import io.boomerang.data.entity.WorkflowScheduleEntity;
-import io.boomerang.model.CronValidationResponse;
-import io.boomerang.service.ScheduleService;
+import io.boomerang.workflow.entity.WorkflowScheduleEntity;
+import io.boomerang.workflow.model.CronValidationResponse;
 
 @Component
 public class QuartzSchedulerService {

@@ -17,7 +17,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.JacksonJsonNodeJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
-import io.boomerang.model.ref.WorkflowAbstractParam;
+import io.boomerang.workflow.model.ref.WorkflowAbstractParam;
 import io.boomerang.tests.TestUtil;
 import io.cloudevents.CloudEvent;
 import io.cloudevents.json.Json;

@@ -1,9 +1,7 @@
 package io.boomerang.security;
 
-import io.boomerang.data.entity.UserEntity;
-import io.boomerang.model.enums.UserType;
 import io.boomerang.security.model.AuthType;
-import io.boomerang.security.model.Token;
+import io.boomerang.core.model.Token;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.core.context.SecurityContextHolder;

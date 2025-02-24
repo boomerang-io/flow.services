@@ -16,11 +16,11 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import io.boomerang.controller.InsightsController;
-import io.boomerang.data.entity.UserEntity;
+import io.boomerang.workflow.InsightsController;
+import io.boomerang.core.entity.UserEntity;
 import io.boomerang.misc.FlowTests;
-import io.boomerang.model.InsightsSummary;
-import io.boomerang.model.enums.UserType;
+import io.boomerang.workflow.model.InsightsSummary;
+import io.boomerang.core.model.UserType;
 import io.boomerang.v3.mongo.model.TokenScope;
 
 @ExtendWith(SpringExtension.class)

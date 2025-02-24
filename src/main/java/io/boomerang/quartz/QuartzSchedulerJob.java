@@ -3,7 +3,7 @@ package io.boomerang.quartz;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.boomerang.service.RelationshipService;
+import io.boomerang.workflow.RelationshipService;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -16,15 +16,15 @@ import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import io.boomerang.model.WorkflowSchedule;
-import io.boomerang.model.enums.RelationshipType;
-import io.boomerang.model.enums.TriggerEnum;
-import io.boomerang.model.enums.WorkflowScheduleType;
-import io.boomerang.model.ref.WorkflowSubmitRequest;
-import io.boomerang.security.model.Token;
-import io.boomerang.security.TokenService;
-import io.boomerang.service.ScheduleServiceImpl;
-import io.boomerang.service.WorkflowServiceImpl;
+import io.boomerang.workflow.model.WorkflowSchedule;
+import io.boomerang.core.model.RelationshipType;
+import io.boomerang.workflow.model.TriggerEnum;
+import io.boomerang.workflow.model.WorkflowScheduleType;
+import io.boomerang.workflow.model.ref.WorkflowSubmitRequest;
+import io.boomerang.core.model.Token;
+import io.boomerang.core.TokenService;
+import io.boomerang.workflow.ScheduleService;
+import io.boomerang.workflow.WorkflowService;
 
 /*
  * This is used by the Quartz Trigger to execute the Scheduled Job
@@ -63,10 +63,10 @@ public class QuartzSchedulerJob extends QuartzJobBean {
       logger.info("applicationContext is null");
     }
 
-    WorkflowServiceImpl workflowService =
-        applicationContext.getBean(WorkflowServiceImpl.class);
-    ScheduleServiceImpl workflowScheduleService =
-        applicationContext.getBean(ScheduleServiceImpl.class);
+    WorkflowService workflowService =
+        applicationContext.getBean(WorkflowService.class);
+    ScheduleService workflowScheduleService =
+        applicationContext.getBean(ScheduleService.class);
     TokenService tokenService = applicationContext.getBean(TokenService.class);
     RelationshipService relationshipService = applicationContext.getBean(RelationshipService.class);
 

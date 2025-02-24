@@ -20,8 +20,7 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.client.MockRestServiceServer;
-import io.boomerang.client.ExternalUserService;
-import io.boomerang.client.ExternalUserProfile;
+import io.boomerang.core.ExternalUserProfile;
 import io.boomerang.misc.FlowTests;
 
 @ExtendWith(SpringExtension.class)

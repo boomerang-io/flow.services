@@ -8,12 +8,11 @@ import java.util.Objects;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import io.boomerang.model.AbstractParam;
-import io.boomerang.model.enums.ref.ParamType;
-import io.boomerang.model.ref.ParamSpec;
-import io.boomerang.model.ref.RunParam;
+
+import io.boomerang.workflow.model.AbstractParam;
+import io.boomerang.workflow.model.ref.ParamType;
+import io.boomerang.workflow.model.ref.ParamSpec;
+import io.boomerang.workflow.model.ref.RunParam;
 
 public class ParameterUtil {
   

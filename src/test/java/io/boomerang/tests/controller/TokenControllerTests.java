@@ -13,12 +13,12 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import io.boomerang.controller.TokenController;
+import io.boomerang.workflow.TokenController;
 import io.boomerang.misc.FlowTests;
-import io.boomerang.model.CreateTeamTokenRequest;
-import io.boomerang.model.CreateTokenRequest;
-import io.boomerang.model.Token;
-import io.boomerang.model.TokenResponse;
+import io.boomerang.workflow.model.CreateTeamTokenRequest;
+import io.boomerang.workflow.model.CreateTokenRequest;
+import io.boomerang.workflow.model.Token;
+import io.boomerang.workflow.model.TokenResponse;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)

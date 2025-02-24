@@ -23,7 +23,7 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.client.MockRestServiceServer;
-import io.boomerang.model.FlowActivity;
+import io.boomerang.workflow.model.FlowActivity;
 import io.boomerang.tests.IntegrationTests;
 
 @ExtendWith(SpringExtension.class)
