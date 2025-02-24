@@ -5,19 +5,19 @@ import java.util.Optional;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-import io.boomerang.model.ref.ChangeLogVersion;
-import io.boomerang.model.ref.TaskRun;
-import io.boomerang.model.ref.TaskRunEndRequest;
-import io.boomerang.model.ref.Task;
-import io.boomerang.model.ref.Workflow;
-import io.boomerang.model.ref.WorkflowCount;
-import io.boomerang.model.ref.WorkflowRun;
-import io.boomerang.model.ref.WorkflowRunCount;
-import io.boomerang.model.ref.WorkflowRunEventRequest;
-import io.boomerang.model.ref.WorkflowRunInsight;
-import io.boomerang.model.ref.WorkflowRunRequest;
-import io.boomerang.model.ref.WorkflowSubmitRequest;
-import io.boomerang.model.ref.WorkflowTemplate;
+import io.boomerang.workflow.model.ref.ChangeLogVersion;
+import io.boomerang.workflow.model.ref.TaskRun;
+import io.boomerang.workflow.model.ref.TaskRunEndRequest;
+import io.boomerang.workflow.model.ref.Task;
+import io.boomerang.workflow.model.ref.Workflow;
+import io.boomerang.workflow.model.ref.WorkflowCount;
+import io.boomerang.workflow.model.ref.WorkflowRun;
+import io.boomerang.workflow.model.ref.WorkflowRunCount;
+import io.boomerang.workflow.model.ref.WorkflowRunEventRequest;
+import io.boomerang.workflow.model.ref.WorkflowRunInsight;
+import io.boomerang.workflow.model.ref.WorkflowRunRequest;
+import io.boomerang.workflow.model.ref.WorkflowSubmitRequest;
+import io.boomerang.workflow.model.ref.WorkflowTemplate;
 
 public interface EngineClient {
 

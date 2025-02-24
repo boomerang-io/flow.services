@@ -1,9 +1,10 @@
 package io.boomerang.util;
 
+import io.boomerang.workflow.model.AbstractParam;
+import io.boomerang.workflow.model.ref.ParamSpec;
+import io.boomerang.workflow.model.ref.RunParam;
+
 import java.util.List;
-import io.boomerang.model.AbstractParam;
-import io.boomerang.model.ref.ParamSpec;
-import io.boomerang.model.ref.RunParam;
 
 public class DataAdapterUtil {
 	public enum FieldType {
@@ -73,7 +74,7 @@ public class DataAdapterUtil {
      * @return
      */
     public static void filterParamSpecValueByFieldType(
-            List<AbstractParam> config, List<ParamSpec> params, String fieldType) {   
+            List<AbstractParam> config, List<ParamSpec> params, String fieldType) {
       if (config.stream().anyMatch(c -> fieldType.equals(c.getType()))) {
         config.stream().filter(c -> fieldType.equals(c.getType())).forEach(c -> {
           c.setValue("");
@@ -93,7 +94,7 @@ public class DataAdapterUtil {
      * @return
      */
     public static void filterRunParamValueByFieldType(
-            List<AbstractParam> config, List<RunParam> params, String fieldType) {    
+            List<AbstractParam> config, List<RunParam> params, String fieldType) {
       if (config.stream().anyMatch(c -> fieldType.equals(c.getType()))) {    
         config.stream().filter(c -> fieldType.equals(c.getType())).forEach(c -> {
           c.setValue("");

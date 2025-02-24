@@ -11,7 +11,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import io.boomerang.controller.GlobalParamController;
+import io.boomerang.workflow.GlobalParamController;
 import io.boomerang.misc.FlowTests;
 import io.boomerang.service.config.model.GlobalConfig;
 

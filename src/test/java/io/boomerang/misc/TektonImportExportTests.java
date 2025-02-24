@@ -17,12 +17,12 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.boomerang.integrations.data.entity.FlowTaskTemplateEntity;
 import io.boomerang.tekton.Annotations;
 import io.boomerang.tekton.Labels;
-import io.boomerang.tekton.Metadata;
-import io.boomerang.tekton.Param;
-import io.boomerang.tekton.Spec;
-import io.boomerang.tekton.Step;
-import io.boomerang.tekton.TektonConverter;
-import io.boomerang.tekton.TektonTask;
+import io.boomerang.workflow.tekton.Metadata;
+import io.boomerang.workflow.tekton.Param;
+import io.boomerang.workflow.tekton.Spec;
+import io.boomerang.workflow.tekton.Step;
+import io.boomerang.workflow.tekton.TektonConverter;
+import io.boomerang.workflow.tekton.TektonTask;
 
 public class TektonImportExportTests {
 

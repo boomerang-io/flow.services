@@ -14,13 +14,12 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import io.boomerang.controller.SchedulesV2Controller;
+import io.boomerang.workflow.SchedulesV2Controller;
 import io.boomerang.misc.FlowTests;
-import io.boomerang.model.CronValidationResponse;
-import io.boomerang.model.WorkflowSchedule;
-import io.boomerang.model.enums.WorkflowScheduleStatus;
-import io.boomerang.model.enums.WorkflowScheduleType;
-import io.boomerang.service.ScheduleService;
+import io.boomerang.workflow.model.CronValidationResponse;
+import io.boomerang.workflow.model.WorkflowSchedule;
+import io.boomerang.workflow.model.WorkflowScheduleStatus;
+import io.boomerang.workflow.model.WorkflowScheduleType;
 
 
 @ExtendWith(SpringExtension.class)

@@ -9,7 +9,7 @@ import org.springframework.core.io.ClassPathResource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import io.boomerang.integrations.data.entity.RevisionEntity;
-import io.boomerang.model.projectstormv5.WorkflowRevision;
+import io.boomerang.workflow.model.projectstormv5.WorkflowRevision;
 import io.boomerang.util.ModelConverterV5;
 
 public class ModelConversionV5Test {

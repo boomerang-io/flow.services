@@ -14,12 +14,12 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import io.boomerang.controller.ExecutionController;
+import io.boomerang.workflow.ExecutionController;
 import io.boomerang.error.BoomerangException;
 import io.boomerang.misc.FlowTests;
-import io.boomerang.model.FlowActivity;
-import io.boomerang.model.FlowExecutionRequest;
-import io.boomerang.model.enums.TriggerEnum;
+import io.boomerang.workflow.model.FlowActivity;
+import io.boomerang.workflow.model.FlowExecutionRequest;
+import io.boomerang.workflow.model.TriggerEnum;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)

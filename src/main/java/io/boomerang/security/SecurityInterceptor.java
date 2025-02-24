@@ -7,7 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
-import io.boomerang.security.model.Token;
+import io.boomerang.core.model.Token;
 import io.boomerang.security.model.PermissionAction;
 import io.boomerang.security.model.PermissionScope;
 import io.boomerang.security.model.AuthType;
