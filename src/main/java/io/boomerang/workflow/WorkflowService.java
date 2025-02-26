@@ -55,6 +55,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpHeaders;
@@ -97,12 +98,12 @@ public class WorkflowService {
   public WorkflowService(
       EngineClient engineClient,
       RelationshipService relationshipService,
-      ScheduleService scheduleService,
+      @Lazy ScheduleService scheduleService,
       ParameterManager parameterManager,
       SettingsService settingsService,
       ActionService actionService,
       TokenService tokenService,
-      TeamService teamService) {
+      @Lazy TeamService teamService) {
     this.engineClient = engineClient;
     this.relationshipService = relationshipService;
     this.scheduleService = scheduleService;
@@ -465,7 +466,7 @@ public class WorkflowService {
     relationshipService.createNodeAndEdge(
         RelationshipType.TEAM,
         team,
-        RelationshipLabel.HAS_RUN,
+        RelationshipLabel.HAS_WORKFLOWRUN,
         RelationshipType.WORKFLOWRUN,
         wfRun.getId(),
         wfRun.getId(),

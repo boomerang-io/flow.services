@@ -1,4 +1,4 @@
-package io.boomerang.quartz;
+package io.boomerang.workflow.quartz;
 
 import org.quartz.spi.TriggerFiredBundle;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -22,5 +22,4 @@ public class AutowiringSpringBeanJobFactory extends SpringBeanJobFactory
     autowireCapableBeanFactory.autowireBean(job);
     return job;
   }
-
 }

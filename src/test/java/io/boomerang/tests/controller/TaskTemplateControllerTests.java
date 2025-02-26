@@ -3,6 +3,13 @@ package io.boomerang.tests.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import io.boomerang.misc.FlowTests;
+import io.boomerang.v3.mongo.model.ChangeLog;
+import io.boomerang.v3.mongo.model.FlowTaskTemplateStatus;
+import io.boomerang.v3.mongo.model.Revision;
+import io.boomerang.workflow.TaskControllerV2;
+import io.boomerang.workflow.model.FlowTaskTemplate;
+import io.boomerang.workflow.tekton.TektonTask;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -14,13 +21,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import io.boomerang.workflow.TaskV2Controller;
-import io.boomerang.misc.FlowTests;
-import io.boomerang.workflow.model.FlowTaskTemplate;
-import io.boomerang.workflow.tekton.TektonTask;
-import io.boomerang.v3.mongo.model.ChangeLog;
-import io.boomerang.v3.mongo.model.FlowTaskTemplateStatus;
-import io.boomerang.v3.mongo.model.Revision;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -29,26 +29,23 @@ import io.boomerang.v3.mongo.model.Revision;
 @WithUserDetails("mdroy@us.ibm.com")
 public class TaskTemplateControllerTests extends FlowTests {
 
-  @Autowired
-  private TaskV2Controller controller;
+  @Autowired private TaskControllerV2 controller;
 
   @Test
   public void testGetTaskTemplateWithId() {
     FlowTaskTemplate template = controller.getTaskTemplateWithId("5bd9d0825a5df954ad5bb5c3");
-     assertEquals("5bd9d0825a5df954ad5bb5c3", template.getId());
-     assertEquals(1, template.getCurrentVersion());
-     assertEquals(true, template.isVerified());
-
+    assertEquals("5bd9d0825a5df954ad5bb5c3", template.getId());
+    assertEquals(1, template.getCurrentVersion());
+    assertEquals(true, template.isVerified());
   }
 
   @Test
   public void testGetAllTaskTemplates() {
     List<FlowTaskTemplate> templates = controller.getAllTaskTemplates(null, null);
-     assertEquals(6, templates.size());
-     assertEquals(1, templates.get(0).getCurrentVersion());
-     assertEquals(true, templates.get(0).isVerified());
-     assertEquals(false, templates.get(1).isVerified());
-
+    assertEquals(6, templates.size());
+    assertEquals(1, templates.get(0).getCurrentVersion());
+    assertEquals(true, templates.get(0).isVerified());
+    assertEquals(false, templates.get(1).isVerified());
   }
 
   @Test
@@ -59,9 +56,8 @@ public class TaskTemplateControllerTests extends FlowTests {
     entity.setName("TestTaskTemplate");
     entity.setNodetype("custom");
     FlowTaskTemplate testTemplate = controller.insertTaskTemplate(entity);
-     assertEquals("TestTaskTemplate", testTemplate.getName());
-     assertEquals(false, testTemplate.isVerified());
-
+    assertEquals("TestTaskTemplate", testTemplate.getName());
+    assertEquals(false, testTemplate.isVerified());
   }
 
   @Test
@@ -71,7 +67,6 @@ public class TaskTemplateControllerTests extends FlowTests {
     entity.setId("5bd9d0825a5df954ad5bb5c3");
     entity.setDescription("test");
     entity.setName("TestTaskTemplate");
-
 
     Revision revision = new Revision();
     ChangeLog changelog = new ChangeLog();
@@ -86,30 +81,29 @@ public class TaskTemplateControllerTests extends FlowTests {
 
     entity.setRevisions(revisions);
     FlowTaskTemplate updatedEntity = controller.updateTaskTemplate(entity);
-     assertEquals(updatedEntity.getId(), entity.getId());
-     assertEquals("test", updatedEntity.getDescription());
+    assertEquals(updatedEntity.getId(), entity.getId());
+    assertEquals("test", updatedEntity.getDescription());
     //  assertEquals(date, updatedEntity.getCreatedDate());
-     assertEquals(1, updatedEntity.getCurrentVersion());
+    assertEquals(1, updatedEntity.getCurrentVersion());
 
-     assertNotNull(updatedEntity.getRevisions().get(0).getChangelog().getUserId());
-     assertEquals("reason",
-        updatedEntity.getRevisions().get(0).getChangelog().getReason());
-     assertEquals(true, updatedEntity.isVerified());
+    assertNotNull(updatedEntity.getRevisions().get(0).getChangelog().getUserId());
+    assertEquals("reason", updatedEntity.getRevisions().get(0).getChangelog().getReason());
+    assertEquals(true, updatedEntity.isVerified());
   }
 
   @Test
   public void testDeleteTaskTemplate() {
     controller.deleteTaskTemplateWithId("5bd9d0825a5df954ad5bb5c3");
-     assertNotNull(controller.getTaskTemplateWithId("5bd9d0825a5df954ad5bb5c3"));
-     assertEquals(FlowTaskTemplateStatus.inactive,
+    assertNotNull(controller.getTaskTemplateWithId("5bd9d0825a5df954ad5bb5c3"));
+    assertEquals(
+        FlowTaskTemplateStatus.inactive,
         controller.getTaskTemplateWithId("5bd9d0825a5df954ad5bb5c3").getStatus());
-
 
     controller.activateTaskTemplate("5bd9d0825a5df954ad5bb5c3");
-     assertNotNull(controller.getTaskTemplateWithId("5bd9d0825a5df954ad5bb5c3"));
-     assertEquals(FlowTaskTemplateStatus.active,
+    assertNotNull(controller.getTaskTemplateWithId("5bd9d0825a5df954ad5bb5c3"));
+    assertEquals(
+        FlowTaskTemplateStatus.active,
         controller.getTaskTemplateWithId("5bd9d0825a5df954ad5bb5c3").getStatus());
-
   }
 
   @Test
@@ -117,9 +111,9 @@ public class TaskTemplateControllerTests extends FlowTests {
     String templateId = "5bd9d0825a5df954ad5bb5c3";
 
     TektonTask task = this.controller.getTaskTemplateYamlWithId(templateId);
-     assertNotNull(task);
-     assertNotNull(task.getSpec());
-     assertNotNull(task.getSpec().getParams());
+    assertNotNull(task);
+    assertNotNull(task.getSpec());
+    assertNotNull(task.getSpec().getParams());
   }
 
   @Test
@@ -127,7 +121,6 @@ public class TaskTemplateControllerTests extends FlowTests {
     String templateId = "5bd9d0825a5df954ad5bb5c3";
 
     TektonTask task = this.controller.getTaskTemplateYamlWithIdandRevision(templateId, 1);
-     assertNotNull(task.getSpec().getParams());
+    assertNotNull(task.getSpec().getParams());
   }
-
 }

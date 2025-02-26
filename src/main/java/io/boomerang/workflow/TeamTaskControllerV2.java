@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v2/team/{team}/task")
 @Tag(name = "Task Management", description = "Create and manage the team based Task definitions.")
-public class TeamTaskV2Controller {
+public class TeamTaskControllerV2 {
 
   @Autowired private TaskService taskService;
 

@@ -352,7 +352,7 @@ public class RelationshipService {
   /*
    * Retrieve the Parent by Label
    */
-  public String getParentByLabel(RelationshipType type, String ref, RelationshipLabel label) {
+  public String getParentByLabel(RelationshipLabel label, RelationshipType type, String ref) {
     List<RelationshipEdgeEntity> edges =
         edgeRepository.findByToAndLabel(type.getLabel() + ":" + ref, label.getLabel());
     String parent = "";
