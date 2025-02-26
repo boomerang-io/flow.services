@@ -1,19 +1,21 @@
 package io.boomerang.core;
 
+import io.boomerang.core.model.Features;
+import io.boomerang.workflow.model.AbstractParam;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import io.boomerang.workflow.model.AbstractParam;
-import io.boomerang.core.model.Features;
 
 @Service
 public class FeatureService {
 
   private static final String VERIFIED_TASK_EDIT_KEY = "enable.verified.tasks.edit";
-  @Autowired
-  private SettingsService settingsService;
+
+  private final SettingsService settingsService;
+
+  public FeatureService(SettingsService settingsService) {
+    this.settingsService = settingsService;
+  }
 
   public Features get() {
     Features flowFeatures = new Features();
@@ -26,29 +28,35 @@ public class FeatureService {
     } else {
       features.put(VERIFIED_TASK_EDIT_KEY, false);
     }
-    features.put("team.quotas",
+    features.put(
+        "team.quotas",
         settingsService.getSettingConfig("features", "teamQuotas").getBooleanValue());
-    features.put("workflow.triggers",
+    features.put(
+        "workflow.triggers",
         settingsService.getSettingConfig("features", "workflowTriggers").getBooleanValue());
-    features.put("workflow.tokens",
+    features.put(
+        "workflow.tokens",
         settingsService.getSettingConfig("features", "workflowTokens").getBooleanValue());
-    features.put("team.parameters",
+    features.put(
+        "team.parameters",
         settingsService.getSettingConfig("features", "teamParameters").getBooleanValue());
-    features.put("global.parameters",
+    features.put(
+        "global.parameters",
         settingsService.getSettingConfig("features", "globalParameters").getBooleanValue());
-    features.put("team.management",
+    features.put(
+        "team.management",
         settingsService.getSettingConfig("features", "teamManagement").getBooleanValue());
-    features.put("user.management",
+    features.put(
+        "user.management",
         settingsService.getSettingConfig("features", "userManagement").getBooleanValue());
-    features.put("activity",
-        settingsService.getSettingConfig("features", "activity").getBooleanValue());
-    features.put("insights",
-        settingsService.getSettingConfig("features", "insights").getBooleanValue());
-    features.put("team.tasks",
-        settingsService.getSettingConfig("features", "teamTasks").getBooleanValue());
+    features.put(
+        "activity", settingsService.getSettingConfig("features", "activity").getBooleanValue());
+    features.put(
+        "insights", settingsService.getSettingConfig("features", "insights").getBooleanValue());
+    features.put(
+        "team.tasks", settingsService.getSettingConfig("features", "teamTasks").getBooleanValue());
 
     flowFeatures.setFeatures(features);
     return flowFeatures;
   }
-
 }

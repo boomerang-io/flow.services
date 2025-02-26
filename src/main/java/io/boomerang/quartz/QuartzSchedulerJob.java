@@ -3,7 +3,7 @@ package io.boomerang.quartz;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.boomerang.workflow.RelationshipService;
+import io.boomerang.core.RelationshipService;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;

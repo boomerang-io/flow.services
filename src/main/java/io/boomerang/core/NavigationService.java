@@ -1,10 +1,11 @@
 package io.boomerang.core;
 
+import io.boomerang.core.model.Features;
+import io.boomerang.core.model.Navigation;
+import io.boomerang.core.model.NavigationType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -16,42 +17,42 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
-import io.boomerang.core.model.Features;
-import io.boomerang.core.model.Navigation;
-import io.boomerang.core.model.NavigationType;
 
 @Service
 public class NavigationService {
 
-  @Value("${flow.externalUrl.navigation}")
-  private String flowExternalUrlNavigation;
-
-  @Autowired
-  private ExternalTokenService apiTokenService;
-
   private static final String AUTHORIZATION_HEADER = "Authorization";
   private static final String TOKEN_PREFIX = "Bearer ";
 
-  @Autowired
-  @Qualifier("internalRestTemplate")
-  private RestTemplate restTemplate;
-
-  @Autowired
-  private FeatureService featureService;
+  @Value("${flow.externalUrl.navigation}")
+  private String flowExternalUrlNavigation;
 
   @Value("${flow.apps.flow.url}")
   private String flowAppsUrl;
 
-  @Autowired
-  private UserService userService;
+  private final ExternalTokenService apiTokenService;
+  private final RestTemplate restTemplate;
+  private final FeatureService featureService;
+  private final UserService userService;
+
+  public NavigationService(
+      @Qualifier("internalRestTemplate") RestTemplate restTemplate,
+      ExternalTokenService apiTokenService,
+      FeatureService featureService,
+      UserService userService) {
+    this.restTemplate = restTemplate;
+    this.apiTokenService = apiTokenService;
+    this.featureService = featureService;
+    this.userService = userService;
+  }
 
   public List<Navigation> getNavigation(boolean isUserAdmin, Optional<String> optTeamId) {
 
     Features features = featureService.get();
-    
+
     boolean disabled = optTeamId.isPresent() ? false : true;
     String teamIdURLContext = optTeamId.isPresent() ? "/" + optTeamId.get() : "";
-    
+
     if (flowExternalUrlNavigation.isBlank()) {
       List<Navigation> response = new ArrayList<>();
       Navigation home = new Navigation();
@@ -61,11 +62,11 @@ public class NavigationService {
       home.setIcon("Home");
       home.setLink(flowAppsUrl + "/home");
       response.add(home);
-      
+
       Navigation divider = new Navigation();
       divider.setType(NavigationType.divider);
       response.add(divider);
-      
+
       Navigation workflows = new Navigation();
       workflows.setName("Workflows");
       workflows.setType(NavigationType.link);
@@ -205,13 +206,10 @@ public class NavigationService {
         admin.getChildLinks().add(templateWorkflows);
 
         response.add(admin);
-
       }
 
       return response;
-    }
-
-    else {
+    } else {
 
       UriComponentsBuilder uriComponentsBuilder =
           UriComponentsBuilder.fromHttpUrl(flowExternalUrlNavigation);
@@ -224,11 +222,16 @@ public class NavigationService {
       }
 
       HttpHeaders headers = new HttpHeaders();
-      headers.add(AUTHORIZATION_HEADER, TOKEN_PREFIX
-          + apiTokenService.createJWTToken(userService.getCurrentUser().getEmail()));
+      headers.add(
+          AUTHORIZATION_HEADER,
+          TOKEN_PREFIX + apiTokenService.createJWTToken(userService.getCurrentUser().getEmail()));
       HttpEntity<String> request = new HttpEntity<>(headers);
-      ResponseEntity<List<Navigation>> response = restTemplate.exchange(uriComponents.toUriString(),
-          HttpMethod.GET, request, new ParameterizedTypeReference<List<Navigation>>() {});
+      ResponseEntity<List<Navigation>> response =
+          restTemplate.exchange(
+              uriComponents.toUriString(),
+              HttpMethod.GET,
+              request,
+              new ParameterizedTypeReference<List<Navigation>>() {});
       return response.getBody();
     }
   }

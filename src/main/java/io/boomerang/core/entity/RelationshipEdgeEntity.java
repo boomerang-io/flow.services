@@ -1,22 +1,22 @@
 package io.boomerang.core.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.bson.types.ObjectId;
+
+import io.boomerang.core.model.RelationshipLabel;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.boomerang.core.model.RelationshipLabel;
 
 /*
  * Entity for Relationships
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Document(collection = "#{@mongoConfiguration.fullCollectionName('relationship_edges')}")
+@Document(collection = "#{@mongoConfiguration.fullCollectionName('rel_edges')}")
 @CompoundIndexes({
   @CompoundIndex(name = "from_to_idx", def = "{'from' : -1, 'to': -1}"),
   @CompoundIndex(name = "from_to_label_idx", def = "{'from' : -1, 'to': -1, 'label': -1}"),
@@ -24,63 +24,86 @@ import io.boomerang.core.model.RelationshipLabel;
 })
 public class RelationshipEdgeEntity {
 
-  @Id
-  private String id;
+  @Id private String id;
   private Date creationDate = new Date();
-  private ObjectId from;
-  private RelationshipLabel label; 
-  private ObjectId to;
+  private String from;
+  private String label;
+  private String to;
   private Map<String, String> data = new HashMap<>();
 
-  public RelationshipEdgeEntity() {
-    // TODO Auto-generated constructor stub
-  }
+  public RelationshipEdgeEntity() {}
 
-  public RelationshipEdgeEntity(String from, RelationshipLabel label,
-      String to, Optional<Map<String, String>> data) {
-    this.from = new ObjectId(from);
+  public RelationshipEdgeEntity(
+      String from, String label, String to, Optional<Map<String, String>> data) {
+    this.from = from;
     this.label = label;
-    this.to = new ObjectId(to);
+    this.to = to;
     if (data.isPresent()) {
       this.setData(data.get());
     }
   }
-  
+
+  public RelationshipEdgeEntity(
+      String from, RelationshipLabel label, String to, Optional<Map<String, String>> data) {
+    this.from = from;
+    this.label = label.getLabel();
+    this.to = to;
+    if (data.isPresent()) {
+      this.setData(data.get());
+    }
+  }
+
   @Override
   public String toString() {
-    return "RelationshipEdgeEntity [id=" + id + ", creationDate=" + creationDate + ", from=" + from
-        + ", label=" + label + ", to=" + to + ", data=" + data + "]";
+    return "RelationshipEdgeEntity [id="
+        + id
+        + ", creationDate="
+        + creationDate
+        + ", from="
+        + from
+        + ", label="
+        + label
+        + ", to="
+        + to
+        + ", data="
+        + data
+        + "]";
   }
-  
+
   public String getId() {
     return id;
   }
+
   public void setId(String id) {
     this.id = id;
   }
+
   public Date getCreationDate() {
     return creationDate;
   }
-  public void setCreationDate(Date creationDate) {
-    this.creationDate = creationDate;
-  }
+
   public String getFrom() {
     return from.toString();
   }
+
   public void setFrom(String from) {
-    this.from = new ObjectId(from);
+    this.from = from;
   }
-  public RelationshipLabel getLabel() {
+
+  public String getLabel() {
     return label;
   }
-  public void setLabel(RelationshipLabel label) {
+
+  public void setLabel(String label) {
     this.label = label;
   }
+
   public String getTo() {
     return to.toString();
   }
+
   public void setTo(String to) {
-    this.to = new ObjectId(to);
+    this.to = to;
   }
 
   public Map<String, String> getData() {

@@ -6,6 +6,10 @@ import static org.springframework.test.web.client.ExpectedCount.manyTimes;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+
+import io.boomerang.core.ExternalUserService;
+import io.boomerang.core.model.ExternalUserProfile;
+import io.boomerang.misc.FlowTests;
 import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,8 +24,6 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.client.MockRestServiceServer;
-import io.boomerang.core.ExternalUserProfile;
-import io.boomerang.misc.FlowTests;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -30,8 +32,7 @@ import io.boomerang.misc.FlowTests;
 @WithUserDetails("mdroy@us.ibm.com")
 class BoomerangUserServiceTests extends FlowTests {
 
-  @Autowired
-  private ExternalUserService userService;
+  @Autowired private ExternalUserService userService;
 
   @Test
   void testGetUserProfile() {
@@ -50,6 +51,5 @@ class BoomerangUserServiceTests extends FlowTests {
         .expect(manyTimes(), requestTo(containsString("http://localhost:8084/internal/users/user")))
         .andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess(getMockFile("mock/users/users.json"), MediaType.APPLICATION_JSON));
-
   }
 }
