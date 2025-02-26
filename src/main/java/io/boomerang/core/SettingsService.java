@@ -1,44 +1,42 @@
 package io.boomerang.core;
 
+import io.boomerang.core.entity.SettingEntity;
+import io.boomerang.core.model.ConfigurationType;
+import io.boomerang.core.model.EncryptionConfig;
+import io.boomerang.core.model.Setting;
+import io.boomerang.core.repository.SettingsRepository;
+import io.boomerang.util.DateUtil;
+import io.boomerang.workflow.model.AESAlgorithm;
+import io.boomerang.workflow.model.AbstractParam;
 import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import io.boomerang.core.entity.SettingEntity;
-import io.boomerang.workflow.model.EncryptionConfig;
-import io.boomerang.core.repository.SettingsRepository;
-import io.boomerang.workflow.model.AESAlgorithm;
-import io.boomerang.workflow.model.AbstractParam;
-import io.boomerang.core.model.Setting;
-import io.boomerang.core.model.ConfigurationType;
-import io.boomerang.util.DateUtil;
-
 
 @Service
 public class SettingsService {
 
   private static final String SECURED_TYPE = "secured";
-  
+
   @Value("${flow.workflow.webhook.url}")
   private String webhookUrl;
-  
-  
+
   @Value("${flow.workflow.wfe.url}")
   private String waitForEventUrl;
-  
-  
+
   @Value("${flow.workflow.event.url}")
   private String eventUrl;
 
-  @Autowired
-  private SettingsRepository settingsRepository;
+  private final SettingsRepository settingsRepository;
+  private final EncryptionConfig encryptConfig;
 
-  @Autowired
-  private EncryptionConfig encryptConfig;
+  public SettingsService(SettingsRepository settingsRepository, EncryptionConfig encryptConfig) {
+    this.settingsRepository = settingsRepository;
+    this.encryptConfig = encryptConfig;
+  }
 
   public List<Setting> getAllSettings() {
     final List<Setting> settingList = new LinkedList<>();
@@ -70,8 +68,11 @@ public class SettingsService {
   private void setConfigsValue(final Setting setting, final SettingEntity entity) {
     for (final AbstractParam config : setting.getConfig()) {
       final String newValue = config.getValue();
-      final Optional<AbstractParam> result = entity.getConfig().stream().parallel()
-          .filter(x -> config.getKey().equals(x.getKey())).findFirst();
+      final Optional<AbstractParam> result =
+          entity.getConfig().stream()
+              .parallel()
+              .filter(x -> config.getKey().equals(x.getKey()))
+              .findFirst();
       if (result.isPresent()) {
         final AbstractParam originalConfig = result.get();
         originalConfig.setValue(newValue);
@@ -149,7 +150,8 @@ public class SettingsService {
       return value;
     }
 
-    return StringUtils.hasText(value) ? value
+    return StringUtils.hasText(value)
+        ? value
         : ("crypt_v1{AES|"
             + AESAlgorithm.encrypt(value, encryptConfig.getSecretKey(), encryptConfig.getSalt())
             + "}");
@@ -162,8 +164,7 @@ public class SettingsService {
     }
 
     String replacedValue = value.replace("crypt_v1{AES|", "").replace("}", "");
-    return AESAlgorithm.decrypt(replacedValue, encryptConfig.getSecretKey(),
-        encryptConfig.getSalt());
-
+    return AESAlgorithm.decrypt(
+        replacedValue, encryptConfig.getSecretKey(), encryptConfig.getSalt());
   }
 }

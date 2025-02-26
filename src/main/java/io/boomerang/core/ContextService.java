@@ -1,8 +1,13 @@
 package io.boomerang.core;
 
+import io.boomerang.core.entity.UserEntity;
+import io.boomerang.core.model.HeaderFeatures;
+import io.boomerang.core.model.HeaderNavigation;
+import io.boomerang.core.model.HeaderNavigationResponse;
+import io.boomerang.core.model.HeaderPlatform;
+import io.boomerang.workflow.model.AbstractParam;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,15 +21,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
-import io.boomerang.core.entity.UserEntity;
-import io.boomerang.workflow.model.AbstractParam;
-import io.boomerang.core.model.HeaderFeatures;
-import io.boomerang.core.model.HeaderNavigation;
-import io.boomerang.core.model.HeaderNavigationResponse;
-import io.boomerang.core.model.HeaderPlatform;
 
 @Service
 public class ContextService {
+
+  private static final String AUTHORIZATION_HEADER = "Authorization";
+  private static final String TOKEN_PREFIX = "Bearer ";
 
   @Value("${core.feature.notifications.enable}")
   private Boolean enableFeatureNotification;
@@ -46,25 +48,26 @@ public class ContextService {
 
   @Value("${flow.version}")
   private String platformVersion;
-  
+
   @Autowired
   @Qualifier("internalRestTemplate")
   private RestTemplate restTemplate;
-  
+
   @Value("${flow.externalUrl.platformNavigation}")
   private String platformNavigationUrl;
 
-  @Autowired
-  private SettingsService settingsService;
-  
-  private static final String AUTHORIZATION_HEADER = "Authorization";
-  private static final String TOKEN_PREFIX = "Bearer ";
-  
-  @Autowired
-  private ExternalTokenService apiTokenService;
-  
-  @Autowired
-  private UserService userService;
+  private final SettingsService settingsService;
+  private final ExternalTokenService apiTokenService;
+  private final UserService userService;
+
+  public ContextService(
+      SettingsService settingsService,
+      ExternalTokenService apiTokenService,
+      UserService userService) {
+    this.settingsService = settingsService;
+    this.apiTokenService = apiTokenService;
+    this.userService = userService;
+  }
 
   public HeaderNavigationResponse getHeaderNavigation(boolean isUserAdmin) {
     UserEntity user = userService.getCurrentUser();
@@ -72,11 +75,10 @@ public class ContextService {
       return null;
     }
     String email = user.getEmail();
-    
+
     if (platformNavigationUrl.isBlank()) {
       return getFlowNavigationResponse();
-    }
-    else {
+    } else {
       return getExternalNavigationResponse(email);
     }
   }
@@ -92,12 +94,14 @@ public class ContextService {
     features.setSupportEnabled(false);
     features.setConsentEnabled(false);
     features.setInternalEnabled(platformNavigationUrl.isBlank() ? true : false);
-    
+
     navigationResponse.setFeatures(features);
 
     String appName = settingsService.getSettingConfig("customizations", "appName").getValue();
-    String platformName = settingsService.getSettingConfig("customizations", "platformName").getValue();
-    String displayLogo = settingsService.getSettingConfig("customizations", "displayLogo").getValue();
+    String platformName =
+        settingsService.getSettingConfig("customizations", "platformName").getValue();
+    String displayLogo =
+        settingsService.getSettingConfig("customizations", "displayLogo").getValue();
     String logoURL = settingsService.getSettingConfig("customizations", "logoURL").getValue();
     String name = platformName + " " + appName;
     HeaderPlatform platform = new HeaderPlatform();
@@ -114,23 +118,27 @@ public class ContextService {
 
     return navigationResponse;
   }
-  
+
   private HeaderNavigationResponse getExternalNavigationResponse(String email) {
     UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(platformNavigationUrl).build();
     HttpHeaders headers = buildHeaders(email);
     HttpEntity<String> requestUpdate = new HttpEntity<>("", headers);
     ResponseEntity<HeaderNavigationResponse> response =
-        restTemplate.exchange(uriComponents.toUriString(), HttpMethod.GET, requestUpdate, HeaderNavigationResponse.class);
+        restTemplate.exchange(
+            uriComponents.toUriString(),
+            HttpMethod.GET,
+            requestUpdate,
+            HeaderNavigationResponse.class);
     HeaderNavigationResponse result = response.getBody();
     if (result != null && result.getPlatform() != null) {
-      if(Strings.isBlank(result.getPlatform().getAppName())) {
+      if (Strings.isBlank(result.getPlatform().getAppName())) {
         // set default appName from settings if the external Navigation API does NOT return appName.
         result.getPlatform().setAppName(this.getAppNameInSettings());
       }
-      if(!Strings.isBlank(result.getPlatform().getPlatformName()) 
+      if (!Strings.isBlank(result.getPlatform().getPlatformName())
           && !Strings.isBlank(result.getPlatform().getAppName())) {
         /*
-         *  add | to the end of the platformName when both platformName and appName exist. 
+         *  add | to the end of the platformName when both platformName and appName exist.
          *  The UI header will display like "platformName | appName"
          */
         result.getPlatform().setPlatformName(result.getPlatform().getPlatformName() + " |");
@@ -148,7 +156,7 @@ public class ContextService {
       return null;
     }
   }
-  
+
   private HttpHeaders buildHeaders(String email) {
     final HttpHeaders headers = new HttpHeaders();
     headers.add("Accept", "application/json");

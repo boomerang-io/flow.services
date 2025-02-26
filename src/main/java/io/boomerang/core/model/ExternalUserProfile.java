@@ -1,45 +1,70 @@
-
-package io.boomerang.core;
+package io.boomerang.core.model;
 
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import io.boomerang.core.model.UserType;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({"id", "email", "name", "isFirstVisit", "type", "isShowHelp", "firstLoginDate",
-    "lastLoginDate", "lowerLevelGroupIds", "pinnedToolIds", "favoritePackages", "personalizations",
-    "notificationSettings", "status", "teams", "hasConsented"})
+@JsonPropertyOrder({
+  "id",
+  "email",
+  "name",
+  "isFirstVisit",
+  "type",
+  "isShowHelp",
+  "firstLoginDate",
+  "lastLoginDate",
+  "lowerLevelGroupIds",
+  "pinnedToolIds",
+  "favoritePackages",
+  "personalizations",
+  "notificationSettings",
+  "status",
+  "teams",
+  "hasConsented"
+})
 public class ExternalUserProfile {
 
   @JsonProperty("id")
   private String id;
+
   @JsonProperty("email")
   private String email;
+
   @JsonProperty("name")
   private String name;
+
   @JsonProperty("isFirstVisit")
   private Boolean isFirstVisit;
+
   @JsonProperty("type")
   private UserType type;
+
   @JsonProperty("isShowHelp")
   private Boolean isShowHelp;
+
   @JsonProperty("firstLoginDate")
   private String firstLoginDate;
+
   @JsonProperty("lastLoginDate")
   private String lastLoginDate;
+
   @JsonProperty("lowerLevelGroups")
   private List<Object> lowerLevelGroups = null;
+
   @JsonProperty("pinnedToolIds")
   private List<Object> pinnedToolIds = null;
+
   @JsonProperty("favoritePackages")
   private List<Object> favoritePackages = null;
 
   @JsonProperty("status")
   private String status;
+
   @JsonProperty("teams")
   private List<Object> teams = null;
+
   @JsonProperty("hasConsented")
   private Boolean hasConsented;
 

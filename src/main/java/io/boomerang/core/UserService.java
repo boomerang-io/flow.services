@@ -1,5 +1,17 @@
 package io.boomerang.core;
 
+import io.boomerang.core.entity.UserEntity;
+import io.boomerang.core.model.*;
+import io.boomerang.core.repository.RoleRepository;
+import io.boomerang.core.repository.UserRepository;
+import io.boomerang.error.BoomerangError;
+import io.boomerang.error.BoomerangException;
+import io.boomerang.security.IdentityService;
+import io.boomerang.workflow.entity.TeamEntity;
+import io.boomerang.workflow.model.TeamStatus;
+import io.boomerang.workflow.model.TeamSummary;
+import io.boomerang.workflow.model.TeamSummaryInsights;
+import io.boomerang.workflow.repository.TeamRepository;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -8,10 +20,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import io.boomerang.core.repository.RoleRepository;
-import io.boomerang.security.IdentityService;
-import io.boomerang.workflow.RelationshipService;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,23 +38,6 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import io.boomerang.workflow.entity.TeamEntity;
-import io.boomerang.core.entity.UserEntity;
-import io.boomerang.workflow.repository.TeamRepository;
-import io.boomerang.core.repository.UserRepository;
-import io.boomerang.error.BoomerangError;
-import io.boomerang.error.BoomerangException;
-import io.boomerang.core.model.OneTimeCode;
-import io.boomerang.workflow.model.TeamSummary;
-import io.boomerang.workflow.model.TeamSummaryInsights;
-import io.boomerang.core.model.User;
-import io.boomerang.core.model.UserProfile;
-import io.boomerang.core.model.UserRequest;
-import io.boomerang.core.model.UserStatus;
-import io.boomerang.core.model.RelationshipLabel;
-import io.boomerang.core.model.RelationshipType;
-import io.boomerang.workflow.model.TeamStatus;
-import io.boomerang.core.model.UserType;
 
 @Service
 public class UserService {
@@ -83,7 +74,12 @@ public class UserService {
     this.relationshipService = relationshipService;
     this.mongoTemplate = mongoTemplate;
   }
-  
+
+  /*
+   * If OTC matches, activate the instance
+   *
+   * TODO: move to a better service
+   */
   public ResponseEntity<Boolean> activateSetup(OneTimeCode otc) {
     if (externalUserUrl.isBlank()) {
       if (corePlatformOTC.equals(otc.getOtc())) {
@@ -96,7 +92,6 @@ public class UserService {
   /*
    * Used by the CreateUserSession to check if instance is activated
    */
-  
   public boolean isActivated() {
     if (externalUserUrl.isBlank() && userRepository.count() == 0) {
       return false;
@@ -105,10 +100,14 @@ public class UserService {
   }
 
   /*
-   * Used by the AuthenticationFilter to Retrieve the user and create the Users Team
+   * Used by the AuthenticationFilter to Retrieve the user
    */
-  public Optional<UserEntity> getAndRegisterUser(String email, String firstName, String lastName,
-      Optional<UserType> usertype, boolean allowUserCreation) {
+  public Optional<UserEntity> getAndRegisterUser(
+      String email,
+      Optional<String> name,
+      Optional<UserType> userType,
+      Optional<UserStatus> userStatus,
+      boolean allowUserCreation) {
     if (email == null || email.isBlank()) {
       return Optional.empty();
     }
@@ -116,51 +115,55 @@ public class UserService {
     Optional<UserEntity> userEntity = getUserEntityByEmail(email);
     boolean createRelationshipNode = false;
     if (externalUserUrl.isBlank()) {
-      if (userEntity.isEmpty() && allowUserCreation) {          
+      if (userEntity.isEmpty() && allowUserCreation) {
         // Create new User (UserEntity is defaulted on new)
         UserEntity newUserEntity = new UserEntity();
         newUserEntity.setEmail(email);
-        if (usertype.isPresent()) {
-          newUserEntity.setType(usertype.get());
+        if (userType.isPresent()) {
+          newUserEntity.setType(userType.get());
         }
+        if (userStatus.isPresent()) {
+          newUserEntity.setStatus(userStatus.get());
+        }
+        if (name.isEmpty() && email != null) {
+          name = Optional.of(email);
+        }
+        newUserEntity.setName(name.get());
         userEntity = Optional.of(newUserEntity);
-
         createRelationshipNode = true;
       } else if (userEntity.isEmpty()) {
         return Optional.empty();
       }
-      // Refresh name from provided details
-      String name;
-      if (firstName == null && lastName == null && email != null) {
-        name = email;
-      } else {
-        name = String.format("%s %s", Optional.ofNullable(firstName).orElse(""),
-            Optional.ofNullable(lastName).orElse("")).trim();
-      }
-      userEntity.get().setName(name);
       userEntity.get().setLastLoginDate(new Date());
       if (userEntity.get().getSettings().getIsFirstVisit()) {
         userEntity.get().getSettings().setIsFirstVisit(false);
       }
       userEntity = Optional.of(userRepository.save(userEntity.get()));
-      //Create User relationship node if entity was created
-      //At end due to the save only happening at the end.
-      if (createRelationshipNode) {        
-        relationshipService.createNode(RelationshipType.USER, userEntity.get().getId(), email, Optional.empty());
+      // Create User relationship node if entity was created
+      // At end due to the save only happening at the end.
+      if (createRelationshipNode) {
+        relationshipService.createNodeAndEdge(
+            RelationshipType.ROOT,
+            "root",
+            RelationshipLabel.CONTAINS,
+            RelationshipType.USER,
+            userEntity.get().getId(),
+            email,
+            Optional.empty(),
+            Optional.empty());
       }
     }
-
     return userEntity;
   }
 
   private void convertExternalUserType(ExternalUserProfile extUser, UserEntity userEntity) {
-    if (!UserType.user.equals(extUser.getType()) && !UserType.admin.equals(extUser.getType())
+    if (!UserType.user.equals(extUser.getType())
+        && !UserType.admin.equals(extUser.getType())
         && !UserType.operator.equals(extUser.getType())) {
       userEntity.setType(UserType.user);
     }
   }
 
-  
   public Optional<User> getUserByID(String userId) {
     if (externalUserUrl.isBlank()) {
       Optional<UserEntity> userEntity = userRepository.findById(userId);
@@ -179,7 +182,6 @@ public class UserService {
     return Optional.empty();
   }
 
-  
   public Optional<User> getUserByEmail(String userEmail) {
     Optional<UserEntity> userEntity = getUserEntityByEmail(userEmail);
     if (userEntity.isPresent()) {
@@ -222,95 +224,64 @@ public class UserService {
       UserEntity user = getCurrentUser();
       profile = new UserProfile(user);
     } else {
-      ExternalUserProfile extUserProfile = extUserService.getUserProfileById(identityService.getCurrentPrincipal());
+      ExternalUserProfile extUserProfile =
+          extUserService.getUserProfileById(identityService.getCurrentPrincipal());
       if (extUserProfile != null) {
         BeanUtils.copyProperties(extUserProfile, profile);
         convertExternalUserType(extUserProfile, profile);
       }
     }
     // Add TeamSummaries
-//    Map<String, String> teamRefs = relationshipService.getMyTeamRefsAndRoles(profile.getId());
-    Map<String, String> teamRefs = relationshipService.getMyTeamRefsAndRoles(profile.getId());
-    //TODO - change to return an Object with teamId, teamSlug, 
+    //    Map<String, String> teamRefs = relationshipService.getMyTeamRefsAndRoles(profile.getId());
+    Map<String, String> teamRefs = relationshipService.roles(profile.getId());
+    // TODO - change to return an Object with teamId, teamSlug,
     List<TeamSummary> teamSummaries = new LinkedList<>();
     List<String> permissions = new LinkedList<>();
-    teamRefs.forEach((k, v) -> {
-      Optional<TeamEntity> teamEntity = teamRepository.findById(k);
-      if (teamEntity.isPresent()) {
-        // Generate TeamSummary + Insight
-        TeamSummary ts = new TeamSummary(teamEntity.get());
-        TeamSummaryInsights tsi = new TeamSummaryInsights();
-        Map<String, String> membersAndRoles = relationshipService.getMembersAndRoleForTeam(k);
-        tsi.setMembers(Long.valueOf(membersAndRoles.size()));
-        List<String> workflowRefs =
-            relationshipService.getFilteredRefs(Optional.of(RelationshipType.WORKFLOW),
-                Optional.empty(), RelationshipLabel.BELONGSTO,
-                RelationshipType.TEAM, k, true);
-        tsi.setWorkflows(Long.valueOf(workflowRefs.size()));
-        ts.setInsights(tsi);
-        teamSummaries.add(ts);
+    teamRefs.forEach(
+        (k, v) -> {
+          Optional<TeamEntity> teamEntity = teamRepository.findById(k);
+          if (teamEntity.isPresent()) {
+            // Generate TeamSummary + Insight
+            TeamSummary ts = new TeamSummary(teamEntity.get());
+            TeamSummaryInsights tsi = new TeamSummaryInsights();
+            Map<String, String> membersAndRoles = relationshipService.membersAndRoles(k);
+            tsi.setMembers(Long.valueOf(membersAndRoles.size()));
+            List<String> workflowRefs =
+                relationshipService.filter(
+                    RelationshipType.WORKFLOW,
+                    Optional.empty(),
+                    Optional.of(RelationshipType.TEAM),
+                    Optional.of(List.of(k)));
+            tsi.setWorkflows(Long.valueOf(workflowRefs.size()));
+            ts.setInsights(tsi);
+            teamSummaries.add(ts);
 
-        // Generate Permissions
-        roleRepository.findByTypeAndName("team", v).getPermissions().stream()
-            .forEach(p -> permissions.add(p.replace("{principal}", k)));
-      }
-    });
+            // Generate Permissions
+            roleRepository.findByTypeAndName("team", v).getPermissions().stream()
+                .forEach(p -> permissions.add(p.replace("{principal}", k)));
+          }
+        });
     profile.setTeams(teamSummaries);
     profile.setPermissions(permissions);
     return profile;
   }
-  
-  
+
   public void updateCurrentProfile(UserRequest request) {
     String userId = identityService.getCurrentPrincipal();
     request.setId(userId);
     this.apply(request);
   }
 
-  // /*
-  // * Retrieves the profile for a specified user. Does not use current session.
-  // */
-  // 
-  // public UserProfile getProfile(String userId) {
-  // if (externalUserUrl.isBlank()) {
-  // Optional<UserEntity> flowUser = userRepository.findById(userId);
-  // if (flowUser.isPresent()) {
-  // UserProfile profile = new UserProfile(flowUser.get());
-  // List<String> teamRefs =
-  // relationshipService.getFilteredFromRefs(Optional.of(RelationshipRef.USER),
-  // Optional.of(List.of(userId)), Optional.of(RelationshipType.MEMBEROF),
-  // Optional.of(RelationshipRef.TEAM), Optional.empty());
-  // List<Team> usersTeams = teamService.query(Optional.empty(), Optional.empty(), Optional.empty(),
-  // Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(teamRefs)).getContent();
-  // profile.setTeams(usersTeams);
-  // return profile;
-  // }
-  // } else {
-  // ExternalUserProfile extUserProfile = extUserService.getUserProfileById(userId);
-  // if (extUserProfile != null) {
-  // UserProfile profile = new UserProfile();
-  // BeanUtils.copyProperties(extUserProfile, profile);
-  // convertExternalUserType(extUserProfile, profile);
-  // List<String> teamRefs =
-  // relationshipService.getFilteredFromRefs(Optional.of(RelationshipRef.USER),
-  // Optional.of(List.of(userId)), Optional.of(RelationshipType.MEMBEROF),
-  // Optional.of(RelationshipRef.TEAM), Optional.empty());
-  // List<Team> usersTeams = teamService.query(Optional.empty(), Optional.empty(), Optional.empty(),
-  // Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(teamRefs)).getContent();
-  // profile.setTeams(usersTeams);
-  // return profile;
-  // }
-  // }
-  // return null;
-  // }
-
   /*
    * Query for Users
    */
-  
-  public Page<User> query(Optional<Integer> queryPage, Optional<Integer> queryLimit,
-      Optional<Direction> queryOrder, Optional<String> querySort,
-      Optional<List<String>> queryLabels, Optional<List<String>> queryStatus,
+  public Page<User> query(
+      Optional<Integer> queryPage,
+      Optional<Integer> queryLimit,
+      Optional<Direction> queryOrder,
+      Optional<String> querySort,
+      Optional<List<String>> queryLabels,
+      Optional<List<String>> queryStatus,
       Optional<List<String>> queryIds) {
     Pageable pageable = Pageable.unpaged();
     final Sort sort =
@@ -326,19 +297,21 @@ public class UserService {
 
     List<Criteria> criteriaList = new ArrayList<>();
     if (queryLabels.isPresent()) {
-      queryLabels.get().stream().forEach(l -> {
-        String decodedLabel = "";
-        try {
-          decodedLabel = URLDecoder.decode(l, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-          throw new BoomerangException(e, BoomerangError.QUERY_INVALID_FILTERS, "labels");
-        }
-        LOGGER.debug(decodedLabel.toString());
-        String[] label = decodedLabel.split("[=]+");
-        Criteria labelsCriteria =
-            Criteria.where("labels." + label[0].replace(".", "#")).is(label[1]);
-        criteriaList.add(labelsCriteria);
-      });
+      queryLabels.get().stream()
+          .forEach(
+              l -> {
+                String decodedLabel = "";
+                try {
+                  decodedLabel = URLDecoder.decode(l, "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                  throw new BoomerangException(e, BoomerangError.QUERY_INVALID_FILTERS, "labels");
+                }
+                LOGGER.debug(decodedLabel.toString());
+                String[] label = decodedLabel.split("[=]+");
+                Criteria labelsCriteria =
+                    Criteria.where("labels." + label[0].replace(".", "#")).is(label[1]);
+                criteriaList.add(labelsCriteria);
+              });
     }
 
     if (queryStatus.isPresent()) {
@@ -375,92 +348,111 @@ public class UserService {
     if (!entities.isEmpty()) {
       entities.forEach(e -> users.add(new User(e)));
     }
-    Page<User> pages = PageableExecutionUtils.getPage(users, pageable,
-        () -> mongoTemplate.count(query, UserEntity.class));
+    Page<User> pages =
+        PageableExecutionUtils.getPage(
+            users, pageable, () -> mongoTemplate.count(query, UserEntity.class));
 
     return pages;
   }
-  
-  public User create(UserRequest request) {
-    if (externalUserUrl.isBlank() && request != null && request.getEmail() != null
-        && this.userRepository.countByEmailIgnoreCaseAndStatus(request.getEmail(),
-            UserStatus.active) == 0) {
-      // Create User (UserEntity is defaulted on new)
-      UserEntity userEntity = new UserEntity();
-      userEntity.setEmail(request.getEmail());
-      if (request.getName() != null && !request.getName().isBlank()) {
-        userEntity.setName(request.getName());
-      }
-      if (request.getDisplayName() != null && !request.getDisplayName().isBlank()) {
-        userEntity.setDisplayName(request.getDisplayName());
-      }
-      if (request.getType() != null) {
-        userEntity.setType(request.getType());
-      }
-      if (request.getLabels() != null) {
-        userEntity.setLabels(request.getLabels());
-      }
-      userEntity.getSettings().setHasConsented(true);
-      userEntity = this.userRepository.save(userEntity);
 
-      return new User(userEntity);
-    } else {
-      // TODO throw exception
-      return null;
+  /*
+   * Create User
+   *
+   * TODO: determine if needed
+   */
+  //  public User create(UserRequest request) {
+  //    if (externalUserUrl.isBlank()
+  //        && request != null
+  //        && request.getEmail() != null
+  //        && this.userRepository.countByEmailIgnoreCaseAndStatus(
+  //                request.getEmail(), UserStatus.active)
+  //            == 0) {
+  //      // Create User (UserEntity is defaulted on new)
+  //      UserEntity userEntity = new UserEntity();
+  //      userEntity.setEmail(request.getEmail());
+  //      if (request.getName() != null && !request.getName().isBlank()) {
+  //        userEntity.setName(request.getName());
+  //      }
+  //      if (request.getDisplayName() != null && !request.getDisplayName().isBlank()) {
+  //        userEntity.setDisplayName(request.getDisplayName());
+  //      }
+  //      if (request.getType() != null) {
+  //        userEntity.setType(request.getType());
+  //      }
+  //      if (request.getLabels() != null) {
+  //        userEntity.setLabels(request.getLabels());
+  //      }
+  //      userEntity.getSettings().setHasConsented(true);
+  //      userEntity = this.userRepository.save(userEntity);
+  //
+  //      return new User(userEntity);
+  //    } else {
+  //      // TODO throw exception
+  //      return null;
+  //    }
+  //  }
+
+  /*
+   * Update User
+   */
+  public User apply(UserRequest request) {
+    if (externalUserUrl.isBlank()) {
+      Optional<UserEntity> userOptional = Optional.empty();
+      if (request != null && request.getId() != null && !request.getId().isBlank()) {
+        userOptional = this.userRepository.findByIdAndStatus(request.getId(), UserStatus.active);
+      } else if (request != null && request.getEmail() != null && !request.getEmail().isBlank()) {
+        userOptional =
+            Optional.of(
+                this.userRepository.findByEmailIgnoreCaseAndStatus(
+                    request.getEmail(), UserStatus.active));
+      }
+      if (userOptional.isPresent()) {
+        UserEntity user = userOptional.get();
+        if (request.getName() != null && !request.getName().isBlank()) {
+          user.setName(request.getName());
+        }
+        if (request.getDisplayName() != null && !request.getDisplayName().isBlank()) {
+          user.setDisplayName(request.getDisplayName());
+        }
+        if (request.getType() != null) {
+          user.setType(request.getType());
+        }
+        if (request.getLabels() != null) {
+          user.setLabels(request.getLabels());
+        }
+        return new User(this.userRepository.save(user));
+      }
+      throw new BoomerangException(BoomerangError.USER_NOT_FOUND);
     }
+    throw new BoomerangException(BoomerangError.PERMISSION_DENIED);
   }
-  
-  // TODO throw exception if externalUserURL is provided
-  public void apply(UserRequest request) {
-    Optional<UserEntity> userOptional = Optional.empty();
-    if (request != null && request.getId() != null && !request.getId().isBlank()) {
-      userOptional = this.userRepository.findByIdAndStatus(request.getId(), UserStatus.active);
-    } else if (request != null && request.getEmail() != null && !request.getEmail().isBlank()) {
-      userOptional = Optional.of(this.userRepository
-          .findByEmailIgnoreCaseAndStatus(request.getEmail(), UserStatus.active));
-    }
-    if (userOptional.isPresent()) {
-      UserEntity user = userOptional.get();
-      if (request.getName() != null && !request.getName().isBlank()) {
-        user.setName(request.getName());
-      }
-      if (request.getDisplayName() != null && !request.getDisplayName().isBlank()) {
-        user.setDisplayName(request.getDisplayName());
-      }
-      if (request.getType() != null) {
-        user.setType(request.getType());
-      }
-      if (request.getLabels() != null) {
-        user.setLabels(request.getLabels());
-      }
-      this.userRepository.save(user);
-    }
-  }
-  
+
   /*
    * Delete User
-   * 
+   *
    * User must leave or delete teams prior to deleting account
    */
-  //TODO - determine if the user needs to be removed from ApproverGroups, and anything else
+  // TODO - determine if the user needs to be removed from ApproverGroups, and anything else
   public void delete(String userId) {
     Optional<UserEntity> user = userRepository.findById(userId);
-    Map<String, String> teamRefsAndRoles = relationshipService.getMyTeamRefsAndRoles(userId);
+    Map<String, String> teamRefsAndRoles = relationshipService.roles(userId);
     if (!teamRefsAndRoles.isEmpty()) {
       throw new BoomerangException(BoomerangError.USER_UNABLE_TO_DELETE);
     }
     if (user.isPresent()) {
       userRepository.deleteById(userId);
-      relationshipService.removeNodeByRefOrSlug(RelationshipType.USER, userId);
+      relationshipService.removeNodeAndEdgeByRefOrSlug(RelationshipType.USER, userId);
     }
   }
 
   public boolean isCurrentUserAdmin() {
     boolean isUserAdmin = false;
     final UserEntity userEntity = getUserByID(identityService.getCurrentPrincipal()).get();
-    if (userEntity != null && (userEntity.getType() == UserType.admin
-        || userEntity.getType() == UserType.operator || userEntity.getType() == UserType.auditor
-        || userEntity.getType() == UserType.author)) {
+    if (userEntity != null
+        && (userEntity.getType() == UserType.admin
+            || userEntity.getType() == UserType.operator
+            || userEntity.getType() == UserType.auditor
+            || userEntity.getType() == UserType.author)) {
       isUserAdmin = true;
     }
     return isUserAdmin;

@@ -38,39 +38,19 @@ public class UserV2Controller {
   @Value("${flow.externalUrl.user}")
   private String flowExternalUrlUser;
 
-  @Autowired
-  private UserService userService;
-
-  /* 
-   * Returns the current users profile
-   * 
-   * The authentication handler ensures they are already a registered user
-   */
-  @GetMapping(value = "/profile")
-  @AuthScope(action = PermissionAction.READ, scope = PermissionScope.USER, types = {AuthType.session, AuthType.user})
-  @Operation(summary = "Get your Profile")
-  @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
-      @ApiResponse(responseCode = "423", description = "OK"),
-      @ApiResponse(responseCode = "404", description = "Instance not activated. Profile locked.")})
-  public UserProfile getProfile() {
-    return userService.getCurrentProfile();
-  }
-  
-  @PatchMapping(value = "/profile")
-  @AuthScope(action = PermissionAction.WRITE, scope = PermissionScope.USER, types = {AuthType.session, AuthType.user})
-  @Operation(summary = "Patch your Profile")
-  @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
-      @ApiResponse(responseCode = "423", description = "OK"),
-      @ApiResponse(responseCode = "404", description = "Instance not activated. Profile locked.")})
-  public void updateProfile(@RequestBody UserRequest request) {
-    userService.updateCurrentProfile(request);
-  }
+  @Autowired private UserService userService;
 
   @GetMapping(value = "/{userId}")
-  @AuthScope(action = PermissionAction.READ, scope = PermissionScope.USER, types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+  @AuthScope(
+      action = PermissionAction.READ,
+      scope = PermissionScope.USER,
+      types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
   @Operation(summary = "Get a Users details")
-  @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
-      @ApiResponse(responseCode = "404", description = "Not Found")})
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(responseCode = "404", description = "Not Found")
+      })
   public ResponseEntity<User> getUserByID(@PathVariable String userId) {
     Optional<User> user = userService.getUserByID(userId);
     if (user.isPresent()) {
@@ -81,48 +61,84 @@ public class UserV2Controller {
   }
 
   @GetMapping(value = "/query")
-  @AuthScope(action = PermissionAction.READ, scope = PermissionScope.USER, types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+  @AuthScope(
+      action = PermissionAction.READ,
+      scope = PermissionScope.USER,
+      types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
   @Operation(summary = "Search for Users")
-  @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
-      @ApiResponse(responseCode = "400", description = "Bad Request")})
-  public Page<User> getUsers(@Parameter(name = "labels",
-      description = "List of url encoded labels. For example Organization=Boomerang,customKey=test would be encoded as Organization%3DBoomerang,customKey%3Dtest)",
-      required = false) @RequestParam(required = false) Optional<List<String>> labels,
-      @Parameter(name = "status", description = "List of statuses to filter for. Defaults to all.",
-          example = "active,inactive",
-          required = false) @RequestParam(required = false) Optional<List<String>> statuses,
-      @Parameter(name = "ids", description = "List of ids to filter for.", 
-      required = false) @RequestParam(required = false) Optional<List<String>> ids,
-      @Parameter(name = "limit", description = "Result Size", example = "10",
-      required = true) @RequestParam(required = false) Optional<Integer> limit,
-  @Parameter(name = "page", description = "Page Number", example = "0",
-      required = true) @RequestParam(defaultValue = "0") Optional<Integer> page,
-  @Parameter(name = "order", description = "Ascending or Descending (default) order", example = "0",
-  required = false) @RequestParam(defaultValue = "DESC") Optional<Direction> order,
-  @Parameter(name = "sort", description = "The element to sort on", example = "0",
-  required = false) @RequestParam(defaultValue = "name") Optional<String> sort) {
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(responseCode = "400", description = "Bad Request")
+      })
+  public Page<User> getUsers(
+      @Parameter(
+              name = "labels",
+              description =
+                  "List of url encoded labels. For example Organization=Boomerang,customKey=test would be encoded as Organization%3DBoomerang,customKey%3Dtest)",
+              required = false)
+          @RequestParam(required = false)
+          Optional<List<String>> labels,
+      @Parameter(
+              name = "status",
+              description = "List of statuses to filter for. Defaults to all.",
+              example = "active,inactive",
+              required = false)
+          @RequestParam(required = false)
+          Optional<List<String>> statuses,
+      @Parameter(name = "ids", description = "List of ids to filter for.", required = false)
+          @RequestParam(required = false)
+          Optional<List<String>> ids,
+      @Parameter(name = "limit", description = "Result Size", example = "10", required = true)
+          @RequestParam(required = false)
+          Optional<Integer> limit,
+      @Parameter(name = "page", description = "Page Number", example = "0", required = true)
+          @RequestParam(defaultValue = "0")
+          Optional<Integer> page,
+      @Parameter(
+              name = "order",
+              description = "Ascending or Descending (default) order",
+              example = "0",
+              required = false)
+          @RequestParam(defaultValue = "DESC")
+          Optional<Direction> order,
+      @Parameter(
+              name = "sort",
+              description = "The element to sort on",
+              example = "0",
+              required = false)
+          @RequestParam(defaultValue = "name")
+          Optional<String> sort) {
     return userService.query(page, limit, order, sort, labels, statuses, ids);
   }
 
-  @PostMapping(value = "")
-  @AuthScope(action = PermissionAction.WRITE, scope = PermissionScope.USER, types = {AuthType.global})
-  @Operation(summary = "Create a new Boomerang Flow user")
-  @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
-      @ApiResponse(responseCode = "400", description = "Bad Request")})
-  public ResponseEntity<User> addUser(@RequestBody UserRequest request) {
-    if (isUserManagementAvaliable()) {
-      User flowUserEntity = userService.create(request);
-      return ResponseEntity.ok(flowUserEntity);
-    } else {
-      return ResponseEntity.badRequest().build();
-    }
-  }
+  // TODO - figure out if this is valid or whether an 'invite' user should exist
+  //  @PostMapping(value = "")
+  //  @AuthScope(action = PermissionAction.WRITE, scope = PermissionScope.USER, types =
+  // {AuthType.global})
+  //  @Operation(summary = "Create a new Boomerang Flow user")
+  //  @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
+  //      @ApiResponse(responseCode = "400", description = "Bad Request")})
+  //  public ResponseEntity<User> addUser(@RequestBody UserRequest request) {
+  //    if (isUserManagementAvaliable()) {
+  //      User flowUserEntity = userService.create(request);
+  //      return ResponseEntity.ok(flowUserEntity);
+  //    } else {
+  //      return ResponseEntity.badRequest().build();
+  //    }
+  //  }
 
   @PatchMapping(value = "/{userId}")
-  @AuthScope(action = PermissionAction.WRITE, scope = PermissionScope.USER, types = {AuthType.global})
+  @AuthScope(
+      action = PermissionAction.WRITE,
+      scope = PermissionScope.USER,
+      types = {AuthType.global})
   @Operation(summary = "Update a Boomerang Flow Users details")
-  @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
-      @ApiResponse(responseCode = "400", description = "Bad Request")})
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(responseCode = "400", description = "Bad Request")
+      })
   public ResponseEntity<Void> apply(@PathVariable String userId, @RequestBody UserRequest user) {
     user.setId(userId);
     if (isUserManagementAvaliable()) {
@@ -134,10 +150,16 @@ public class UserV2Controller {
   }
 
   @DeleteMapping(value = "/{userId}")
-  @AuthScope(action = PermissionAction.DELETE, scope = PermissionScope.USER, types = {AuthType.global})
+  @AuthScope(
+      action = PermissionAction.DELETE,
+      scope = PermissionScope.USER,
+      types = {AuthType.global})
   @Operation(summary = "Delete a Boomerang Flow user")
-  @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
-      @ApiResponse(responseCode = "400", description = "Bad Request")})
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(responseCode = "400", description = "Bad Request")
+      })
   public ResponseEntity<Void> deleteFlowUser(@PathVariable String userId) {
     if (isUserManagementAvaliable()) {
       userService.delete(userId);

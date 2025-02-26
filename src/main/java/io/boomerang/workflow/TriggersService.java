@@ -1,39 +1,40 @@
 package io.boomerang.workflow;
 
 import static io.cloudevents.core.CloudEventUtils.mapData;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.boomerang.client.EngineClient;
+import io.boomerang.core.RelationshipService;
+import io.boomerang.core.model.RelationshipLabel;
+import io.boomerang.core.model.RelationshipType;
+import io.boomerang.error.BoomerangError;
+import io.boomerang.error.BoomerangException;
+import io.boomerang.integrations.IntegrationService;
+import io.boomerang.util.ParameterUtil;
+import io.boomerang.workflow.model.TriggerEnum;
+import io.boomerang.workflow.model.ref.ParamType;
+import io.boomerang.workflow.model.ref.RunParam;
+import io.boomerang.workflow.model.ref.RunResult;
+import io.boomerang.workflow.model.ref.RunStatus;
+import io.boomerang.workflow.model.ref.WorkflowRun;
+import io.boomerang.workflow.model.ref.WorkflowRunEventRequest;
+import io.boomerang.workflow.model.ref.WorkflowSubmitRequest;
+import io.cloudevents.CloudEvent;
+import io.cloudevents.core.data.PojoCloudEventData;
+import io.cloudevents.jackson.PojoCloudEventDataMapper;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-
-import io.boomerang.integrations.IntegrationService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.boomerang.client.EngineClient;
-import io.boomerang.error.BoomerangError;
-import io.boomerang.error.BoomerangException;
-import io.boomerang.core.model.RelationshipType;
-import io.boomerang.workflow.model.TriggerEnum;
-import io.boomerang.workflow.model.ref.ParamType;
-import io.boomerang.workflow.model.ref.RunStatus;
-import io.boomerang.workflow.model.ref.RunParam;
-import io.boomerang.workflow.model.ref.RunResult;
-import io.boomerang.workflow.model.ref.WorkflowRun;
-import io.boomerang.workflow.model.ref.WorkflowRunEventRequest;
-import io.boomerang.workflow.model.ref.WorkflowSubmitRequest;
-import io.boomerang.util.ParameterUtil;
-import io.cloudevents.CloudEvent;
-import io.cloudevents.core.data.PojoCloudEventData;
-import io.cloudevents.jackson.PojoCloudEventDataMapper;
 
 @Service
 public class TriggersService {
@@ -43,21 +44,25 @@ public class TriggersService {
   @Value("${flow.workflowrun.auto-start-on-submit}")
   private boolean autoStart;
 
-  @Autowired
-  private WorkflowService workflowService;
+  private final WorkflowService workflowService;
+  private final EngineClient engineClient;
+  private final IntegrationService integrationService;
+  private final RelationshipService relationshipService;
 
-  @Autowired
-  private EngineClient engineClient;
-
-  @Autowired
-  private IntegrationService integrationService;
-
-  @Autowired
-  private RelationshipService relationshipService;
+  public TriggersService(
+      WorkflowService workflowService,
+      EngineClient engineClient,
+      IntegrationService integrationService,
+      RelationshipService relationshipService) {
+    this.workflowService = workflowService;
+    this.engineClient = engineClient;
+    this.integrationService = integrationService;
+    this.relationshipService = relationshipService;
+  }
 
   /*
    * Receives request and checks if its a supported event. Processing done async.
-   * 
+   *
    * @return accepted or unprocessable.
    */
   public WorkflowRun processEvent(CloudEvent event, Optional<String> workflow) {
@@ -78,12 +83,15 @@ public class TriggersService {
     request.setParams(eventToRunParams(event));
 
     LOGGER.debug("Webhook Request: " + request.toString());
-    
+
+    // Check principal has relationship to the Workflow
+    relationshipService.check(
+        RelationshipType.WORKFLOW, workflowRef, Optional.empty(), Optional.empty());
+
     // Get the Workflows team
-    String teamRef = relationshipService.getTeamSlugFromChild(RelationshipType.WORKFLOW, workflowRef);
-    if (teamRef.isEmpty()) {
-      throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
-    }
+    String teamRef =
+        relationshipService.getParentByLabel(
+            RelationshipType.WORKFLOW, workflowRef, RelationshipLabel.HAS_WORKFLOW);
 
     // Auto start is not needed when using the default handler
     // As the default handler will pick up the queued Workflow and start the Workflow when ready.
@@ -91,16 +99,17 @@ public class TriggersService {
     return workflowService.submit(teamRef, workflowRef, request, autoStart);
   }
 
-  public WorkflowRun processWebhook(String workflowRef,
-      JsonNode payload) {
+  public WorkflowRun processWebhook(String workflowRef, JsonNode payload) {
     WorkflowSubmitRequest request = new WorkflowSubmitRequest();
     request.setTrigger(TriggerEnum.webhook);
     request.setParams(payloadToRunParams(payload));
 
     LOGGER.debug("Webhook Request: " + request.toString());
-    
+
     // Get the Workflows team
-    String teamRef = relationshipService.getTeamSlugFromChild(RelationshipType.WORKFLOW, workflowRef);
+    String teamRef =
+        relationshipService.getParentByLabel(
+            RelationshipType.WORKFLOW, workflowRef, RelationshipLabel.HAS_WORKFLOW);
     if (teamRef.isEmpty()) {
       throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
     }
@@ -111,9 +120,10 @@ public class TriggersService {
     return workflowService.submit(teamRef, workflowRef, request, autoStart);
   }
 
-  public ResponseEntity<?> processGitHubWebhook(String trigger, String eventType, JsonNode payload) {
+  public ResponseEntity<?> processGitHubWebhook(
+      String trigger, String eventType, JsonNode payload) {
     LOGGER.debug("GitHub Webhook Request[" + eventType + "]: " + payload.toString());
-    
+
     switch (eventType) {
       case "installation" -> {
         if (payload.get("action") != null) {
@@ -125,7 +135,7 @@ public class TriggersService {
           return ResponseEntity.ok().build();
         }
       }
-      default -> {        
+      default -> {
         // Events that come in will have installation.id and if related to a repo, a repository.name
         LOGGER.debug("Installation ID: " + payload.get("installation").get("id"));
         String teamRef =
@@ -147,8 +157,8 @@ public class TriggersService {
     return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
   }
 
-  public void processWFE(String workflowRunId,
-      String topic, String status, Optional<JsonNode> payload) {
+  public void processWFE(
+      String workflowRunId, String topic, String status, Optional<JsonNode> payload) {
     WorkflowRunEventRequest request = new WorkflowRunEventRequest();
     request.setTopic(topic);
     request.setStatus(RunStatus.getRunStatus(status));
@@ -176,8 +186,10 @@ public class TriggersService {
     params.add(new RunParam("event", (Object) event, ParamType.object));
 
     ObjectMapper mapper = new ObjectMapper();
-    PojoCloudEventData<Map<String, Object>> data = mapData(event,
-        PojoCloudEventDataMapper.from(mapper, new TypeReference<Map<String, Object>>() {}));
+    PojoCloudEventData<Map<String, Object>> data =
+        mapData(
+            event,
+            PojoCloudEventDataMapper.from(mapper, new TypeReference<Map<String, Object>>() {}));
     params.add(new RunParam("data", (Object) data, ParamType.object));
     params.addAll(ParameterUtil.mapToRunParamList(data.getValue()));
     return params;

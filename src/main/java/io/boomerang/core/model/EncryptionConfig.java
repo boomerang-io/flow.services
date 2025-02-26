@@ -1,4 +1,4 @@
-package io.boomerang.workflow.model;
+package io.boomerang.core.model;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
