@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v2/task")
 @Tag(name = "Task Management", description = "Create and Manage the global Task definitions.")
-public class TaskV2Controller {
+public class TaskControllerV2 {
 
   @Autowired private TaskService taskTemplateService;
 

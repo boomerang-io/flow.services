@@ -1,5 +1,6 @@
-package io.boomerang.quartz;
+package io.boomerang.workflow.quartz;
 
+import io.boomerang.config.MongoConfiguration;
 import java.io.IOException;
 import java.util.Properties;
 import org.apache.logging.log4j.LogManager;
@@ -13,7 +14,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
-import io.boomerang.config.MongoConfiguration;
 
 @Configuration
 @EnableScheduling
@@ -23,13 +23,11 @@ public class QuartzConfiguration {
 
   @Value("${spring.data.mongodb.uri}")
   private String mongoUri;
-  
-  @Autowired
-  private MongoConfiguration mongoConfiguration;
 
-  @Autowired
-  ApplicationContext applicationContext;
-  
+  @Autowired private MongoConfiguration mongoConfiguration;
+
+  @Autowired ApplicationContext applicationContext;
+
   @Bean
   public SchedulerFactoryBean schedulerFactoryBean() throws IOException {
     SchedulerFactoryBean scheduler = new SchedulerFactoryBean();
@@ -45,14 +43,14 @@ public class QuartzConfiguration {
     propertiesFactoryBean.afterPropertiesSet();
     final Properties prop = propertiesFactoryBean.getObject();
     prop.setProperty("org.quartz.jobStore.mongoUri", mongoUri);
-    
+
     String collectionNamePrefix = mongoConfiguration.collectionPrefix();
     if (collectionNamePrefix.endsWith("_")) {
-      collectionNamePrefix = collectionNamePrefix.substring(0, collectionNamePrefix.length()-1);
+      collectionNamePrefix = collectionNamePrefix.substring(0, collectionNamePrefix.length() - 1);
     }
     prop.setProperty("org.quartz.jobStore.collectionPrefix", collectionNamePrefix);
     logger.debug("Quartz Configuration: " + prop.toString());
-    
+
     return prop;
   }
 }

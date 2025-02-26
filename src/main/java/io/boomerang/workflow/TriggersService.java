@@ -91,7 +91,7 @@ public class TriggersService {
     // Get the Workflows team
     String teamRef =
         relationshipService.getParentByLabel(
-            RelationshipType.WORKFLOW, workflowRef, RelationshipLabel.HAS_WORKFLOW);
+            RelationshipLabel.HAS_WORKFLOW, RelationshipType.WORKFLOW, workflowRef);
 
     // Auto start is not needed when using the default handler
     // As the default handler will pick up the queued Workflow and start the Workflow when ready.
@@ -109,7 +109,7 @@ public class TriggersService {
     // Get the Workflows team
     String teamRef =
         relationshipService.getParentByLabel(
-            RelationshipType.WORKFLOW, workflowRef, RelationshipLabel.HAS_WORKFLOW);
+            RelationshipLabel.HAS_WORKFLOW, RelationshipType.WORKFLOW, workflowRef);
     if (teamRef.isEmpty()) {
       throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
     }

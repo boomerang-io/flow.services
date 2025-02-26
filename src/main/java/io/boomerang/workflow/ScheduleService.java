@@ -1,23 +1,17 @@
 package io.boomerang.workflow;
 
-import com.cronutils.mapper.CronMapper;
-import com.cronutils.model.Cron;
-import com.cronutils.model.CronType;
-import com.cronutils.model.definition.CronDefinitionBuilder;
-import com.cronutils.parser.CronParser;
 import io.boomerang.client.EngineClient;
 import io.boomerang.core.RelationshipService;
 import io.boomerang.core.model.RelationshipType;
 import io.boomerang.error.BoomerangError;
 import io.boomerang.error.BoomerangException;
-import io.boomerang.quartz.QuartzSchedulerService;
 import io.boomerang.workflow.entity.WorkflowScheduleEntity;
-import io.boomerang.workflow.model.CronValidationResponse;
 import io.boomerang.workflow.model.WorkflowSchedule;
 import io.boomerang.workflow.model.WorkflowScheduleCalendar;
 import io.boomerang.workflow.model.WorkflowScheduleStatus;
 import io.boomerang.workflow.model.WorkflowScheduleType;
 import io.boomerang.workflow.model.ref.Workflow;
+import io.boomerang.workflow.quartz.QuartzSchedulerService;
 import io.boomerang.workflow.repository.WorkflowScheduleRepository;
 import java.util.ArrayList;
 import java.util.Date;
@@ -548,46 +542,6 @@ public class ScheduleService {
       logger.info("Unable to delete schedule: {}.", entity.getId());
       logger.error(e);
     }
-  }
-
-  /*
-   * Helper method to validate the cron provided by the user.
-   *
-   * @since 3.4.0
-   * @return a cron validation response.
-   */
-  public CronValidationResponse validateCron(String cronString) {
-
-    logger.info("CRON: {}", cronString);
-
-    CronValidationResponse response = new CronValidationResponse();
-    CronParser parser =
-        new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ));
-    try {
-      cronString = parser.parse(cronString).asString();
-      response.setCron(cronString);
-      response.setValid(true);
-      logger.info("Final CRON: {} .", cronString);
-    } catch (IllegalArgumentException e) {
-      logger.info("Invalid CRON: {} . Attempting cron to quartz conversion", cronString);
-      parser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.CRON4J));
-      try {
-        Cron cron = parser.parse(cronString);
-        CronMapper quartzMapper = CronMapper.fromCron4jToQuartz();
-        Cron quartzCron = quartzMapper.map(cron);
-        cronString = quartzCron.asString();
-        response.setCron(cronString);
-        response.setValid(true);
-      } catch (IllegalArgumentException exc) {
-        logger.info("Invalid CRON: {} . Cannot convert", cronString);
-        response.setCron(null);
-        response.setValid(false);
-        response.setMessage(e.getMessage());
-      }
-
-      logger.info("Final CRON: {} .", cronString);
-    }
-    return response;
   }
 
   private List<WorkflowScheduleStatus> getStatusesNotCompletedOrDeleted() {

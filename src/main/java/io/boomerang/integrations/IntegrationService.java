@@ -86,9 +86,9 @@ public class IntegrationService {
       LOGGER.debug("Integration Entity ID: " + optEntity.get().getId());
       String team =
           relationshipService.getParentByLabel(
+              RelationshipLabel.HAS_INTEGRATION,
               RelationshipType.INTEGRATION,
-              optEntity.get().getId(),
-              RelationshipLabel.HAS_INTEGRATION);
+              optEntity.get().getId());
       LOGGER.debug("Team Ref: " + team);
       if (!team.isBlank()) {
         return team;

@@ -23,38 +23,47 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/v2/team/{team}")
-@Tag(name = "Insights Management",
+@Tag(
+    name = "Insights Management",
     description = "Provide the ability to search and retrieve Insights.")
-public class TeamInsightsV2Controller {
+public class TeamInsightsControllerV2 {
 
-  @Autowired
-  private InsightsService insightsService;
+  @Autowired private InsightsService insightsService;
 
   @GetMapping(value = "/insights")
-  @AuthScope(action = PermissionAction.READ, scope = PermissionScope.INSIGHTS, types = {AuthType.team, AuthType.user, AuthType.session})
+  @AuthScope(
+      action = PermissionAction.READ,
+      scope = PermissionScope.INSIGHTS,
+      types = {AuthType.team, AuthType.user, AuthType.session})
   @Operation(summary = "Retrieve insights for a team.")
-  @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
-      @ApiResponse(responseCode = "400", description = "Bad Request")})
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(responseCode = "400", description = "Bad Request")
+      })
   public WorkflowRunInsight getTeamInsights(
-      @Parameter(name = "team",
-      description = "Owning team name.",
-      example = "my-amazing-team",
-      required = true) @PathVariable String team,
+      @Parameter(
+              name = "team",
+              description = "Owning team name.",
+              example = "my-amazing-team",
+              required = true)
+          @PathVariable
+          String team,
       @RequestParam Optional<Long> fromDate,
-      @RequestParam Optional<Long> toDate, 
+      @RequestParam Optional<Long> toDate,
       @RequestParam Optional<List<String>> workflows,
       @RequestParam Optional<List<String>> statuses) {
-    
-    //Todays date
+
+    // Todays date
     Date to = new Date();
-    //30 days prior
+    // 30 days prior
     Calendar calendar = Calendar.getInstance();
     calendar.setTime(to);
     calendar.add(Calendar.DAY_OF_MONTH, 30);
     Date from = calendar.getTime();
     if (fromDate.isPresent()) {
       from = new Date(fromDate.get());
-    } 
+    }
     if (toDate.isPresent()) {
       to = new Date(toDate.get());
     }
