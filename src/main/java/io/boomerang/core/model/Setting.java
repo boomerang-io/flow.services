@@ -1,10 +1,11 @@
 package io.boomerang.core.model;
 
+import lombok.Data;
 import org.springframework.beans.BeanUtils;
 import io.boomerang.core.entity.SettingEntity;
 
-
-public class Setting extends SettingEntity{
+@Data
+public class Setting extends SettingEntity {
 
   public Setting() {
     super();

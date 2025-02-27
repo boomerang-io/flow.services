@@ -1,7 +1,9 @@
 package io.boomerang.core.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
+@Data
 public class HeaderFeatures {
 
   @JsonProperty("notifications.enabled")
@@ -15,48 +17,7 @@ public class HeaderFeatures {
 
   @JsonProperty("internal.enabled")
   private Boolean internalEnabled;
-  
+
   @JsonProperty("consent.enabled")
   private Boolean consentEnabled;
- 
-  public Boolean getConsentEnabled() {
-    return consentEnabled;
-  }
-
-  public void setConsentEnabled(Boolean consentEnabled) {
-    this.consentEnabled = consentEnabled;
-  }
-
-  public Boolean getNotificationsEnabled() {
-    return notificationsEnabled;
-  }
-
-  public void setNotificationsEnabled(Boolean notificationsEnabled) {
-    this.notificationsEnabled = notificationsEnabled;
-  }
-
-  public Boolean getSupportEnabled() {
-    return supportEnabled;
-  }
-
-  public void setSupportEnabled(Boolean supportEnabled) {
-    this.supportEnabled = supportEnabled;
-  }
-
-  public Boolean getDocsEnabled() {
-    return docsEnabled;
-  }
-
-  public void setDocsEnabled(Boolean docsEnabled) {
-    this.docsEnabled = docsEnabled;
-  }
-
-  public Boolean getInternalEnabled() {
-    return internalEnabled;
-  }
-
-  public void setInternalEnabled(Boolean internalEnabled) {
-    this.internalEnabled = internalEnabled;
-  }
-
 }

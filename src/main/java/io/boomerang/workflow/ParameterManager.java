@@ -5,7 +5,7 @@ import io.boomerang.core.entity.TokenEntity;
 import io.boomerang.core.repository.TokenRepository;
 import io.boomerang.error.BoomerangError;
 import io.boomerang.error.BoomerangException;
-import io.boomerang.security.model.AuthType;
+import io.boomerang.security.enums.AuthType;
 import io.boomerang.workflow.entity.TeamEntity;
 import io.boomerang.workflow.model.AbstractParam;
 import io.boomerang.workflow.model.ref.ParamLayers;

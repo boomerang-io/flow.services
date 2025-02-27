@@ -1,11 +1,13 @@
 package io.boomerang.core.model;
 
-import org.springframework.beans.BeanUtils;
 import io.boomerang.core.entity.UserEntity;
+import lombok.Data;
+import org.springframework.beans.BeanUtils;
 
 /*
  * The external model for a User
  */
+@Data
 public class User extends UserEntity {
 
   public User() {}

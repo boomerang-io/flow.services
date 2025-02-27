@@ -1,4 +1,4 @@
-package io.boomerang.core.model;
+package io.boomerang.core.enums;
 
 import java.util.HashMap;
 import java.util.Map;

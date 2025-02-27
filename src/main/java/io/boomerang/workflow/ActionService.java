@@ -4,7 +4,7 @@ import io.boomerang.client.EngineClient;
 import io.boomerang.core.RelationshipService;
 import io.boomerang.core.UserService;
 import io.boomerang.core.entity.UserEntity;
-import io.boomerang.core.model.RelationshipType;
+import io.boomerang.core.enums.RelationshipType;
 import io.boomerang.core.model.User;
 import io.boomerang.error.BoomerangError;
 import io.boomerang.error.BoomerangException;

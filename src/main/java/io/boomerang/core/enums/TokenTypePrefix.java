@@ -1,10 +1,14 @@
-package io.boomerang.core.model;
+package io.boomerang.core.enums;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public enum TokenTypePrefix {
-  global("bfg"), team("bft"), workflow("bfw"), user("bfu"), session("bfs");
+  global("bfg"),
+  team("bft"),
+  workflow("bfw"),
+  user("bfu"),
+  session("bfs");
 
   public final String prefix;
 
@@ -13,15 +17,15 @@ public enum TokenTypePrefix {
   private TokenTypePrefix(String prefix) {
     this.prefix = prefix;
   }
-  
+
   public String getPrefix() {
     return prefix;
   }
-  
+
   static {
-      for (TokenTypePrefix e: values()) {
-        BY_PREFIX.put(e.prefix, e);
-      }
+    for (TokenTypePrefix e : values()) {
+      BY_PREFIX.put(e.prefix, e);
+    }
   }
 
   public static TokenTypePrefix valueOfPrefix(String prefix) {

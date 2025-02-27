@@ -1,7 +1,9 @@
 package io.boomerang.core.model;
 
+import lombok.Data;
 import org.jgrapht.graph.DefaultEdge;
 
+@Data
 public class RelationshipGraphEdge extends DefaultEdge {
   private String label;
   private String role;
@@ -10,14 +12,6 @@ public class RelationshipGraphEdge extends DefaultEdge {
     super(); // Call the constructor of DefaultEdge
     this.label = label;
     this.role = role;
-  }
-
-  public String getLabel() {
-    return label;
-  }
-
-  public String getRole() {
-    return role;
   }
 
   @Override

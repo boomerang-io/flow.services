@@ -2,7 +2,7 @@ package io.boomerang.core;
 
 import io.boomerang.core.model.Features;
 import io.boomerang.core.model.Navigation;
-import io.boomerang.core.model.NavigationType;
+import io.boomerang.core.enums.NavigationType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

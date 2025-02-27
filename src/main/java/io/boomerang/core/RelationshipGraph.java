@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import io.boomerang.core.entity.RelationshipEdgeEntity;
 import io.boomerang.core.entity.RelationshipNodeEntity;
 import io.boomerang.core.model.RelationshipGraphEdge;
-import io.boomerang.core.model.RelationshipType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jgrapht.Graph;
@@ -49,7 +48,10 @@ public class RelationshipGraph {
       RelationshipNodeEntity fromNode = nodeMap.get(edge.getFrom());
       RelationshipNodeEntity toNode = nodeMap.get(edge.getTo());
       if (fromNode != null && toNode != null) {
-        graph.addEdge(fromNode, toNode, new RelationshipGraphEdge(edge.getLabel(), edge.getData().get("role")));
+        graph.addEdge(
+            fromNode,
+            toNode,
+            new RelationshipGraphEdge(edge.getLabel(), edge.getData().get("role")));
       }
     }
   }

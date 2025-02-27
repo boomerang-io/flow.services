@@ -28,7 +28,7 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import io.boomerang.core.entity.UserEntity;
 import io.boomerang.workflow.model.Action;
 import io.boomerang.workflow.model.FlowActivity;
-import io.boomerang.core.model.UserType;
+import io.boomerang.core.enums.UserType;
 import io.boomerang.tests.IntegrationTests;
 import io.boomerang.v3.mongo.model.TaskStatus;
 import io.boomerang.v3.mongo.model.TokenScope;
@@ -40,8 +40,7 @@ import io.boomerang.v3.mongo.model.TokenScope;
 @WithUserDetails("mdroy@us.ibm.com")
 class PMOExecuteTests extends IntegrationTests {
 
-  @MockBean
-  private IdentityService service;
+  @MockBean private IdentityService service;
 
   @Test
   void testExecution() throws Exception {
@@ -68,7 +67,6 @@ class PMOExecuteTests extends IntegrationTests {
 
     approvals = this.getApprovals();
 
-
     this.approveWorkflow(true, approvals.get(0).getId());
 
     Thread.sleep(5000);
@@ -87,14 +85,20 @@ class PMOExecuteTests extends IntegrationTests {
     // mockServer.expect(manyTimes(), requestTo(containsString("internal/users/user")))
     // .andExpect(method(HttpMethod.GET)).andRespond(
     // withSuccess(getMockFile("mock/users/users.json"), MediaType.APPLICATION_JSON));
-    mockServer.expect(times(1), requestTo(containsString("controller/workflow/execute")))
-        .andExpect(method(HttpMethod.POST)).andRespond(withStatus(HttpStatus.OK));
+    mockServer
+        .expect(times(1), requestTo(containsString("controller/workflow/execute")))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(withStatus(HttpStatus.OK));
 
-    mockServer.expect(times(1), requestTo(containsString("controller/task/execute")))
-        .andExpect(method(HttpMethod.POST)).andRespond(withStatus(HttpStatus.OK));
+    mockServer
+        .expect(times(1), requestTo(containsString("controller/task/execute")))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(withStatus(HttpStatus.OK));
 
-    mockServer.expect(times(1), requestTo(containsString("controller/workflow/terminate")))
-        .andExpect(method(HttpMethod.POST)).andRespond(withStatus(HttpStatus.OK));
+    mockServer
+        .expect(times(1), requestTo(containsString("controller/workflow/terminate")))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(withStatus(HttpStatus.OK));
   }
 
   @Override
@@ -102,5 +106,4 @@ class PMOExecuteTests extends IntegrationTests {
     data.put("flow_workflows", Arrays.asList("tests/scenarios/pmo/pmo-workflow.json"));
     data.put("flow_workflows_revisions", Arrays.asList("tests/scenarios/pmo/pmo-revision1.json"));
   }
-
 }

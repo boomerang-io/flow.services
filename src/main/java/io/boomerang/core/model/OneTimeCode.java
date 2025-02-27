@@ -1,14 +1,9 @@
 package io.boomerang.core.model;
 
+import lombok.Data;
+
+@Data
 public class OneTimeCode {
 
   private String otc;
-
-  public String getOtc() {
-    return otc;
-  }
-
-  public void setOtc(String otc) {
-    this.otc = otc;
-  }
 }

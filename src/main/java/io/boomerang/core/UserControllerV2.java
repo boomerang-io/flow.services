@@ -12,18 +12,16 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import io.boomerang.core.model.User;
-import io.boomerang.core.model.UserProfile;
 import io.boomerang.core.model.UserRequest;
 import io.boomerang.security.AuthScope;
-import io.boomerang.security.model.PermissionAction;
-import io.boomerang.security.model.PermissionScope;
-import io.boomerang.security.model.AuthType;
+import io.boomerang.security.enums.PermissionAction;
+import io.boomerang.security.enums.PermissionScope;
+import io.boomerang.security.enums.AuthType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -33,7 +31,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
 @RequestMapping("/api/v2/user")
 @Tag(name = "User Management", description = "List, Create, update and delete Users.")
-public class UserV2Controller {
+public class UserControllerV2 {
 
   @Value("${flow.externalUrl.user}")
   private String flowExternalUrlUser;

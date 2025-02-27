@@ -27,7 +27,7 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import io.boomerang.core.entity.UserEntity;
 import io.boomerang.workflow.model.Action;
 import io.boomerang.workflow.model.FlowActivity;
-import io.boomerang.core.model.UserType;
+import io.boomerang.core.enums.UserType;
 import io.boomerang.tests.IntegrationTests;
 import io.boomerang.v3.mongo.model.TaskStatus;
 import io.boomerang.v3.mongo.model.TokenScope;
@@ -39,8 +39,7 @@ import io.boomerang.v3.mongo.model.TokenScope;
 @WithUserDetails("mdroy@us.ibm.com")
 class ApproveExecuteTests extends IntegrationTests {
 
-  @MockBean
-  private IdentityService service;
+  @MockBean private IdentityService service;
 
   @Test
   void testExecution() throws Exception {
@@ -75,18 +74,23 @@ class ApproveExecuteTests extends IntegrationTests {
     // mockServer.expect(manyTimes(), requestTo(containsString("internal/users/user")))
     // .andExpect(method(HttpMethod.GET))
     // .andRespond(withSuccess(getMockFile("mock/users/users.json"), MediaType.APPLICATION_JSON));
-    mockServer.expect(times(1), requestTo(containsString("controller/workflow/execute")))
-        .andExpect(method(HttpMethod.POST)).andRespond(withStatus(HttpStatus.OK));
-    mockServer.expect(times(1), requestTo(containsString("controller/workflow/terminate")))
-        .andExpect(method(HttpMethod.POST)).andRespond(withStatus(HttpStatus.OK));
+    mockServer
+        .expect(times(1), requestTo(containsString("controller/workflow/execute")))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(withStatus(HttpStatus.OK));
+    mockServer
+        .expect(times(1), requestTo(containsString("controller/workflow/terminate")))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(withStatus(HttpStatus.OK));
   }
 
   @Override
   protected void getTestCaseData(Map<String, List<String>> data) {
     data.put("flow_workflows", Arrays.asList("tests/scenarios/approval/approval-workflow.json"));
-    data.put("flow_workflows_revisions",
-        Arrays.asList("tests/scenarios/approval/approval-revision1.json",
+    data.put(
+        "flow_workflows_revisions",
+        Arrays.asList(
+            "tests/scenarios/approval/approval-revision1.json",
             "tests/scenarios/approval/approval-revision2.json"));
   }
-
 }

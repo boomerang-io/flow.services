@@ -1,43 +1,26 @@
 package io.boomerang.core.model;
 
-import java.util.List;
-
-import io.boomerang.workflow.model.TeamSummary;
-import org.springframework.beans.BeanUtils;
 import io.boomerang.core.entity.UserEntity;
+import io.boomerang.workflow.model.TeamSummary;
+import java.util.List;
+import lombok.Data;
+import org.springframework.beans.BeanUtils;
 
 /*
  * Utilised by the Profile endpoint
- * 
+ *
  * Same as User but with Teams & permissions
  */
+@Data
 public class UserProfile extends UserEntity {
-  
+
   List<TeamSummary> teams;
-  
+
   List<String> permissions;
 
-  public UserProfile() {
-    
-  }
-  
+  public UserProfile() {}
+
   public UserProfile(UserEntity entity) {
     BeanUtils.copyProperties(entity, this);
-  }
-
-  public List<TeamSummary> getTeams() {
-    return teams;
-  }
-
-  public void setTeams(List<TeamSummary> teams) {
-    this.teams = teams;
-  }
-
-  public List<String> getPermissions() {
-    return permissions;
-  }
-
-  public void setPermissions(List<String> permissions) {
-    this.permissions = permissions;
   }
 }

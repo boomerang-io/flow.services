@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RestController
 @RequestMapping("/api/v2/audit")
 @Tag(name = "Audit Management", description = "View the audit and activity log.")
-public class AuditV2Controller {
+public class AuditControllerV2 {
 
   //  @Autowired
   //  private TaskRunService taskRunService;

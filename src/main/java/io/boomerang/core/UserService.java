@@ -1,6 +1,10 @@
 package io.boomerang.core;
 
 import io.boomerang.core.entity.UserEntity;
+import io.boomerang.core.enums.RelationshipLabel;
+import io.boomerang.core.enums.RelationshipType;
+import io.boomerang.core.enums.UserStatus;
+import io.boomerang.core.enums.UserType;
 import io.boomerang.core.model.*;
 import io.boomerang.core.repository.RoleRepository;
 import io.boomerang.core.repository.UserRepository;

@@ -2,9 +2,9 @@ package io.boomerang.workflow;
 
 import io.boomerang.error.BoomerangException;
 import io.boomerang.security.AuthScope;
-import io.boomerang.security.model.AuthType;
-import io.boomerang.security.model.PermissionAction;
-import io.boomerang.security.model.PermissionScope;
+import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.enums.PermissionAction;
+import io.boomerang.security.enums.PermissionScope;
 import io.boomerang.workflow.model.WorkflowSchedule;
 import io.boomerang.workflow.model.WorkflowScheduleCalendar;
 import io.swagger.v3.oas.annotations.Operation;

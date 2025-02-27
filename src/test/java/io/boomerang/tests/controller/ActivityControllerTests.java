@@ -34,7 +34,7 @@ import io.boomerang.core.entity.UserEntity;
 import io.boomerang.misc.FlowTests;
 import io.boomerang.workflow.model.FlowActivity;
 import io.boomerang.workflow.model.ListActivityResponse;
-import io.boomerang.core.model.UserType;
+import io.boomerang.core.enums.UserType;
 import io.boomerang.v3.mongo.model.TaskStatus;
 import io.boomerang.v3.mongo.model.TokenScope;
 
@@ -45,11 +45,9 @@ import io.boomerang.v3.mongo.model.TokenScope;
 @WithUserDetails("mdroy@us.ibm.com")
 class ActivityControllerTests extends FlowTests {
 
-  @Autowired
-  private ActivityController activityController;
+  @Autowired private ActivityController activityController;
 
-  @MockBean
-  private IdentityService service;
+  @MockBean private IdentityService service;
 
   @Test
   void testGetFlowActivity() {
@@ -63,11 +61,14 @@ class ActivityControllerTests extends FlowTests {
   void testGetTaskLog() throws IOException {
 
     mockServer = MockRestServiceServer.bindTo(restTemplate).ignoreExpectOrder(true).build();
-    mockServer.expect(times(1), requestTo(containsString("controller/log/stream")))
-        .andExpect(method(HttpMethod.GET)).andRespond(withStatus(HttpStatus.OK));
+    mockServer
+        .expect(times(1), requestTo(containsString("controller/log/stream")))
+        .andExpect(method(HttpMethod.GET))
+        .andRespond(withStatus(HttpStatus.OK));
     MockHttpServletResponse response = new MockHttpServletResponse();
-    ResponseEntity<StreamingResponseBody> streamingResponse = activityController
-        .getTaskLog(response, "5d1a18c8f6ca2c00014c4325", "58340aec-4661-4768-aeec-307c1553409e");
+    ResponseEntity<StreamingResponseBody> streamingResponse =
+        activityController.getTaskLog(
+            response, "5d1a18c8f6ca2c00014c4325", "58340aec-4661-4768-aeec-307c1553409e");
     streamingResponse.getBody().writeTo(System.out);
     Assertions.assertEquals(HttpStatus.OK, streamingResponse.getStatusCode());
   }
@@ -95,8 +96,18 @@ class ActivityControllerTests extends FlowTests {
     Optional<List<String>> workflowIdsList = getOptionalListString(workflowIds);
     Optional<List<String>> teamIdsList = getOptionalListString(teamIds);
     ListActivityResponse response =
-        activityController.getFlowActivities(order, scopes, sort, workflowIdsList, teamIdsList, 0,
-            2147483647, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+        activityController.getFlowActivities(
+            order,
+            scopes,
+            sort,
+            workflowIdsList,
+            teamIdsList,
+            0,
+            2147483647,
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty());
 
     Assertions.assertEquals(5, response.getRecords().size());
     Assertions.assertEquals(Integer.valueOf(0), response.getPageable().getNumber());
@@ -117,14 +128,22 @@ class ActivityControllerTests extends FlowTests {
     when(service.getCurrentScope()).thenReturn(PermissionAccess.user);
     when(service.getCurrentUser()).thenReturn(user);
 
-
     List<String> teamIds = new ArrayList<>();
     teamIds.add("5d1a1841f6ca2c00014c4309");
     Optional<List<String>> scopes = Optional.empty();
     ListActivityResponse response =
-        activityController.getFlowActivities(getOptionalOrder(Direction.ASC), scopes,
-            getOptionalString("sort"), Optional.empty(), getOptionalListString(teamIds), 0,
-            2147483647, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+        activityController.getFlowActivities(
+            getOptionalOrder(Direction.ASC),
+            scopes,
+            getOptionalString("sort"),
+            Optional.empty(),
+            getOptionalListString(teamIds),
+            0,
+            2147483647,
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty());
 
     Assertions.assertEquals(6, response.getRecords().size());
     Assertions.assertEquals(Integer.valueOf(0), response.getPageable().getNumber());
@@ -144,8 +163,18 @@ class ActivityControllerTests extends FlowTests {
     when(service.getCurrentScope()).thenReturn(PermissionAccess.user);
     when(service.getCurrentUser()).thenReturn(user);
 
-    Map<String, Long> activitySummary = activityController.getFlowActivitySummary(Direction.ASC, 0,
-        2147483647, null, Optional.empty(), null, Optional.empty(), Optional.empty(), null, null);
+    Map<String, Long> activitySummary =
+        activityController.getFlowActivitySummary(
+            Direction.ASC,
+            0,
+            2147483647,
+            null,
+            Optional.empty(),
+            null,
+            Optional.empty(),
+            Optional.empty(),
+            null,
+            null);
 
     Assertions.assertEquals(6, activitySummary.get("all").longValue());
     Assertions.assertEquals(3, activitySummary.get(TaskStatus.completed.getStatus()).longValue());
