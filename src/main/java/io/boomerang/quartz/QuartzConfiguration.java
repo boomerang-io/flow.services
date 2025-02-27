@@ -1,6 +1,6 @@
 package io.boomerang.quartz;
 
-import io.boomerang.config.MongoConfiguration;
+import io.boomerang.config.MongoPrefixConfiguration;
 import java.io.IOException;
 import java.util.Properties;
 import org.apache.logging.log4j.LogManager;
@@ -24,7 +24,7 @@ public class QuartzConfiguration {
   @Value("${spring.data.mongodb.uri}")
   private String mongoUri;
 
-  @Autowired private MongoConfiguration mongoConfiguration;
+  @Autowired private MongoPrefixConfiguration mongoConfiguration;
 
   @Autowired ApplicationContext applicationContext;
 

@@ -1,28 +1,15 @@
 package io.boomerang.config;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.actuate.data.mongo.MongoHealthIndicator;
+import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
-@Component
+@Configuration
 public class MongoConfiguration {
-
-  @Value("${flow.mongo.collection.prefix}")
-  private String workflowCollectionPrefix;
-  
-  public String fullCollectionName(String collectionName) {
-    
-    if (workflowCollectionPrefix == null || workflowCollectionPrefix.isBlank()) {
-      return "" + collectionName;
-    }
-    workflowCollectionPrefix = workflowCollectionPrefix.endsWith("_") ? workflowCollectionPrefix : workflowCollectionPrefix + "_";
-    return workflowCollectionPrefix + collectionName;
+  @Bean
+  public HealthIndicator mongoHealthIndicator(MongoTemplate mongoClient) {
+    return new MongoHealthIndicator(mongoClient);
   }
-  
-  public String collectionPrefix() {
-    return this.workflowCollectionPrefix;
-  }
-  
 }
-
-
-
