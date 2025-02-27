@@ -1,7 +1,7 @@
 package io.boomerang.core;
 
 import io.boomerang.core.entity.SettingEntity;
-import io.boomerang.core.model.ConfigurationType;
+import io.boomerang.core.enums.ConfigurationType;
 import io.boomerang.core.model.EncryptionConfig;
 import io.boomerang.core.model.Setting;
 import io.boomerang.core.repository.SettingsRepository;

@@ -8,6 +8,7 @@ import io.boomerang.core.TokenService;
 import io.boomerang.core.UserService;
 import io.boomerang.core.entity.RoleEntity;
 import io.boomerang.core.entity.UserEntity;
+import io.boomerang.core.enums.*;
 import io.boomerang.core.model.*;
 import io.boomerang.core.repository.RoleRepository;
 import io.boomerang.error.BoomerangError;

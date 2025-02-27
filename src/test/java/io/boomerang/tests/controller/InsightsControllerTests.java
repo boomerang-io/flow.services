@@ -20,7 +20,7 @@ import io.boomerang.workflow.InsightsController;
 import io.boomerang.core.entity.UserEntity;
 import io.boomerang.misc.FlowTests;
 import io.boomerang.workflow.model.InsightsSummary;
-import io.boomerang.core.model.UserType;
+import io.boomerang.core.enums.UserType;
 import io.boomerang.v3.mongo.model.TokenScope;
 
 @ExtendWith(SpringExtension.class)
@@ -30,11 +30,9 @@ import io.boomerang.v3.mongo.model.TokenScope;
 @WithUserDetails("mdroy@us.ibm.com")
 class InsightsControllerTests extends FlowTests {
 
-  @Autowired
-  private InsightsController insightsController;
+  @Autowired private InsightsController insightsController;
 
-  @MockBean
-  private IdentityService service;
+  @MockBean private IdentityService service;
 
   @Test
   void testGetInsightsTeamAndWorkflowFiltered() {
@@ -59,15 +57,27 @@ class InsightsControllerTests extends FlowTests {
     Optional<List<String>> workflowIdsList = getOptionalListString(workflowIds);
     Optional<List<String>> teamIdsList = getOptionalListString(teamIds);
     InsightsSummary summary =
-        insightsController.getInsights(order, scopes, sort, workflowIdsList, teamIdsList, 0,
-            2147483647, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+        insightsController.getInsights(
+            order,
+            scopes,
+            sort,
+            workflowIdsList,
+            teamIdsList,
+            0,
+            2147483647,
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty());
 
     Assertions.assertEquals(5, summary.getExecutions().size());
     Long executiontime =
-        (summary.getExecutions().get(0).getDuration() + summary.getExecutions().get(1).getDuration()
-            + summary.getExecutions().get(2).getDuration()
-            + summary.getExecutions().get(3).getDuration()
-            + summary.getExecutions().get(4).getDuration()) / summary.getExecutions().size();
+        (summary.getExecutions().get(0).getDuration()
+                + summary.getExecutions().get(1).getDuration()
+                + summary.getExecutions().get(2).getDuration()
+                + summary.getExecutions().get(3).getDuration()
+                + summary.getExecutions().get(4).getDuration())
+            / summary.getExecutions().size();
     Assertions.assertEquals(executiontime, summary.getMedianExecutionTime());
     Assertions.assertEquals(5, summary.getTotalActivitiesExecuted().intValue());
   }
@@ -82,25 +92,35 @@ class InsightsControllerTests extends FlowTests {
     when(service.getCurrentScope()).thenReturn(PermissionAccess.user);
     when(service.getCurrentUser()).thenReturn(user);
 
-
     List<String> teamIds = new ArrayList<>();
     teamIds.add("5d1a1841f6ca2c00014c4309");
     Optional<List<String>> scopes = Optional.empty();
-    InsightsSummary summary = insightsController.getInsights(getOptionalOrder(Direction.ASC),
-        scopes, getOptionalString("sort"), Optional.empty(), getOptionalListString(teamIds), 0,
-        2147483647, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    InsightsSummary summary =
+        insightsController.getInsights(
+            getOptionalOrder(Direction.ASC),
+            scopes,
+            getOptionalString("sort"),
+            Optional.empty(),
+            getOptionalListString(teamIds),
+            0,
+            2147483647,
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty());
 
     Assertions.assertEquals(6, summary.getExecutions().size());
     Long executiontime =
-        (summary.getExecutions().get(0).getDuration() + summary.getExecutions().get(1).getDuration()
-            + summary.getExecutions().get(2).getDuration()
-            + summary.getExecutions().get(3).getDuration()
-            + summary.getExecutions().get(4).getDuration()
-            + summary.getExecutions().get(5).getDuration()) / summary.getExecutions().size();
+        (summary.getExecutions().get(0).getDuration()
+                + summary.getExecutions().get(1).getDuration()
+                + summary.getExecutions().get(2).getDuration()
+                + summary.getExecutions().get(3).getDuration()
+                + summary.getExecutions().get(4).getDuration()
+                + summary.getExecutions().get(5).getDuration())
+            / summary.getExecutions().size();
     Assertions.assertEquals(executiontime, summary.getMedianExecutionTime());
     Assertions.assertEquals(6, summary.getTotalActivitiesExecuted().intValue());
   }
-
 
   @Test
   void testGetInsights() {
@@ -112,20 +132,31 @@ class InsightsControllerTests extends FlowTests {
     when(service.getCurrentScope()).thenReturn(PermissionAccess.user);
     when(service.getCurrentUser()).thenReturn(user);
 
-    InsightsSummary summary = insightsController.getInsights(getOptionalOrder(Direction.ASC),
-        Optional.empty(), getOptionalString("sort"), Optional.empty(), Optional.empty(), 0,
-        2147483647, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+    InsightsSummary summary =
+        insightsController.getInsights(
+            getOptionalOrder(Direction.ASC),
+            Optional.empty(),
+            getOptionalString("sort"),
+            Optional.empty(),
+            Optional.empty(),
+            0,
+            2147483647,
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty());
 
     Assertions.assertEquals(6, summary.getExecutions().size());
     Long executiontime =
-        (summary.getExecutions().get(0).getDuration() + summary.getExecutions().get(1).getDuration()
-            + summary.getExecutions().get(2).getDuration()
-            + summary.getExecutions().get(3).getDuration()
-            + summary.getExecutions().get(4).getDuration()
-            + summary.getExecutions().get(5).getDuration()) / summary.getExecutions().size();
+        (summary.getExecutions().get(0).getDuration()
+                + summary.getExecutions().get(1).getDuration()
+                + summary.getExecutions().get(2).getDuration()
+                + summary.getExecutions().get(3).getDuration()
+                + summary.getExecutions().get(4).getDuration()
+                + summary.getExecutions().get(5).getDuration())
+            / summary.getExecutions().size();
     Assertions.assertEquals(executiontime, summary.getMedianExecutionTime());
     Assertions.assertEquals(6, summary.getTotalActivitiesExecuted().intValue());
-
   }
 
   Optional<String> getOptionalString(String string) {

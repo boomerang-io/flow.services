@@ -4,15 +4,15 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
-import io.boomerang.security.model.AuthType;
+import io.boomerang.security.enums.AuthType;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 import io.boomerang.core.entity.TokenEntity;
 
 @Data
-public class Token {  
-  
-//  @JsonIgnore
+public class Token {
+
+  //  @JsonIgnore
   private String id;
   private AuthType type;
   private String name;
@@ -23,8 +23,7 @@ public class Token {
   private String principal;
   private List<String> permissions = new LinkedList<>();
 
-  public Token() {
-  }
+  public Token() {}
 
   public Token(AuthType type) {
     super();

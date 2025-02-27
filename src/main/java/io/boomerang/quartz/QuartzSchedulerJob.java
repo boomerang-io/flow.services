@@ -2,8 +2,8 @@ package io.boomerang.quartz;
 
 import io.boomerang.core.RelationshipService;
 import io.boomerang.core.TokenService;
-import io.boomerang.core.model.RelationshipLabel;
-import io.boomerang.core.model.RelationshipType;
+import io.boomerang.core.enums.RelationshipLabel;
+import io.boomerang.core.enums.RelationshipType;
 import io.boomerang.core.model.Token;
 import io.boomerang.workflow.ScheduleService;
 import io.boomerang.workflow.WorkflowService;

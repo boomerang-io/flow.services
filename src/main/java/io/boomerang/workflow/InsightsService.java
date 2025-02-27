@@ -4,7 +4,7 @@ import io.boomerang.core.RelationshipService;
 import io.boomerang.core.audit.AuditEntity;
 import io.boomerang.core.audit.AuditRepository;
 import io.boomerang.core.audit.AuditScope;
-import io.boomerang.core.model.RelationshipType;
+import io.boomerang.core.enums.RelationshipType;
 import io.boomerang.workflow.model.ref.RunPhase;
 import io.boomerang.workflow.model.ref.RunStatus;
 import io.boomerang.workflow.model.ref.WorkflowRunInsight;

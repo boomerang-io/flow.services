@@ -1,9 +1,9 @@
 package io.boomerang.workflow;
 
 import io.boomerang.security.AuthScope;
-import io.boomerang.security.model.AuthType;
-import io.boomerang.security.model.PermissionAction;
-import io.boomerang.security.model.PermissionScope;
+import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.enums.PermissionAction;
+import io.boomerang.security.enums.PermissionScope;
 import io.boomerang.workflow.model.Action;
 import io.boomerang.workflow.model.ActionRequest;
 import io.boomerang.workflow.model.ActionSummary;

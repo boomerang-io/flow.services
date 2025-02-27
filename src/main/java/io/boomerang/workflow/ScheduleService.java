@@ -2,7 +2,7 @@ package io.boomerang.workflow;
 
 import io.boomerang.client.EngineClient;
 import io.boomerang.core.RelationshipService;
-import io.boomerang.core.model.RelationshipType;
+import io.boomerang.core.enums.RelationshipType;
 import io.boomerang.error.BoomerangError;
 import io.boomerang.error.BoomerangException;
 import io.boomerang.quartz.QuartzSchedulerService;

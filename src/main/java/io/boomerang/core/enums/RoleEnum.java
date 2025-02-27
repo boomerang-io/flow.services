@@ -1,10 +1,12 @@
-package io.boomerang.core.model;
+package io.boomerang.core.enums;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public enum RoleEnum {
-  OWNER("owner"), EDITOR("editor"), READER("reader");
+  OWNER("owner"),
+  EDITOR("editor"),
+  READER("reader");
 
   private String label;
 
@@ -17,19 +19,18 @@ public enum RoleEnum {
   public String getLabel() {
     return label;
   }
-  
+
   static {
-      for (RoleEnum e: values()) {
-        BY_LABEL.put(e.label, e);
-      }
+    for (RoleEnum e : values()) {
+      BY_LABEL.put(e.label, e);
+    }
   }
 
   public static RoleEnum valueOfLabel(String label) {
     return BY_LABEL.get(label);
   }
-  
+
   public static boolean hasLabel(String label) {
     return BY_LABEL.containsKey(label);
   }
-  
 }
