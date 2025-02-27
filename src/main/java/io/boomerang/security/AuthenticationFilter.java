@@ -1,7 +1,9 @@
 package io.boomerang.security;
 
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.JWTParser;
 import com.nimbusds.jwt.PlainJWT;
+import com.nimbusds.jwt.SignedJWT;
 import com.slack.api.app_backend.SlackSignature.Generator;
 import com.slack.api.app_backend.SlackSignature.Verifier;
 import io.boomerang.core.SettingsService;
@@ -129,18 +131,19 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     }
 
     if (token.startsWith("Bearer ")) {
-      final String jws = token.replace("Bearer ", "");
-      LOGGER.debug("AuthFilter() - Bearer: " + jws);
+      LOGGER.debug("AuthFilter() - " + token);
       JWTClaimsSet claims;
-      String withoutSignature = jws.substring(0, jws.lastIndexOf('.') + 1);
-
-      LOGGER.debug("AuthFilter() - Bearer (no sig): " + withoutSignature);
       try {
-        PlainJWT jwt = PlainJWT.parse(withoutSignature);
-        LOGGER.debug("AuthFilter() - JWT: " + jwt.toString());
-        claims = jwt.getJWTClaimsSet();
+        Object jwt = JWTParser.parse(token.replace("Bearer ", ""));
+        if (jwt instanceof PlainJWT) {
+          claims = ((PlainJWT) jwt).getJWTClaimsSet();
+        } else if (jwt instanceof SignedJWT) {
+          claims = ((SignedJWT) jwt).getJWTClaimsSet();
+        } else {
+          throw new IllegalArgumentException("Unsupported JWT type");
+        }
       } catch (Exception e) {
-        LOGGER.error("AuthFilter() - Error parsing JWT: " + e.getMessage());
+        LOGGER.error("AuthFilter() - Error parsing Bearer token: " + e.getMessage());
         return null;
       }
       LOGGER.debug("AuthFilter() - claims: " + claims.toString());
