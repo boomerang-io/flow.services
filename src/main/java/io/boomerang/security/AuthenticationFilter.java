@@ -134,10 +134,13 @@ public class AuthenticationFilter extends OncePerRequestFilter {
       JWTClaimsSet claims;
       String withoutSignature = jws.substring(0, jws.lastIndexOf('.') + 1);
 
+      LOGGER.debug("AuthFilter() - Bearer (no sig): " + withoutSignature);
       try {
         PlainJWT jwt = PlainJWT.parse(withoutSignature);
+        LOGGER.debug("AuthFilter() - JWT: " + jwt.toString());
         claims = jwt.getJWTClaimsSet();
       } catch (Exception e) {
+        LOGGER.error("AuthFilter() - Error parsing JWT: " + e.getMessage());
         return null;
       }
       LOGGER.debug("AuthFilter() - claims: " + claims.toString());
