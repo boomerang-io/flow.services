@@ -15,7 +15,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,13 +30,17 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Task Management", description = "Create and Manage the global Task definitions.")
 public class TaskControllerV2 {
 
-  @Autowired private TaskService taskTemplateService;
+  private final TaskService taskTemplateService;
+
+  public TaskControllerV2(TaskService taskTemplateService) {
+    this.taskTemplateService = taskTemplateService;
+  }
 
   @GetMapping(value = "/{name}")
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.TASK,
-      types = {AuthType.global})
+      types = {AuthType.global, AuthType.user, AuthType.session})
   @Operation(
       summary =
           "Retrieve a specific task. If no version specified, the latest version is returned.")
@@ -59,7 +62,7 @@ public class TaskControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.TASK,
-      types = {AuthType.global})
+      types = {AuthType.global, AuthType.user, AuthType.session})
   @Operation(
       summary =
           "Retrieve a specific task as Tekton Task YAML. If no version specified, the latest version is returned.")
@@ -81,7 +84,7 @@ public class TaskControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.TASK,
-      types = {AuthType.global})
+      types = {AuthType.global, AuthType.user, AuthType.session})
   @Operation(
       summary =
           "Search for Task. If teams are provided it will query the teams. If no teams are provided it will query Global Task Templates")
@@ -132,7 +135,7 @@ public class TaskControllerV2 {
   @AuthScope(
       action = PermissionAction.WRITE,
       scope = PermissionScope.TASK,
-      types = {AuthType.global})
+      types = {AuthType.global, AuthType.user, AuthType.session})
   @Operation(
       summary = "Create a new Task",
       description =
@@ -150,7 +153,7 @@ public class TaskControllerV2 {
   @AuthScope(
       action = PermissionAction.WRITE,
       scope = PermissionScope.TASK,
-      types = {AuthType.global})
+      types = {AuthType.global, AuthType.user, AuthType.session})
   @Operation(
       summary = "Create a new Task using Tekton Task YAML",
       description =
@@ -169,7 +172,7 @@ public class TaskControllerV2 {
   @AuthScope(
       action = PermissionAction.WRITE,
       scope = PermissionScope.TASK,
-      types = {AuthType.global})
+      types = {AuthType.global, AuthType.user, AuthType.session})
   @Operation(
       summary = "Update, replace, or create new, Task",
       description =
@@ -191,7 +194,7 @@ public class TaskControllerV2 {
   @AuthScope(
       action = PermissionAction.WRITE,
       scope = PermissionScope.TASK,
-      types = {AuthType.global})
+      types = {AuthType.global, AuthType.user, AuthType.session})
   @Operation(
       summary = "Update, replace, or create new using Tekton Task YAML",
       description =
@@ -213,7 +216,7 @@ public class TaskControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.TASK,
-      types = {AuthType.global})
+      types = {AuthType.global, AuthType.user, AuthType.session})
   @Operation(
       summary = "Retrieve the changlog",
       description = "Retrieves each versions changelog and returns them all as a list.")
@@ -235,7 +238,7 @@ public class TaskControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.TASK,
-      types = {AuthType.global})
+      types = {AuthType.global, AuthType.user, AuthType.session})
   public void validateYaml(@RequestBody TektonTask tektonTask) {
     taskTemplateService.validateAsTekton(tektonTask);
   }

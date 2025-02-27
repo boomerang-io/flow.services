@@ -17,7 +17,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +35,11 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Workflow Management", description = "Create, list, and manage your Workflows.")
 public class TeamWorkflowControllerV2 {
 
-  @Autowired private WorkflowService workflowService;
+  private final WorkflowService workflowService;
+
+  public TeamWorkflowControllerV2(WorkflowService workflowService) {
+    this.workflowService = workflowService;
+  }
 
   @GetMapping(value = "/{workflow}")
   @AuthScope(

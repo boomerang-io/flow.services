@@ -11,7 +11,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,7 +31,11 @@ public class TriggerControllerV2 {
 
   private static final Logger LOGGER = LogManager.getLogger();
 
-  @Autowired private TriggersService triggerService;
+  private TriggersService triggerService;
+
+  public TriggerControllerV2(TriggersService triggerService) {
+    this.triggerService = triggerService;
+  }
 
   /**
    * HTTP Webhook accepting Generic, Slack Events, and Dockerhub subtypes. For Slack and Dockerhub
