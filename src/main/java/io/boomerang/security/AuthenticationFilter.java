@@ -1,17 +1,21 @@
 package io.boomerang.security;
 
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.PlainJWT;
+import com.slack.api.app_backend.SlackSignature.Generator;
+import com.slack.api.app_backend.SlackSignature.Verifier;
+import io.boomerang.core.SettingsService;
+import io.boomerang.core.TokenService;
+import io.boomerang.core.model.Token;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-
-import io.boomerang.core.TokenService;
-import io.boomerang.core.SettingsService;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -23,16 +27,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.filter.OncePerRequestFilter;
-import com.slack.api.app_backend.SlackSignature.Generator;
-import com.slack.api.app_backend.SlackSignature.Verifier;
-import io.boomerang.core.model.Token;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.PlainJWT;
 
 /*
  * The Filter ensures that the user is Authenticated prior to the Interceptor which validates
  * Authorization
- * 
+ *
  * Note: This cannot be auto marked as a Service/Component that Spring Boot would auto inject as
  * then it will apply to all routes
  */
@@ -45,8 +44,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
   private static final String X_FORWARDED_EMAIL = "x-forwarded-email";
   private static final String TOKEN_URL_PARAM_NAME = "access_token";
   private static final String AUTHORIZATION_HEADER = "Authorization";
-//  private static final String X_SLACK_SIGNATURE = "X-Slack-Signature";
-//  private static final String X_SLACK_TIMESTAMP = "X-Slack-Request-Timestamp";
+  //  private static final String X_SLACK_SIGNATURE = "X-Slack-Signature";
+  //  private static final String X_SLACK_TIMESTAMP = "X-Slack-Request-Timestamp";
   private static final String PATH_ACTIVATE = "/api/v2/activate";
   private static final String PATH_PROFILE = "/api/v2/profile";
   private static final String TOKEN_PATTERN = "Bearer\\sbf._(.)+";
@@ -55,8 +54,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
   private SettingsService settingsService;
   private String basicPassword;
 
-  public AuthenticationFilter(TokenService tokenService, SettingsService settingsService,
-      String basicPassword) {
+  public AuthenticationFilter(
+      TokenService tokenService, SettingsService settingsService, String basicPassword) {
     super();
     this.tokenService = tokenService;
     this.settingsService = settingsService;
@@ -64,13 +63,14 @@ public class AuthenticationFilter extends OncePerRequestFilter {
   }
 
   /*
-    * Filter to ensure the user is authenticated
-    *
-    * //DEPRECATED: X_ACCESS_TOKEN in favor of AUTHORIZATION_HEADER
+   * Filter to ensure the user is authenticated
+   *
+   * //DEPRECATED: X_ACCESS_TOKEN in favor of AUTHORIZATION_HEADER
    */
   @Override
-  protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res,
-      FilterChain chain) throws IOException, ServletException {
+  protected void doFilterInternal(
+      HttpServletRequest req, HttpServletResponse res, FilterChain chain)
+      throws IOException, ServletException {
     LOGGER.debug("In AuthFilter()");
     try {
       Authentication authentication = null;
@@ -88,7 +88,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         authentication = getTokenAuthentication(req.getParameter(TOKEN_URL_PARAM_NAME));
       } else if (req.getHeader(X_FORWARDED_EMAIL) != null) {
         authentication = getGithubUserAuthentication(req);
-      } 
+      }
 
       if (authentication != null) {
         LOGGER.debug("AuthFilter() - authorized.");
@@ -109,19 +109,20 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
   /*
    * Authorization Header Bearer Token
-   * 
+   *
    * Populated by the app via OAuth2_Proxy
    * TODO: figure out a way to ensure it comes via the OAuth2_Proxy
    */
-  private UsernamePasswordAuthenticationToken getUserSessionAuthentication(HttpServletRequest request) // NOSONAR
-  {
+  private UsernamePasswordAuthenticationToken getUserSessionAuthentication(
+      HttpServletRequest request) // NOSONAR
+      {
     final String token = request.getHeader(AUTHORIZATION_HEADER);
 
     boolean allowActivation = false;
     if (request.getServletPath().startsWith(PATH_ACTIVATE)) {
       allowActivation = true;
     }
-    
+
     boolean allowUserCreation = false;
     if (request.getServletPath().startsWith(PATH_PROFILE)) {
       allowUserCreation = true;
@@ -129,6 +130,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
     if (token.startsWith("Bearer ")) {
       final String jws = token.replace("Bearer ", "");
+      LOGGER.debug("AuthFilter() - Bearer: " + jws);
       JWTClaimsSet claims;
       String withoutSignature = jws.substring(0, jws.lastIndexOf('.') + 1);
 
@@ -162,7 +164,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
       if (email != null && !email.isBlank()) {
         final Token sessionToken =
-            tokenService.createSessionToken(email, firstName, lastName, allowActivation, allowUserCreation);
+            tokenService.createSessionToken(
+                email, firstName, lastName, allowActivation, allowUserCreation);
         final List<GrantedAuthority> authorities = new ArrayList<>();
         final UsernamePasswordAuthenticationToken authToken =
             new UsernamePasswordAuthenticationToken(email, null, authorities);
@@ -173,6 +176,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
       String base64Credentials =
           request.getHeader(AUTHORIZATION_HEADER).substring("Basic".length()).trim();
 
+      LOGGER.debug("AuthFilter() - Basic : " + base64Credentials);
       byte[] credDecoded = Base64.getDecoder().decode(base64Credentials);
       String credentials = new String(credDecoded, StandardCharsets.UTF_8);
 
@@ -203,7 +207,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
   /*
    * Validate and hoist Token Based Auth
-   * 
+   *
    * Handles the token coming from AUTHORIZATION_HEADER or TOKEN_URL_PARAM_NAME in
    * that order
    */
@@ -275,7 +279,9 @@ public class AuthenticationFilter extends OncePerRequestFilter {
   // TODO figure out why these aren't being applied in the SecurityConfig
   protected boolean shouldNotFilter(HttpServletRequest request) {
     String path = request.getServletPath();
-    return path.startsWith("/error") || path.startsWith("/health") || path.startsWith("/api/docs")
+    return path.startsWith("/error")
+        || path.startsWith("/health")
+        || path.startsWith("/api/docs")
         || path.startsWith("/internal");
   }
 }
