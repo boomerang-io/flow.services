@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +34,11 @@ import org.springframework.web.bind.annotation.RestController;
         "Submit requests to execute Workflows and provide the ability to search and retrieve Workflow activities.")
 public class TeamWorkflowRunControllerV2 {
 
-  @Autowired private WorkflowRunService workflowRunService;
+  private final WorkflowRunService workflowRunService;
+
+  public TeamWorkflowRunControllerV2(WorkflowRunService workflowRunService) {
+    this.workflowRunService = workflowRunService;
+  }
 
   @GetMapping(value = "/query")
   @AuthScope(

@@ -17,7 +17,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,7 +36,11 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Actions Management", description = "Create and manage Manual and Approval Actions.")
 public class TeamActionControllerV2 {
 
-  @Autowired private ActionService actionService;
+  private final ActionService actionService;
+
+  public TeamActionControllerV2(ActionService actionService) {
+    this.actionService = actionService;
+  }
 
   @GetMapping(value = "/{actionId}")
   @AuthScope(

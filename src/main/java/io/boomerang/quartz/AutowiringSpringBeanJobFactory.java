@@ -1,4 +1,4 @@
-package io.boomerang.workflow.quartz;
+package io.boomerang.quartz;
 
 import org.quartz.spi.TriggerFiredBundle;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;

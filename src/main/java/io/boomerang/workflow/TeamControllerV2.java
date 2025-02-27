@@ -1,8 +1,22 @@
 package io.boomerang.workflow;
 
+import io.boomerang.core.model.Role;
+import io.boomerang.security.AuthScope;
+import io.boomerang.security.model.AuthType;
+import io.boomerang.security.model.PermissionAction;
+import io.boomerang.security.model.PermissionScope;
+import io.boomerang.workflow.model.Quotas;
+import io.boomerang.workflow.model.Team;
+import io.boomerang.workflow.model.TeamMember;
+import io.boomerang.workflow.model.TeamNameCheckRequest;
+import io.boomerang.workflow.model.TeamRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.ResponseEntity;
@@ -15,21 +29,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import io.boomerang.workflow.model.Quotas;
-import io.boomerang.workflow.model.Team;
-import io.boomerang.workflow.model.TeamMember;
-import io.boomerang.workflow.model.TeamNameCheckRequest;
-import io.boomerang.workflow.model.TeamRequest;
-import io.boomerang.security.AuthScope;
-import io.boomerang.security.model.AuthType;
-import io.boomerang.security.model.PermissionAction;
-import io.boomerang.security.model.PermissionScope;
-import io.boomerang.core.model.Role;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/v2/team")
@@ -38,7 +37,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
     description = "Manage Teams, Team Members, Quotas, ApprovalGroups and Parameters.")
 public class TeamControllerV2 {
 
-  @Autowired private TeamService teamService;
+  private final TeamService teamService;
+
+  public TeamControllerV2(TeamService teamService) {
+    this.teamService = teamService;
+  }
 
   @PostMapping(value = "/validate-name")
   @AuthScope(

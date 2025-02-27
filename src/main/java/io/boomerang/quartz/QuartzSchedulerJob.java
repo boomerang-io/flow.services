@@ -1,4 +1,4 @@
-package io.boomerang.workflow.quartz;
+package io.boomerang.quartz;
 
 import io.boomerang.core.RelationshipService;
 import io.boomerang.core.TokenService;

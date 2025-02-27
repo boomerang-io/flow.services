@@ -8,7 +8,6 @@ import io.boomerang.workflow.model.CronValidationResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,7 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
     description = "Provide the ability to create and update Schedules.")
 public class ScheduleControllerV2 {
 
-  @Autowired private CronService cronService;
+  private final CronService cronService;
+
+  public ScheduleControllerV2(CronService cronService) {
+    this.cronService = cronService;
+  }
 
   @GetMapping(value = "/validate-cron")
   @AuthScope(
