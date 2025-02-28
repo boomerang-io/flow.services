@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
@@ -14,7 +13,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 /*
  * Entity for Relationships
  */
-@Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Document(collection = "#{@mongoConfiguration.fullCollectionName('rel_nodes')}")
 @CompoundIndexes({
@@ -61,5 +59,49 @@ public class RelationshipNodeEntity {
         + ", data="
         + data
         + "]";
+  }
+
+  public String getId() {
+    return id;
+  }
+
+  public void setId(String id) {
+    this.id = id;
+  }
+
+  public Date getCreationDate() {
+    return creationDate;
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+  }
+
+  public String getRef() {
+    return ref;
+  }
+
+  public void setRef(String ref) {
+    this.ref = ref;
+  }
+
+  public String getSlug() {
+    return slug;
+  }
+
+  public void setSlug(String slug) {
+    this.slug = slug;
+  }
+
+  public Map<String, String> getData() {
+    return data;
+  }
+
+  public void setData(Map<String, String> data) {
+    this.data = data;
   }
 }

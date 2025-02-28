@@ -141,7 +141,8 @@ public class TaskService {
             RelationshipType.TEAMTASK,
             queryNames,
             Optional.of(RelationshipType.TEAM),
-            Optional.of(List.of(queryTeam)));
+            Optional.of(List.of(queryTeam)),
+            false);
     LOGGER.debug("Task Refs: {}", refs.toString());
     if (refs == null || refs.size() == 0) {
       return new TaskResponsePage();
@@ -162,7 +163,7 @@ public class TaskService {
 
     List<String> refs =
         relationshipService.filter(
-            RelationshipType.TASK, queryNames, Optional.empty(), Optional.empty());
+            RelationshipType.TASK, queryNames, Optional.empty(), Optional.empty(), false);
     LOGGER.debug("Global Task Refs: {}", refs.toString());
     if (refs == null || refs.size() == 0) {
       return new TaskResponsePage();

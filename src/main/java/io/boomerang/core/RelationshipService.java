@@ -2,9 +2,9 @@ package io.boomerang.core;
 
 import io.boomerang.core.entity.RelationshipEdgeEntity;
 import io.boomerang.core.entity.RelationshipNodeEntity;
-import io.boomerang.core.model.RelationshipGraphEdge;
 import io.boomerang.core.enums.RelationshipLabel;
 import io.boomerang.core.enums.RelationshipType;
+import io.boomerang.core.model.RelationshipGraphEdge;
 import io.boomerang.core.model.Token;
 import io.boomerang.core.repository.RelationshipEdgeRepository;
 import io.boomerang.core.repository.RelationshipNodeRepository;
@@ -299,7 +299,7 @@ public class RelationshipService {
       Optional<List<String>> toRefsOrSlugs,
       Optional<RelationshipType> intermediateType,
       Optional<List<String>> intermediateList) {
-    return filter(toType, toRefsOrSlugs, Optional.empty(), Optional.empty(), true);
+    return filter(toType, toRefsOrSlugs, intermediateType, intermediateList, true);
   }
 
   /*
@@ -318,23 +318,30 @@ public class RelationshipService {
     RelationshipType fromType = null;
     String from = identity.getPrincipal();
 
-    switch (identity.getType()) {
-      case session:
-      case user:
-        fromType = RelationshipType.USER;
-        break;
-      case workflow:
-        fromType = RelationshipType.WORKFLOW;
-        break;
-      case team:
-        fromType = RelationshipType.TEAM;
-        break;
-      case global:
-        // Allow anything with no filtering
-        // Retrieve all nodes of a type in the system.
-        fromType = RelationshipType.ROOT;
-        from = "root";
-        break;
+    // Check for special cases first
+    // All users have access to all tasks
+    if (toType.equals(RelationshipType.TASK)) {
+      fromType = RelationshipType.ROOT;
+      from = "root";
+    } else {
+      switch (identity.getType()) {
+        case session:
+        case user:
+          fromType = RelationshipType.USER;
+          break;
+        case workflow:
+          fromType = RelationshipType.WORKFLOW;
+          break;
+        case team:
+          fromType = RelationshipType.TEAM;
+          break;
+        case global:
+          // Allow anything with no filtering
+          // Retrieve all nodes of a type in the system.
+          fromType = RelationshipType.ROOT;
+          from = "root";
+          break;
+      }
     }
 
     if (!Objects.isNull(fromType)) {
@@ -421,6 +428,10 @@ public class RelationshipService {
     try {
       RelationshipNodeEntity rootNode = getNodeFromGraph(fromType, from, graph);
       LOGGER.debug("Root Node: {}", rootNode.toString());
+      if (intermediateType.isPresent() && intermediateList.isPresent()) {
+        LOGGER.debug(
+            "Intermediate Type: {}, List: {}", intermediateType.get(), intermediateList.get());
+      }
       // Find the nodes connected to the rootNode
       List<RelationshipNodeEntity> nodes =
           graph.vertexSet().stream()

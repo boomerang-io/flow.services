@@ -41,7 +41,7 @@ public class WorkflowTemplateControllerV2 {
 
   @GetMapping(value = "/{name}")
   @AuthScope(
-      types = {AuthType.global},
+      types = {AuthType.global, AuthType.user, AuthType.session},
       action = PermissionAction.READ,
       scope = PermissionScope.WORKFLOWTEMPLATE)
   @Operation(
@@ -68,7 +68,7 @@ public class WorkflowTemplateControllerV2 {
 
   @GetMapping(value = "/query")
   @AuthScope(
-      types = {AuthType.global},
+      types = {AuthType.global, AuthType.user, AuthType.session},
       action = PermissionAction.READ,
       scope = PermissionScope.WORKFLOWTEMPLATE)
   @Operation(summary = "Search for Workflow Templates")
@@ -110,7 +110,7 @@ public class WorkflowTemplateControllerV2 {
 
   @PostMapping(value = "")
   @AuthScope(
-      types = {AuthType.global},
+      types = {AuthType.global, AuthType.user, AuthType.session},
       action = PermissionAction.WRITE,
       scope = PermissionScope.WORKFLOWTEMPLATE)
   @Operation(summary = "Create a new Workflow Template")
@@ -125,7 +125,7 @@ public class WorkflowTemplateControllerV2 {
 
   @PutMapping(value = "")
   @AuthScope(
-      types = {AuthType.global},
+      types = {AuthType.global, AuthType.user, AuthType.session},
       action = PermissionAction.WRITE,
       scope = PermissionScope.WORKFLOWTEMPLATE)
   @Operation(summary = "Update, replace, or create new, Workflow Template")
@@ -144,7 +144,7 @@ public class WorkflowTemplateControllerV2 {
 
   @DeleteMapping(value = "/{name}")
   @AuthScope(
-      types = {AuthType.global},
+      types = {AuthType.global, AuthType.user, AuthType.session},
       action = PermissionAction.DELETE,
       scope = PermissionScope.WORKFLOWTEMPLATE)
   @Operation(summary = "Delete a Workflow Template")

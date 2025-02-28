@@ -45,7 +45,7 @@ public class TeamWorkflowControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.WORKFLOW,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
   @Operation(
       summary = "Retrieve a Workflow",
       description =
@@ -79,7 +79,7 @@ public class TeamWorkflowControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.WORKFLOW,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
   @Operation(summary = "Search for Workflows")
   @ApiResponses(
       value = {
@@ -134,7 +134,7 @@ public class TeamWorkflowControllerV2 {
   @AuthScope(
       action = PermissionAction.WRITE,
       scope = PermissionScope.WORKFLOW,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
   @Operation(summary = "Create a new workflow")
   @ApiResponses(
       value = {
@@ -157,7 +157,7 @@ public class TeamWorkflowControllerV2 {
   @AuthScope(
       action = PermissionAction.WRITE,
       scope = PermissionScope.WORKFLOW,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
   @Operation(summary = "Update, replace, or create new, Workflow")
   @ApiResponses(
       value = {
@@ -183,7 +183,7 @@ public class TeamWorkflowControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.WORKFLOW,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
   @Operation(
       summary = "Retrieve the changlog",
       description = "Retrieves each versions changelog and returns them all as a list.")
@@ -210,7 +210,7 @@ public class TeamWorkflowControllerV2 {
   @AuthScope(
       action = PermissionAction.DELETE,
       scope = PermissionScope.WORKFLOW,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
   @Operation(summary = "Delete a workflow")
   @ApiResponses(
       value = {
@@ -235,7 +235,7 @@ public class TeamWorkflowControllerV2 {
   @AuthScope(
       action = PermissionAction.ACTION,
       scope = PermissionScope.WORKFLOW,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
   @Operation(
       summary = "Submit a Workflow to be run. Will queue the WorkflowRun ready for execution.")
   @ApiResponses(
@@ -268,7 +268,7 @@ public class TeamWorkflowControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.WORKFLOW,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
   @Operation(summary = "Export the Workflow as JSON.")
   public ResponseEntity<InputStreamResource> export(
       @Parameter(
@@ -288,7 +288,7 @@ public class TeamWorkflowControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.WORKFLOW,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
   @Operation(
       summary = "Convert workflow to compose model for UI Designer and detailed Activity screens.")
   @ApiResponses(
@@ -317,7 +317,7 @@ public class TeamWorkflowControllerV2 {
   @AuthScope(
       action = PermissionAction.WRITE,
       scope = PermissionScope.WORKFLOW,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
   @Operation(summary = "Update, replace, or create new, Workflow for Canvas")
   @ApiResponses(
       value = {
@@ -343,7 +343,7 @@ public class TeamWorkflowControllerV2 {
   @AuthScope(
       action = PermissionAction.WRITE,
       scope = PermissionScope.WORKFLOW,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
   @Operation(summary = "Duplicates the workflow.")
   public Workflow duplicateWorkflow(
       @Parameter(
@@ -381,7 +381,7 @@ public class TeamWorkflowControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.WORKFLOW,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
   @Operation(summary = "Retrieve the parameters.")
   public List<String> getAvailableParameters(
       @Parameter(
