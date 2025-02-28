@@ -1,12 +1,11 @@
 package io.boomerang.core;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import io.boomerang.core.entity.RelationshipEdgeEntity;
 import io.boomerang.core.entity.RelationshipNodeEntity;
 import io.boomerang.core.model.RelationshipGraphEdge;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jgrapht.Graph;
@@ -52,6 +51,8 @@ public class RelationshipGraph {
             fromNode,
             toNode,
             new RelationshipGraphEdge(edge.getLabel(), edge.getData().get("role")));
+      } else {
+        LOGGER.warn("Edge not added: {} -> {}", edge.getFrom(), edge.getTo());
       }
     }
   }

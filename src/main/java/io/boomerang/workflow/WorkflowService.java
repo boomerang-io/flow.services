@@ -180,6 +180,7 @@ public class WorkflowService {
         engineClient.queryWorkflows(
             queryLimit, queryPage, querySort, queryLabels, queryStatus, Optional.of(refs));
 
+    LOGGER.debug("Workflow Response: {}", response.toString());
     // Filter out sensitive values
     if (!response.getContent().isEmpty()) {
       response
@@ -978,10 +979,12 @@ public class WorkflowService {
                           Optional.of(List.of(team)));
                 }
                 if (slugs.isEmpty()) {
-                  throw new BoomerangException(
-                      BoomerangError.WORKFLOW_INVALID_TASK_REF, t.getName(), t.getTaskRef());
+                  LOGGER.warn("TaskRef not found: {} : {}", t.getName(), t.getTaskRef());
+                  t.setTaskRef("");
+                } else {
+                  t.setTaskRef(
+                      isTeamTask ? team + TASK_REF_SEPERATOR + slugs.get(0) : slugs.get(0));
                 }
-                t.setTaskRef(isTeamTask ? team + TASK_REF_SEPERATOR + slugs.get(0) : slugs.get(0));
               }
             });
   }
