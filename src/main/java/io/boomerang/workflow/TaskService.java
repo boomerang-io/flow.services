@@ -67,7 +67,8 @@ public class TaskService {
               RelationshipType.TEAMTASK,
               Optional.of(List.of(name)),
               Optional.of(RelationshipType.TEAM),
-              Optional.of(List.of(team)));
+              Optional.of(List.of(team)),
+              false);
       if (!taskRefs.isEmpty()) {
         // Assumes there is only one task of that slug in a team
         return internalGet(taskRefs.get(0), version);
@@ -87,7 +88,8 @@ public class TaskService {
               RelationshipType.TASK,
               Optional.of(List.of(name)),
               Optional.empty(),
-              Optional.empty());
+              Optional.empty(),
+              false);
       if (!taskRefs.isEmpty()) {
         // Assumes there is only one task of that slug in a team
         return internalGet(taskRefs.get(0), version);
@@ -295,20 +297,22 @@ public class TaskService {
    * Names are akin to a slug and are immutable. If the name changes, a new TaskTemplate is created
    *
    */
-  public Task apply(String team, Task request, boolean replace) {
-    if (request.getName().isBlank() || !request.getName().matches(NAME_REGEX)) {
+  public Task apply(String name, String team, Task request, boolean replace) {
+    if (name.isBlank() || !name.matches(NAME_REGEX)) {
       throw new BoomerangException(BoomerangError.TASK_INVALID_NAME, request.getName());
     }
 
     List<String> refs =
         relationshipService.filter(
             RelationshipType.TEAMTASK,
-            Optional.of(List.of(request.getName())),
+            Optional.of(List.of(name)),
             Optional.of(RelationshipType.TEAM),
             Optional.of(List.of(team)),
             false);
     if (!refs.isEmpty()) {
       request.setId(refs.get(0));
+      // Name is immutable
+      request.setName(name);
       Task task = this.internalApply(request, replace);
 
       // Remove ID
@@ -319,19 +323,21 @@ public class TaskService {
     }
   }
 
-  public Task apply(Task request, boolean replace) {
-    if (request.getName().isBlank() || !request.getName().matches(NAME_REGEX)) {
+  public Task apply(String name, Task request, boolean replace) {
+    LOGGER.debug("Applying Task: {}", request.toString());
+    if (name.isBlank() || !name.matches(NAME_REGEX)) {
       throw new BoomerangException(BoomerangError.TASK_INVALID_NAME, request.getName());
     }
     List<String> refs =
         relationshipService.filter(
             RelationshipType.TASK,
-            Optional.of(List.of(request.getName())),
+            Optional.of(List.of(name)),
             Optional.empty(),
             Optional.empty(),
             false);
     if (!refs.isEmpty()) {
       request.setId(refs.get(0));
+      request.setName(name); // name is immutable
       Task task = this.internalApply(request, replace);
 
       // Remove ID
@@ -412,15 +418,16 @@ public class TaskService {
     return tektonTask;
   }
 
-  public TektonTask applyAsTekton(String team, TektonTask tektonTask, boolean replace) {
+  public TektonTask applyAsTekton(
+      String name, String team, TektonTask tektonTask, boolean replace) {
     Task template = TektonConverter.convertTektonTaskToTaskTemplate(tektonTask);
-    this.apply(team, template, replace);
+    this.apply(name, team, template, replace);
     return tektonTask;
   }
 
-  public TektonTask applyAsTekton(TektonTask tektonTask, boolean replace) {
+  public TektonTask applyAsTekton(String name, TektonTask tektonTask, boolean replace) {
     Task template = TektonConverter.convertTektonTaskToTaskTemplate(tektonTask);
-    this.apply(template, replace);
+    this.apply(name, template, replace);
     return tektonTask;
   }
 

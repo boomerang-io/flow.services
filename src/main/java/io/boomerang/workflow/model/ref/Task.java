@@ -1,14 +1,13 @@
 package io.boomerang.workflow.model.ref;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import io.boomerang.workflow.model.AbstractParam;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import io.boomerang.workflow.model.AbstractParam;
 import org.springframework.data.annotation.Id;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @JsonInclude(Include.NON_NULL)
 public class Task {
@@ -31,8 +30,9 @@ public class Task {
   private List<AbstractParam> config;
   private String icon;
 
-  public Task() {
-
+  @Override
+  public String toString() {
+    return "Task{" + "id='" + id + '\'' + ", name='" + name + '\'' + ", displayName='" + displayName + '\'' + ", type=" + type + ", version=" + version + ", status=" + status + ", creationDate=" + creationDate + ", verified=" + verified + ", description='" + description + '\'' + ", labels=" + labels + ", annotations=" + annotations + ", changelog=" + changelog + ", category='" + category + '\'' + ", spec=" + spec + ", config=" + config + ", icon='" + icon + '\'' + '}';
   }
 
   public String getId() {

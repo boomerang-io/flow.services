@@ -205,7 +205,6 @@ public class TeamTaskControllerV2 {
     return taskService.createAsTekton(team, tektonTask);
   }
 
-  // TODO: remove the name from the path
   @PutMapping(value = "/{name}")
   @AuthScope(
       action = PermissionAction.WRITE,
@@ -221,6 +220,8 @@ public class TeamTaskControllerV2 {
         @ApiResponse(responseCode = "400", description = "Bad Request")
       })
   public Task apply(
+      @Parameter(name = "name", description = "Name of Task", required = true) @PathVariable
+          String name,
       @Parameter(
               name = "team",
               description = "Owning team name.",
@@ -232,7 +233,7 @@ public class TeamTaskControllerV2 {
       @Parameter(name = "replace", description = "Replace existing version", required = false)
           @RequestParam(required = false, defaultValue = "false")
           boolean replace) {
-    return taskService.apply(team, task, replace);
+    return taskService.apply(name, team, task, replace);
   }
 
   @PutMapping(value = "/{name}", consumes = "application/x-yaml", produces = "application/x-yaml")
@@ -250,6 +251,8 @@ public class TeamTaskControllerV2 {
         @ApiResponse(responseCode = "400", description = "Bad Request")
       })
   public TektonTask applyYAML(
+      @Parameter(name = "name", description = "Name of Task", required = true) @PathVariable
+          String name,
       @Parameter(
               name = "team",
               description = "Owning team name.",
@@ -261,7 +264,7 @@ public class TeamTaskControllerV2 {
       @Parameter(name = "replace", description = "Replace existing version", required = false)
           @RequestParam(required = false, defaultValue = "false")
           boolean replace) {
-    return taskService.applyAsTekton(team, tektonTask, replace);
+    return taskService.applyAsTekton(name, team, tektonTask, replace);
   }
 
   @GetMapping(value = "/{name}/changelog")
