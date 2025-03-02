@@ -2,7 +2,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.boomerang</groupId>
-    <artifactId>common</artifactId>
+    <artifactId>lib-common</artifactId>
     <version>${version.name}</version>
     <packaging>jar</packaging>
     <name>lib-common</name>
@@ -12,4 +12,14 @@
         <artifactId>parent</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+        </dependency>
+    </dependencies>
 </project>

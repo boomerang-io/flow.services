@@ -15,8 +15,8 @@ import org.springframework.stereotype.Component;
 import io.boomerang.workflow.model.Team;
 import io.boomerang.workflow.model.TeamRequest;
 import io.boomerang.workflow.model.WorkflowCanvas;
-import io.boomerang.model.Workflow;
-import io.boomerang.model.WorkflowRun;
+import io.boomerang.common.model.Workflow;
+import io.boomerang.common.model.WorkflowRun;
 import io.boomerang.core.model.Token;
 
 /*

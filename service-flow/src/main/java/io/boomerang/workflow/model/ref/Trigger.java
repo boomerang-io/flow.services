@@ -1,6 +1,6 @@
 package io.boomerang.workflow.model.ref;
 
-import io.boomerang.model.TriggerCondition;
+import io.boomerang.common.model.TriggerCondition;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -10,7 +10,7 @@ public class Trigger {
 
   private Boolean enabled = Boolean.FALSE;
   // private TriggerEnum type;
-  private List<io.boomerang.model.TriggerCondition> conditions = new LinkedList<>();
+  private List<TriggerCondition> conditions = new LinkedList<>();
 
   public Trigger() {}
 
@@ -39,7 +39,7 @@ public class Trigger {
   // this.type = type;
   // }
 
-  public List<io.boomerang.model.TriggerCondition> getConditions() {
+  public List<TriggerCondition> getConditions() {
     return conditions;
   }
 

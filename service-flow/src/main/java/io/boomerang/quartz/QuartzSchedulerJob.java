@@ -10,7 +10,7 @@ import io.boomerang.workflow.WorkflowService;
 import io.boomerang.workflow.model.TriggerEnum;
 import io.boomerang.workflow.model.WorkflowSchedule;
 import io.boomerang.workflow.model.WorkflowScheduleType;
-import io.boomerang.model.WorkflowSubmitRequest;
+import io.boomerang.common.model.WorkflowSubmitRequest;
 import java.util.ArrayList;
 import java.util.List;
 import org.quartz.JobDetail;

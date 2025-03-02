@@ -5,7 +5,7 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.boomerang.model.ExecutionCondition;
+import io.boomerang.common.model.ExecutionCondition;
 
 public class CanvasEdgeData {
   

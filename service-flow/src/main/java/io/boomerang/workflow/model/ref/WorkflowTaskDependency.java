@@ -1,7 +1,7 @@
 package io.boomerang.workflow.model.ref;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.boomerang.model.ExecutionCondition;
+import io.boomerang.common.model.ExecutionCondition;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class WorkflowTaskDependency {
@@ -10,8 +10,8 @@ public class WorkflowTaskDependency {
 
   private String decisionCondition;
 
-  private io.boomerang.model.ExecutionCondition
-      executionCondition = io.boomerang.model.ExecutionCondition.always;
+  private ExecutionCondition
+      executionCondition = ExecutionCondition.always;
   
   @Override
   public String toString() {
@@ -35,7 +35,7 @@ public class WorkflowTaskDependency {
     this.decisionCondition = decisionCondition;
   }
 
-  public io.boomerang.model.ExecutionCondition getExecutionCondition() {
+  public ExecutionCondition getExecutionCondition() {
     return executionCondition;
   }
 

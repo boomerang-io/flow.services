@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.boomerang.model.Task;
+import io.boomerang.common.model.Task;
 
 public class TaskResponsePage extends PageImpl<Task> {
   @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)

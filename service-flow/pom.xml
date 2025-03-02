@@ -38,11 +38,6 @@
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
             </dependency>
-            <!--			<dependency>-->
-            <!--				<groupId>org.hibernate.validator</groupId>-->
-            <!--				<artifactId>hibernate-validator</artifactId>-->
-            <!--				<version>6.2.5.Final</version>-->
-            <!--			</dependency>-->
         </dependencies>
     </dependencyManagement>
     <dependencies>
@@ -117,11 +112,6 @@
             <artifactId>commons-text</artifactId>
             <version>1.13.0</version>
         </dependency>
-        <!--		<dependency>-->
-        <!--			<groupId>org.apache.commons</groupId>-->
-        <!--			<artifactId>commons-configuration2</artifactId>-->
-        <!--			<version>2.10.1</version>-->
-        <!--		</dependency>-->
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
@@ -150,27 +140,6 @@
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
         </dependency>
-        <!--		<dependency>-->
-        <!--			<groupId>org.springframework</groupId>-->
-        <!--			<artifactId>spring-web</artifactId>-->
-        <!--		</dependency>-->
-        <!--		<dependency>-->
-        <!--			<groupId>org.springframework</groupId>-->
-        <!--			<artifactId>spring-core</artifactId>-->
-        <!--		</dependency>-->
-        <!--		<dependency>-->
-        <!--			<groupId>org.springframework</groupId>-->
-        <!--			<artifactId>spring-context</artifactId>-->
-        <!--		</dependency>-->
-        <!--		<dependency>-->
-        <!--			<groupId>org.apache.logging.log4j</groupId>-->
-        <!--			<artifactId>log4j-web</artifactId>-->
-        <!--			<scope>runtime</scope>-->
-        <!--		</dependency>-->
-        <!--		<dependency>-->
-        <!--			<groupId>org.apache.commons</groupId>-->
-        <!--			<artifactId>commons-lang3</artifactId>-->
-        <!--		</dependency>-->
         <dependency>
             <groupId>de.flapdoodle.embed</groupId>
             <artifactId>de.flapdoodle.embed.mongo</artifactId>
@@ -203,27 +172,6 @@
             <artifactId>nimbus-jose-jwt</artifactId>
             <version>9.40</version>
         </dependency>
-        <!--		<dependency>-->
-        <!--			<groupId>io.jsonwebtoken</groupId>-->
-        <!--			<artifactId>jjwt-impl</artifactId>-->
-        <!--			<version>0.12.6</version>-->
-        <!--		</dependency>-->
-        <!--		<dependency>-->
-        <!--			<groupId>io.jsonwebtoken</groupId>-->
-        <!--			<artifactId>jjwt-jackson</artifactId>-->
-        <!--			<version>0.12.6</version>-->
-        <!--			<exclusions>-->
-        <!--				<exclusion>-->
-        <!--					<groupId>com.fasterxml.jackson.core</groupId>-->
-        <!--					<artifactId>jackson-databind</artifactId>-->
-        <!--				</exclusion>-->
-        <!--			</exclusions>-->
-        <!--		</dependency>-->
-        <!--		<dependency>-->
-        <!--			<groupId>javax.servlet</groupId>-->
-        <!--			<artifactId>javax.servlet-api</artifactId>-->
-        <!--			<scope>provided</scope>-->
-        <!--		</dependency>-->
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
@@ -258,6 +206,12 @@
             <groupId>com.spotify</groupId>
             <artifactId>github-client</artifactId>
             <version>0.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>io.boomerang</groupId>
+            <artifactId>lib-common</artifactId>
+            <version>${version.name}</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
     <build>

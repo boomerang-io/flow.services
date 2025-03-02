@@ -1,7 +1,7 @@
 package io.boomerang.workflow.model.ref;
 
-import io.boomerang.model.RunResult;
-import io.boomerang.model.RunStatus;
+import io.boomerang.common.model.RunResult;
+import io.boomerang.common.model.RunStatus;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -14,9 +14,9 @@ public class WorkflowRunEventRequest {
 
   private Map<String, Object> annotations = new HashMap<>();
   
-  private List<io.boomerang.model.RunResult> results = new LinkedList<>();
+  private List<RunResult> results = new LinkedList<>();
   
-  private io.boomerang.model.RunStatus status = io.boomerang.model.RunStatus.succeeded;
+  private RunStatus status = RunStatus.succeeded;
   
   private String topic;
 
@@ -36,7 +36,7 @@ public class WorkflowRunEventRequest {
     this.annotations = annotations;
   }
 
-  public List<io.boomerang.model.RunResult> getResults() {
+  public List<RunResult> getResults() {
     return results;
   }
 
@@ -44,7 +44,7 @@ public class WorkflowRunEventRequest {
     this.results = results;
   }
 
-  public io.boomerang.model.RunStatus getStatus() {
+  public RunStatus getStatus() {
     return status;
   }
 

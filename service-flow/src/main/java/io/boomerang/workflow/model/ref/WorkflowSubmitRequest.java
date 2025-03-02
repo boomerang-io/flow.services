@@ -1,6 +1,6 @@
 package io.boomerang.workflow.model.ref;
 
-import io.boomerang.model.WorkflowRunRequest;
+import io.boomerang.common.model.WorkflowRunRequest;
 import io.boomerang.workflow.model.TriggerEnum;
 
 /*

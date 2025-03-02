@@ -1,9 +1,9 @@
 package io.boomerang.workflow;
 
+import io.boomerang.common.util.DataAdapterUtil;
+import io.boomerang.common.util.DataAdapterUtil.FieldType;
 import io.boomerang.error.BoomerangError;
 import io.boomerang.error.BoomerangException;
-import io.boomerang.util.DataAdapterUtil;
-import io.boomerang.util.DataAdapterUtil.FieldType;
 import io.boomerang.workflow.entity.GlobalParamEntity;
 import io.boomerang.workflow.model.AbstractParam;
 import io.boomerang.workflow.repository.GlobalParamRepository;

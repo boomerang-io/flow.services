@@ -20,8 +20,8 @@ public enum TaskType {
     return type;
   }
 
-  public static io.boomerang.model.TaskType getRunType(String type) {
-    return Arrays.asList(io.boomerang.model.TaskType.values()).stream()
+  public static io.boomerang.common.model.TaskType getRunType(String type) {
+    return Arrays.asList(io.boomerang.common.model.TaskType.values()).stream()
         .filter(value -> value.getType().equals(type)).findFirst().orElse(null);
   }
 }

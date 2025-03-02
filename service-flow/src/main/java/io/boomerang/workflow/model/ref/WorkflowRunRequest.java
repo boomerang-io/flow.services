@@ -1,7 +1,7 @@
 package io.boomerang.workflow.model.ref;
 
-import io.boomerang.model.RunParam;
-import io.boomerang.model.WorkflowWorkspace;
+import io.boomerang.common.model.RunParam;
+import io.boomerang.common.model.WorkflowWorkspace;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -14,9 +14,9 @@ public class WorkflowRunRequest {
 
   private Map<String, Object> annotations = new HashMap<>();
   
-  private List<io.boomerang.model.RunParam> params = new LinkedList<>();
+  private List<RunParam> params = new LinkedList<>();
   
-  private List<io.boomerang.model.WorkflowWorkspace> workspaces = new LinkedList<>();
+  private List<WorkflowWorkspace> workspaces = new LinkedList<>();
   
   private Long timeout;
   
@@ -47,7 +47,7 @@ public class WorkflowRunRequest {
     this.annotations = annotations;
   }
 
-  public List<io.boomerang.model.RunParam> getParams() {
+  public List<RunParam> getParams() {
     return params;
   }
 
@@ -55,7 +55,7 @@ public class WorkflowRunRequest {
     this.params = params;
   }
 
-  public List<io.boomerang.model.WorkflowWorkspace> getWorkspaces() {
+  public List<WorkflowWorkspace> getWorkspaces() {
     return workspaces;
   }
 

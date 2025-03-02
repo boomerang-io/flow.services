@@ -6,20 +6,20 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.boomerang.model.TaskDeletion;
-import io.boomerang.model.TaskEnvVar;
+import io.boomerang.common.model.TaskDeletion;
+import io.boomerang.common.model.TaskEnvVar;
 
 public class TaskRunSpec {
 
   private List<String> arguments;
   private List<String> command;
-  private List<io.boomerang.model.TaskEnvVar> envs;
+  private List<TaskEnvVar> envs;
   private String image;
   private String script;
   private String workingDir;
   private Boolean debug = false;
   private int timeout;
-  private io.boomerang.model.TaskDeletion deletion;
+  private TaskDeletion deletion;
   @JsonIgnore
   private Map<String, Object> additionalProperties = new HashMap<>();
   
@@ -31,7 +31,7 @@ public class TaskRunSpec {
     return command;
   }
 
-  public List<io.boomerang.model.TaskEnvVar> getEnvs() {
+  public List<TaskEnvVar> getEnvs() {
     return envs;
   }
 
@@ -97,7 +97,7 @@ public class TaskRunSpec {
     this.timeout = timeout;
   }
 
-  public io.boomerang.model.TaskDeletion getDeletion() {
+  public TaskDeletion getDeletion() {
     return deletion;
   }
 

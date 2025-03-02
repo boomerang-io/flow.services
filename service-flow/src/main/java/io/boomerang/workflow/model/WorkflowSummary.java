@@ -5,8 +5,8 @@ import org.springframework.beans.BeanUtils;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import io.boomerang.model.WorkflowStatus;
-import io.boomerang.model.Workflow;
+import io.boomerang.common.model.WorkflowStatus;
+import io.boomerang.common.model.Workflow;
 
 /*
  * Workflow Summary copies from Workflow to include in the Team response

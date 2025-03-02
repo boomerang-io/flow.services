@@ -6,18 +6,18 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.boomerang.model.ParamSpec;
-import io.boomerang.model.ResultSpec;
-import io.boomerang.model.TaskEnvVar;
+import io.boomerang.common.model.ParamSpec;
+import io.boomerang.common.model.ResultSpec;
+import io.boomerang.common.model.TaskEnvVar;
 
 public class TaskSpec {
 
   private List<String> arguments;
   private List<String> command;
-  private List<io.boomerang.model.ParamSpec> params;
-  private List<io.boomerang.model.TaskEnvVar> envs;
+  private List<ParamSpec> params;
+  private List<TaskEnvVar> envs;
   private String image;
-  private List<io.boomerang.model.ResultSpec> results;
+  private List<ResultSpec> results;
   private String script;
   private String workingDir;
   @JsonIgnore
@@ -31,11 +31,11 @@ public class TaskSpec {
     return command;
   }
 
-  public List<io.boomerang.model.ParamSpec> getParams() {
+  public List<ParamSpec> getParams() {
     return params;
   }
 
-  public List<io.boomerang.model.TaskEnvVar> getEnvs() {
+  public List<TaskEnvVar> getEnvs() {
     return envs;
   }
 
@@ -43,7 +43,7 @@ public class TaskSpec {
     return image;
   }
 
-  public List<io.boomerang.model.ResultSpec> getResults() {
+  public List<ResultSpec> getResults() {
     return results;
   }
 

@@ -1,8 +1,8 @@
 package io.boomerang.util;
 
 import io.boomerang.workflow.model.AbstractParam;
-import io.boomerang.model.ParamSpec;
-import io.boomerang.model.RunParam;
+import io.boomerang.common.model.ParamSpec;
+import io.boomerang.common.model.RunParam;
 
 import java.util.List;
 

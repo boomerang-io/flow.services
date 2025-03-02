@@ -17,8 +17,8 @@ public enum RunPhase {
     return phase;
   }
 
-  public static io.boomerang.model.RunPhase getRunPhase(String phase) {
-    return Arrays.asList(io.boomerang.model.RunPhase.values()).stream()
+  public static io.boomerang.common.model.RunPhase getRunPhase(String phase) {
+    return Arrays.asList(io.boomerang.common.model.RunPhase.values()).stream()
         .filter(value -> value.getPhase().equals(phase)).findFirst().orElse(null);
   }
 }

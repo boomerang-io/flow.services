@@ -1,7 +1,7 @@
 package io.boomerang.workflow.tekton;
 
 import java.util.List;
-import io.boomerang.model.TaskEnvVar;
+import io.boomerang.common.model.TaskEnvVar;
 
 public class Step {
 

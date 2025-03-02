@@ -6,12 +6,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import io.boomerang.model.ChangeLog;
-import io.boomerang.model.ParamSpec;
-import io.boomerang.model.WorkflowStatus;
-import io.boomerang.model.WorkflowTask;
-import io.boomerang.model.WorkflowTrigger;
-import io.boomerang.model.WorkflowWorkspace;
+import io.boomerang.common.model.ChangeLog;
+import io.boomerang.common.model.ParamSpec;
+import io.boomerang.common.model.WorkflowStatus;
+import io.boomerang.common.model.WorkflowTask;
+import io.boomerang.common.model.WorkflowTrigger;
+import io.boomerang.common.model.WorkflowWorkspace;
 import org.springframework.beans.BeanUtils;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -34,10 +34,10 @@ public class Workflow {
   
   private String id;
   private String name;
-  private io.boomerang.model.WorkflowStatus status = io.boomerang.model.WorkflowStatus.active;
+  private WorkflowStatus status = WorkflowStatus.active;
   private Integer version = 1;
   private Date creationDate = new Date();
-  private io.boomerang.model.ChangeLog changelog;
+  private ChangeLog changelog;
   private String icon;
   private String description;
   private String markdown;
@@ -46,10 +46,10 @@ public class Workflow {
   private Long timeout;
   private Long retries;
   private boolean upgradesAvailable = false;
-  private io.boomerang.model.WorkflowTrigger triggers = new io.boomerang.model.WorkflowTrigger();
-  private List<io.boomerang.model.WorkflowTask> tasks = new LinkedList<>();
-  private List<io.boomerang.model.ParamSpec> params = new LinkedList<>();
-  private List<io.boomerang.model.WorkflowWorkspace> workspaces = new LinkedList<>();
+  private WorkflowTrigger triggers = new WorkflowTrigger();
+  private List<WorkflowTask> tasks = new LinkedList<>();
+  private List<ParamSpec> params = new LinkedList<>();
+  private List<WorkflowWorkspace> workspaces = new LinkedList<>();
   private List<AbstractParam> config = new LinkedList<>();
   private Map<String, Object> unknownFields = new HashMap<>();
   
@@ -104,7 +104,7 @@ public class Workflow {
     this.name = name;
   }
 
-  public io.boomerang.model.WorkflowStatus getStatus() {
+  public WorkflowStatus getStatus() {
     return status;
   }
 
@@ -128,7 +128,7 @@ public class Workflow {
     this.creationDate = creationDate;
   }
 
-  public io.boomerang.model.ChangeLog getChangelog() {
+  public ChangeLog getChangelog() {
     return changelog;
   }
 
@@ -176,7 +176,7 @@ public class Workflow {
     this.annotations = annotations;
   }
 
-  public List<io.boomerang.model.WorkflowTask> getTasks() {
+  public List<WorkflowTask> getTasks() {
     return tasks;
   }
 
@@ -184,7 +184,7 @@ public class Workflow {
     this.tasks = tasks;
   }
 
-  public List<io.boomerang.model.ParamSpec> getParams() {
+  public List<ParamSpec> getParams() {
     return params;
   }
 
@@ -192,7 +192,7 @@ public class Workflow {
     this.params = params;
   }
 
-  public List<io.boomerang.model.WorkflowWorkspace> getWorkspaces() {
+  public List<WorkflowWorkspace> getWorkspaces() {
     return workspaces;
   }
 
@@ -208,7 +208,7 @@ public class Workflow {
     this.config = config;
   }
 
-  public io.boomerang.model.WorkflowTrigger getTriggers() {
+  public WorkflowTrigger getTriggers() {
     return triggers;
   }
 

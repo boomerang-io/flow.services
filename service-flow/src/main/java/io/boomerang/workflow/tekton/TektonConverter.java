@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import io.boomerang.workflow.model.AbstractParam;
-import io.boomerang.model.ChangeLog;
-import io.boomerang.model.ParamSpec;
-import io.boomerang.model.Task;
+import io.boomerang.common.model.ChangeLog;
+import io.boomerang.common.model.ParamSpec;
+import io.boomerang.common.model.Task;
 
 public class TektonConverter {
 

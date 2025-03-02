@@ -1,14 +1,14 @@
 package io.boomerang.workflow.model.ref;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.boomerang.model.ParamType;
+import io.boomerang.common.model.ParamType;
 
 public class RunParam {
   
   private String name;
   private Object value;
   @JsonIgnore
-  private io.boomerang.model.ParamType type;
+  private ParamType type;
   
   protected RunParam() {
   }
@@ -18,7 +18,7 @@ public class RunParam {
     this.value = value;
   }
 
-  public RunParam(String name, Object value, io.boomerang.model.ParamType type) {
+  public RunParam(String name, Object value, ParamType type) {
     this.name = name;
     this.type = type;
     this.value = value;
@@ -45,7 +45,7 @@ public class RunParam {
     this.value = value;
   }
 
-  public io.boomerang.model.ParamType getType() {
+  public ParamType getType() {
     return type;
   }
 
