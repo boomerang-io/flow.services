@@ -17,8 +17,8 @@ public enum TaskDeletion {
     return deletion;
   }
 
-  public static io.boomerang.model.TaskDeletion getDeletion(String deletion) {
-    return Arrays.asList(io.boomerang.model.TaskDeletion.values()).stream()
+  public static io.boomerang.common.model.TaskDeletion getDeletion(String deletion) {
+    return Arrays.asList(io.boomerang.common.model.TaskDeletion.values()).stream()
         .filter(value -> value.getDeletion().equals(deletion)).findFirst().orElse(null);
   }
 }

@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.boomerang.model.WorkflowRun;
+import io.boomerang.common.model.WorkflowRun;
 
 public class WorkflowRunResponsePage extends PageImpl<WorkflowRun> {
   @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)

@@ -1,11 +1,11 @@
 package io.boomerang.core;
 
+import io.boomerang.common.util.DateUtil;
 import io.boomerang.core.entity.SettingEntity;
 import io.boomerang.core.enums.ConfigurationType;
 import io.boomerang.core.model.EncryptionConfig;
 import io.boomerang.core.model.Setting;
 import io.boomerang.core.repository.SettingsRepository;
-import io.boomerang.util.DateUtil;
 import io.boomerang.workflow.model.AESAlgorithm;
 import io.boomerang.workflow.model.AbstractParam;
 import java.time.LocalDateTime;

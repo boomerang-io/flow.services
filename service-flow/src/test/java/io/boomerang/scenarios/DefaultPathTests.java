@@ -1,13 +1,19 @@
 package io.boomerang.scenarios;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.client.ExpectedCount.times;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+
+import io.boomerang.tests.IntegrationTests;
+import io.boomerang.tests.MongoConfig;
+import io.boomerang.v3.mongo.model.TaskStatus;
+import io.boomerang.workflow.model.Action;
+import io.boomerang.workflow.model.FlowActivity;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -25,12 +31,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.client.MockRestServiceServer;
-import io.boomerang.Application;
-import io.boomerang.workflow.model.Action;
-import io.boomerang.workflow.model.FlowActivity;
-import io.boomerang.tests.IntegrationTests;
-import io.boomerang.tests.MongoConfig;
-import io.boomerang.v3.mongo.model.TaskStatus;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ExtendWith(SpringExtension.class)
@@ -38,7 +38,6 @@ import io.boomerang.v3.mongo.model.TaskStatus;
 @ActiveProfiles("test")
 @Disabled
 public class DefaultPathTests extends IntegrationTests {
-
 
   @Test
   public void testExecution() throws Exception {
@@ -58,11 +57,9 @@ public class DefaultPathTests extends IntegrationTests {
 
     FlowActivity activit2 = this.checkWorkflowActivity(activity.getId());
 
-
     mockServer.verify();
 
     assertNotNull(activit2);
-
   }
 
   @Override
@@ -71,34 +68,37 @@ public class DefaultPathTests extends IntegrationTests {
     super.setUp();
     mockServer = MockRestServiceServer.bindTo(this.restTemplate).ignoreExpectOrder(true).build();
 
-
-    mockServer.expect(times(4), requestTo(containsString("internal/users/user")))
+    mockServer
+        .expect(times(4), requestTo(containsString("internal/users/user")))
         .andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess(getMockFile("mock/users/users.json"), MediaType.APPLICATION_JSON));
 
-    mockServer.expect(times(1), requestTo(containsString("controller/workflow/execute")))
-        .andExpect(method(HttpMethod.POST)).andRespond(withStatus(HttpStatus.OK));
+    mockServer
+        .expect(times(1), requestTo(containsString("controller/workflow/execute")))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(withStatus(HttpStatus.OK));
 
-    mockServer.expect(times(1), requestTo(containsString("users/user/5e736fb0a97b78000125ebe3")))
+    mockServer
+        .expect(times(1), requestTo(containsString("users/user/5e736fb0a97b78000125ebe3")))
         .andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess(getMockFile("mock/users/users.json"), MediaType.APPLICATION_JSON));
 
-    mockServer.expect(times(1), requestTo(containsString("controller/task/execute")))
-        .andExpect(method(HttpMethod.POST)).andRespond(withStatus(HttpStatus.OK));
+    mockServer
+        .expect(times(1), requestTo(containsString("controller/task/execute")))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(withStatus(HttpStatus.OK));
 
-    mockServer.expect(times(1), requestTo(containsString("controller/workflow/terminate")))
-        .andExpect(method(HttpMethod.POST)).andRespond(withStatus(HttpStatus.OK));
-
-
-
+    mockServer
+        .expect(times(1), requestTo(containsString("controller/workflow/terminate")))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(withStatus(HttpStatus.OK));
   }
 
   @Override
   protected void getTestCaseData(Map<String, List<String>> data) {
     data.put("flow_workflows", Arrays.asList("tests/scenarios/default/default-workflow.json"));
-    data.put("flow_workflows_revisions",
+    data.put(
+        "flow_workflows_revisions",
         Arrays.asList("tests/scenarios/default/default-revision1.json"));
-
   }
-
 }

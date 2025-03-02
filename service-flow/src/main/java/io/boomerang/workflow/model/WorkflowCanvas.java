@@ -6,11 +6,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.BeanUtils;
-import io.boomerang.model.WorkflowStatus;
-import io.boomerang.model.ChangeLog;
-import io.boomerang.model.Workflow;
-import io.boomerang.model.WorkflowTrigger;
-import io.boomerang.model.WorkflowWorkspace;
+import io.boomerang.common.model.WorkflowStatus;
+import io.boomerang.common.model.ChangeLog;
+import io.boomerang.common.model.Workflow;
+import io.boomerang.common.model.WorkflowTrigger;
+import io.boomerang.common.model.WorkflowWorkspace;
 
 public class WorkflowCanvas {
 

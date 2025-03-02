@@ -1,7 +1,7 @@
 package io.boomerang.workflow.model.ref;
 
-import io.boomerang.model.RunResult;
-import io.boomerang.model.RunStatus;
+import io.boomerang.common.model.RunResult;
+import io.boomerang.common.model.RunStatus;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -10,17 +10,17 @@ import java.util.Map;
 
 public class TaskRunEndRequest {
   
-  private io.boomerang.model.RunStatus status;
+  private RunStatus status;
 
   private Map<String, String> labels = new HashMap<>();
 
   private Map<String, Object> annotations = new HashMap<>();
   
-  private List<io.boomerang.model.RunResult> results = new LinkedList<>();
+  private List<RunResult> results = new LinkedList<>();
 
   private String statusMessage;
 
-  public io.boomerang.model.RunStatus getStatus() {
+  public RunStatus getStatus() {
     return status;
   }
 
@@ -44,7 +44,7 @@ public class TaskRunEndRequest {
     this.annotations = annotations;
   }
 
-  public List<io.boomerang.model.RunResult> getResults() {
+  public List<RunResult> getResults() {
     return results;
   }
 

@@ -10,9 +10,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import io.boomerang.workflow.model.AbstractParam;
-import io.boomerang.model.ParamType;
-import io.boomerang.model.ParamSpec;
-import io.boomerang.model.RunParam;
+import io.boomerang.common.model.ParamType;
+import io.boomerang.common.model.ParamSpec;
+import io.boomerang.common.model.RunParam;
 
 public class ParameterUtil {
   

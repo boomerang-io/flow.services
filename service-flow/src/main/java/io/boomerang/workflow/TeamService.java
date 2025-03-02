@@ -1,7 +1,11 @@
 package io.boomerang.workflow;
 
-import static io.boomerang.util.DataAdapterUtil.filterValueByFieldType;
+import static io.boomerang.common.util.DataAdapterUtil.filterValueByFieldType;
 
+import io.boomerang.common.model.WorkflowCount;
+import io.boomerang.common.model.WorkflowRunInsight;
+import io.boomerang.common.util.DataAdapterUtil.FieldType;
+import io.boomerang.common.util.StringUtil;
 import io.boomerang.core.RelationshipService;
 import io.boomerang.core.SettingsService;
 import io.boomerang.core.TokenService;
@@ -14,8 +18,6 @@ import io.boomerang.core.repository.RoleRepository;
 import io.boomerang.error.BoomerangError;
 import io.boomerang.error.BoomerangException;
 import io.boomerang.security.IdentityService;
-import io.boomerang.util.DataAdapterUtil.FieldType;
-import io.boomerang.util.StringUtil;
 import io.boomerang.workflow.entity.ApproverGroupEntity;
 import io.boomerang.workflow.entity.TeamEntity;
 import io.boomerang.workflow.model.AbstractParam;
@@ -28,8 +30,6 @@ import io.boomerang.workflow.model.TeamMember;
 import io.boomerang.workflow.model.TeamNameCheckRequest;
 import io.boomerang.workflow.model.TeamRequest;
 import io.boomerang.workflow.model.TeamStatus;
-import io.boomerang.model.WorkflowCount;
-import io.boomerang.model.WorkflowRunInsight;
 import io.boomerang.workflow.repository.ApproverGroupRepository;
 import io.boomerang.workflow.repository.TeamRepository;
 import java.io.UnsupportedEncodingException;

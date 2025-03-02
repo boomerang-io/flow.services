@@ -1,7 +1,7 @@
 package io.boomerang.workflow.model;
 
 import org.bson.types.ObjectId;
-import io.boomerang.model.TaskType;
+import io.boomerang.common.model.TaskType;
 
 /*
  * Utilizes the ReactFlow Node model https://reactflow.dev/docs/api/nodes/node-options/ with the custom data

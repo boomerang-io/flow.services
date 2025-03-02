@@ -6,7 +6,7 @@ import io.boomerang.security.AuthScope;
 import io.boomerang.security.enums.AuthType;
 import io.boomerang.security.enums.PermissionAction;
 import io.boomerang.security.enums.PermissionScope;
-import io.boomerang.model.WorkflowTemplate;
+import io.boomerang.common.model.WorkflowTemplate;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

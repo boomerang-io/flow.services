@@ -1,6 +1,6 @@
 package io.boomerang.workflow.model.ref;
 
-import io.boomerang.model.RunStatus;
+import io.boomerang.common.model.RunStatus;
 
 import java.util.Date;
 
@@ -8,7 +8,7 @@ public class WorkflowRunSummary {
 
   private Date creationDate;
   private long duration = 0L;
-  private io.boomerang.model.RunStatus status = io.boomerang.model.RunStatus.notstarted;
+  private RunStatus status = RunStatus.notstarted;
   private String workflowRef;
   private String workflowName;
 
@@ -34,7 +34,7 @@ public class WorkflowRunSummary {
     this.duration = duration;
   }
 
-  public io.boomerang.model.RunStatus getStatus() {
+  public RunStatus getStatus() {
     return status;
   }
 

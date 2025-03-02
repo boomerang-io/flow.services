@@ -1,11 +1,11 @@
 package io.boomerang.workflow.model.ref;
 
-import io.boomerang.model.ParamType;
+import io.boomerang.common.model.ParamType;
 
 public class ParamSpec {
   
   private String name;
-  private io.boomerang.model.ParamType type;
+  private ParamType type;
   private String description;
   private Object defaultValue;
   
@@ -19,7 +19,7 @@ public class ParamSpec {
     return name;
   }
 
-  public io.boomerang.model.ParamType getType() {
+  public ParamType getType() {
     return type;
   }
 

@@ -9,7 +9,7 @@
     <modules>
         <module>lib-common</module>
         <module>service-flow</module>
-        <!--        <module>service-engine</module>-->
+        <module>service-engine</module>
     </modules>
 
     <parent>

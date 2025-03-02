@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import io.boomerang.entity.WorkflowTemplateEntity;
+import io.boomerang.common.entity.WorkflowTemplateEntity;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /*

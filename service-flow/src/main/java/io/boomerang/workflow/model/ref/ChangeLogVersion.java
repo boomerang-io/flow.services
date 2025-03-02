@@ -1,6 +1,6 @@
 package io.boomerang.workflow.model.ref;
 
-import io.boomerang.model.ChangeLog;
+import io.boomerang.common.model.ChangeLog;
 
 public class ChangeLogVersion extends ChangeLog {
   private Integer version;

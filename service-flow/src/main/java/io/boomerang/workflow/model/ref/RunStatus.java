@@ -19,8 +19,8 @@ public enum RunStatus {
     return status;
   }
 
-  public static io.boomerang.model.RunStatus getRunStatus(String status) {
-    return Arrays.asList(io.boomerang.model.RunStatus.values()).stream()
+  public static io.boomerang.common.model.RunStatus getRunStatus(String status) {
+    return Arrays.asList(io.boomerang.common.model.RunStatus.values()).stream()
         .filter(value -> value.getStatus().equals(status)).findFirst().orElse(null);
   }
 }

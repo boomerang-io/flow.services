@@ -6,8 +6,8 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.boomerang.model.ResultSpec;
-import io.boomerang.model.RunParam;
+import io.boomerang.common.model.ResultSpec;
+import io.boomerang.common.model.RunParam;
 
 public class CanvasNodeData {
   

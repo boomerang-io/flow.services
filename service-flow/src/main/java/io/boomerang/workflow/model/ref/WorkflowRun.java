@@ -6,12 +6,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import io.boomerang.model.RunParam;
-import io.boomerang.model.RunPhase;
-import io.boomerang.model.RunResult;
-import io.boomerang.model.RunStatus;
-import io.boomerang.model.TaskRun;
-import io.boomerang.model.WorkflowWorkspace;
+import io.boomerang.common.model.RunParam;
+import io.boomerang.common.model.RunPhase;
+import io.boomerang.common.model.RunResult;
+import io.boomerang.common.model.RunStatus;
+import io.boomerang.common.model.TaskRun;
+import io.boomerang.common.model.WorkflowWorkspace;
 import org.springframework.data.annotation.Id;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
@@ -28,8 +28,8 @@ public class WorkflowRun {
   private Long timeout;
   private Long retries;
   private Boolean debug;
-  private io.boomerang.model.RunStatus status = io.boomerang.model.RunStatus.notstarted;
-  private io.boomerang.model.RunPhase phase = io.boomerang.model.RunPhase.pending;
+  private RunStatus status = RunStatus.notstarted;
+  private RunPhase phase = RunPhase.pending;
   private String statusMessage;
   private boolean isAwaitingApproval;
   private String workflowRef;
@@ -38,10 +38,10 @@ public class WorkflowRun {
   private String workflowRevisionRef;
   private String trigger;
   private String initiatedByRef;
-  private List<io.boomerang.model.RunParam> params = new LinkedList<>();
-  private List<io.boomerang.model.RunResult> results = new LinkedList<>();
-  private List<io.boomerang.model.WorkflowWorkspace> workspaces = new LinkedList<>();
-  private List<io.boomerang.model.TaskRun> tasks;
+  private List<RunParam> params = new LinkedList<>();
+  private List<RunResult> results = new LinkedList<>();
+  private List<WorkflowWorkspace> workspaces = new LinkedList<>();
+  private List<TaskRun> tasks;
 
   @Override
   public String toString() {
@@ -126,7 +126,7 @@ public class WorkflowRun {
     this.debug = debug;
   }
 
-  public io.boomerang.model.RunStatus getStatus() {
+  public RunStatus getStatus() {
     return status;
   }
 
@@ -134,7 +134,7 @@ public class WorkflowRun {
     this.status = status;
   }
 
-  public io.boomerang.model.RunPhase getPhase() {
+  public RunPhase getPhase() {
     return phase;
   }
 
@@ -206,7 +206,7 @@ public class WorkflowRun {
     this.initiatedByRef = initiatedByRef;
   }
 
-  public List<io.boomerang.model.RunParam> getParams() {
+  public List<RunParam> getParams() {
     return params;
   }
 
@@ -214,7 +214,7 @@ public class WorkflowRun {
     this.params = params;
   }
 
-  public List<io.boomerang.model.RunResult> getResults() {
+  public List<RunResult> getResults() {
     return results;
   }
 
@@ -222,7 +222,7 @@ public class WorkflowRun {
     this.results = results;
   }
 
-  public List<io.boomerang.model.WorkflowWorkspace> getWorkspaces() {
+  public List<WorkflowWorkspace> getWorkspaces() {
     return workspaces;
   }
 
@@ -230,7 +230,7 @@ public class WorkflowRun {
     this.workspaces = workspaces;
   }
 
-  public List<io.boomerang.model.TaskRun> getTasks() {
+  public List<TaskRun> getTasks() {
     return tasks;
   }
 

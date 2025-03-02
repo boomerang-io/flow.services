@@ -2,7 +2,7 @@ package io.boomerang.workflow.tekton;
 
 import java.time.Duration;
 import java.util.List;
-import io.boomerang.model.ResultSpec;
+import io.boomerang.common.model.ResultSpec;
 
 public class Spec {
 

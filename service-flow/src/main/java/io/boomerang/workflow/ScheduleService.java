@@ -11,7 +11,7 @@ import io.boomerang.workflow.model.WorkflowSchedule;
 import io.boomerang.workflow.model.WorkflowScheduleCalendar;
 import io.boomerang.workflow.model.WorkflowScheduleStatus;
 import io.boomerang.workflow.model.WorkflowScheduleType;
-import io.boomerang.model.Workflow;
+import io.boomerang.common.model.Workflow;
 import io.boomerang.workflow.repository.WorkflowScheduleRepository;
 import java.util.ArrayList;
 import java.util.Date;

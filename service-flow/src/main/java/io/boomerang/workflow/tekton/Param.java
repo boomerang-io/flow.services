@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import io.boomerang.model.ParamType;
+import io.boomerang.common.model.ParamType;
 
 public class Param {
   private String name;

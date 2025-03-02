@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import io.boomerang.workflow.model.WorkflowScheduleStatus;
 import io.boomerang.workflow.model.WorkflowScheduleType;
-import io.boomerang.model.RunParam;
+import io.boomerang.common.model.RunParam;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)

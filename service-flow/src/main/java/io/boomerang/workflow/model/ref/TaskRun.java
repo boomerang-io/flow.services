@@ -1,7 +1,7 @@
 package io.boomerang.workflow.model.ref;
 
 import org.springframework.beans.BeanUtils;
-import io.boomerang.entity.TaskRunEntity;
+import io.boomerang.common.entity.TaskRunEntity;
 
 /*
  * Based on TaskRunEntity
