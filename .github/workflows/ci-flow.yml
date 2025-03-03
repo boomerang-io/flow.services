@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   # Triggers the workflow on push (branch and tag) or pull request events
   push:
+    branches:
+      - '**'
     tags:
       - 'flow/**'
     paths:
@@ -60,7 +62,7 @@ jobs:
         if: ${{ success() }}
         with:
           name: service-flow.jar
-          path: target/service-flow.jar
+          path: service-flow/target/service-flow.jar
       - name: Slack
         uses: 8398a7/action-slack@v3
         if: ${{ always() }}

@@ -53,7 +53,7 @@ jobs:
         if: ${{ success() }}
         with:
           name: service-engine.jar
-          path: target/service-engine.jar
+          path: service-engine/target/service-engine.jar
       - name: Slack
         uses: 8398a7/action-slack@v3
         if: ${{ always() }}
