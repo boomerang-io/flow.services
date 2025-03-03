@@ -5,7 +5,7 @@ on:
   # Triggers the workflow on push (branch and tag) or pull request events
   push:
     tags:
-      - engine/**
+      - 'flow/**'
     paths:
       - 'service-flow/**'
       - 'lib-common/**'
