@@ -1,6 +1,8 @@
 package io.boomerang.aspect;
 
+import io.boomerang.common.entity.WorkflowEntity;
 import io.boomerang.engine.EventSinkService;
+import io.boomerang.engine.repository.WorkflowRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -9,8 +11,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-import io.boomerang.engine.entity.WorkflowEntity;
-import io.boomerang.engine.repository.WorkflowRepository;
 
 @Aspect
 @Component

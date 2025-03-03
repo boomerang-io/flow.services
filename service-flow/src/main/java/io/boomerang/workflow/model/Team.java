@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import io.boomerang.common.model.AbstractParam;
 import org.springframework.beans.BeanUtils;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.boomerang.workflow.entity.TeamEntity;
@@ -21,16 +23,14 @@ public class Team {
   private String externalRef;
   private Map<String, String> labels = new HashMap<>();
   private List<AbstractParam> parameters = new LinkedList<>();
-//  private TeamSettings settings;
+  //  private TeamSettings settings;
   private CurrentQuotas quotas;
   private List<TeamMember> members = new LinkedList<>();
   private List<WorkflowSummary> workflows = new LinkedList<>();
   private List<ApproverGroup> approverGroups = new LinkedList<>();
-  
-  public Team() {
-    
-  }
-  
+
+  public Team() {}
+
   public Team(TeamEntity entity) {
     BeanUtils.copyProperties(entity, this);
   }
@@ -99,13 +99,13 @@ public class Team {
     this.parameters = parameters;
   }
 
-//  public TeamSettings getSettings() {
-//    return settings;
-//  }
-//
-//  public void setSettings(TeamSettings settings) {
-//    this.settings = settings;
-//  }
+  //  public TeamSettings getSettings() {
+  //    return settings;
+  //  }
+  //
+  //  public void setSettings(TeamSettings settings) {
+  //    this.settings = settings;
+  //  }
 
   public CurrentQuotas getQuotas() {
     return quotas;

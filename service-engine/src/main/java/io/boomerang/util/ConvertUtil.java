@@ -1,13 +1,13 @@
 package io.boomerang.util;
 
+import io.boomerang.common.entity.WorkflowEntity;
+import io.boomerang.common.entity.WorkflowRevisionEntity;
+import io.boomerang.common.model.Workflow;
+import io.boomerang.error.BoomerangError;
+import io.boomerang.error.BoomerangException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 import org.springframework.beans.BeanUtils;
-import io.boomerang.engine.entity.WorkflowEntity;
-import io.boomerang.engine.entity.WorkflowRevisionEntity;
-import io.boomerang.error.BoomerangError;
-import io.boomerang.error.BoomerangException;
-import io.boomerang.engine.model.Workflow;
 
 /*
  * This class will do the BeanUtils.copyproperties from Entity to Model ensuring its not in the
@@ -17,11 +17,12 @@ public class ConvertUtil {
 
   /*
    * Creates a Workflow from WorkflowEntity and WorkflowRevisionEntity
-   * 
+   *
    * Does not copy / convert the stored Tasks onto the Workflow. If you want the Tasks you need to run
    * workflow.setTasks(TaskMapper.revisionTasksToListOfTasks(wfRevisionEntity.getTasks()));
    */
-  public static Workflow wfEntityToModel(WorkflowEntity wfEntity, WorkflowRevisionEntity wfRevisionEntity) {
+  public static Workflow wfEntityToModel(
+      WorkflowEntity wfEntity, WorkflowRevisionEntity wfRevisionEntity) {
     Workflow model = new Workflow();
     BeanUtils.copyProperties(wfEntity, model);
     BeanUtils.copyProperties(wfRevisionEntity, model, "id");
@@ -40,8 +41,12 @@ public class ConvertUtil {
       M model = modelClass.getDeclaredConstructor().newInstance();
       BeanUtils.copyProperties(entity, model);
       return model;
-    } catch (NoSuchMethodException | SecurityException | InstantiationException
-        | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+    } catch (NoSuchMethodException
+        | SecurityException
+        | InstantiationException
+        | IllegalAccessException
+        | IllegalArgumentException
+        | InvocationTargetException ex) {
       throw new BoomerangException(ex, BoomerangError.DATA_CONVERSION_FAILED);
     }
   }

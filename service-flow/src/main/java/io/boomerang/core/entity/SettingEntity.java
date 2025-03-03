@@ -1,7 +1,7 @@
 package io.boomerang.core.entity;
 
+import io.boomerang.common.model.AbstractParam;
 import io.boomerang.core.enums.ConfigurationType;
-import io.boomerang.workflow.model.AbstractParam;
 import java.util.Date;
 import java.util.List;
 import lombok.Data;

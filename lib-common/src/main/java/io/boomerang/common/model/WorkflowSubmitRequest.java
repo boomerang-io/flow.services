@@ -1,29 +1,14 @@
 package io.boomerang.common.model;
 
-import io.boomerang.workflow.model.TriggerEnum;
+import io.boomerang.common.enums.TriggerEnum;
+import lombok.Data;
 
 /*
  * Extended WorkflowRunSubmitRequest version for the Workflow service that includes triggerDetails
  */
+@Data
 public class WorkflowSubmitRequest extends WorkflowRunRequest {
 
   private Integer workflowVersion;
-
   private TriggerEnum trigger;
-
-  public Integer getWorkflowVersion() {
-    return workflowVersion;
-  }
-
-  public void setWorkflowVersion(Integer workflowVersion) {
-    this.workflowVersion = workflowVersion;
-  }
-
-  public TriggerEnum getTrigger() {
-    return trigger;
-  }
-
-  public void setTrigger(TriggerEnum trigger) {
-    this.trigger = trigger;
-  }
 }

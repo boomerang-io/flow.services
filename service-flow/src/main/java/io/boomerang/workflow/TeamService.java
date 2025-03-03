@@ -2,6 +2,7 @@ package io.boomerang.workflow;
 
 import static io.boomerang.common.util.DataAdapterUtil.filterValueByFieldType;
 
+import io.boomerang.common.model.AbstractParam;
 import io.boomerang.common.model.WorkflowCount;
 import io.boomerang.common.model.WorkflowRunInsight;
 import io.boomerang.common.util.DataAdapterUtil.FieldType;
@@ -20,7 +21,6 @@ import io.boomerang.error.BoomerangException;
 import io.boomerang.security.IdentityService;
 import io.boomerang.workflow.entity.ApproverGroupEntity;
 import io.boomerang.workflow.entity.TeamEntity;
-import io.boomerang.workflow.model.AbstractParam;
 import io.boomerang.workflow.model.ApproverGroup;
 import io.boomerang.workflow.model.ApproverGroupRequest;
 import io.boomerang.workflow.model.CurrentQuotas;

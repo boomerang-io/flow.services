@@ -1,9 +1,9 @@
 package io.boomerang.engine.repository;
 
+import io.boomerang.common.entity.WorkflowEntity;
+import io.boomerang.common.enums.WorkflowStatus;
 import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import io.boomerang.engine.entity.WorkflowEntity;
-import io.boomerang.engine.model.enums.WorkflowStatus;
 
 public interface WorkflowRepository extends MongoRepository<WorkflowEntity, String> {
 

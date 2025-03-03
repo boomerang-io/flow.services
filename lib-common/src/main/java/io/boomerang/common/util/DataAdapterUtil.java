@@ -1,8 +1,8 @@
 package io.boomerang.common.util;
 
+import io.boomerang.common.model.AbstractParam;
 import io.boomerang.common.model.ParamSpec;
 import io.boomerang.common.model.RunParam;
-import io.boomerang.workflow.model.AbstractParam;
 import java.util.List;
 
 public class DataAdapterUtil {

@@ -1,7 +1,14 @@
 package io.boomerang.tests.controller;
 
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import io.boomerang.common.enums.WorkflowScheduleStatus;
+import io.boomerang.common.enums.WorkflowScheduleType;
+import io.boomerang.common.model.WorkflowSchedule;
+import io.boomerang.misc.FlowTests;
+import io.boomerang.workflow.ScheduleService;
+import io.boomerang.workflow.SchedulesV2Controller;
+import io.boomerang.workflow.model.CronValidationResponse;
 import java.util.Calendar;
 import java.util.Date;
 import org.junit.jupiter.api.Assertions;
@@ -14,13 +21,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import io.boomerang.workflow.SchedulesV2Controller;
-import io.boomerang.misc.FlowTests;
-import io.boomerang.workflow.model.CronValidationResponse;
-import io.boomerang.workflow.model.WorkflowSchedule;
-import io.boomerang.workflow.model.WorkflowScheduleStatus;
-import io.boomerang.workflow.model.WorkflowScheduleType;
-
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -29,11 +29,9 @@ import io.boomerang.workflow.model.WorkflowScheduleType;
 @WithUserDetails("mdroy@us.ibm.com")
 public class SchedulesControllerTests extends FlowTests {
 
-  @Autowired
-  private SchedulesV2Controller controller;
+  @Autowired private SchedulesV2Controller controller;
 
-  @Autowired
-  private ScheduleService workflowScheduleService;
+  @Autowired private ScheduleService workflowScheduleService;
 
   @Test
   /*
@@ -58,7 +56,6 @@ public class SchedulesControllerTests extends FlowTests {
     Assertions.assertEquals(WorkflowScheduleStatus.active, savedSchedule.getStatus());
     Assertions.assertEquals(WorkflowScheduleType.runOnce, savedSchedule.getType());
     Assertions.assertEquals(executionCal.getTime(), savedSchedule.getDateSchedule());
-
   }
 
   @Test
@@ -103,8 +100,7 @@ public class SchedulesControllerTests extends FlowTests {
     response = controller.validateCron("1 1 1 1 1");
     assertEquals(false, response.isValid());
     assertEquals(null, response.getCron());
-    assertEquals("Cron expression contains 5 parts but we expect one of [6, 7]",
-        response.getMessage());
-
+    assertEquals(
+        "Cron expression contains 5 parts but we expect one of [6, 7]", response.getMessage());
   }
 }

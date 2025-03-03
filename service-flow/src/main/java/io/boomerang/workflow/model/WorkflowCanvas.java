@@ -1,16 +1,13 @@
 package io.boomerang.workflow.model;
 
+import io.boomerang.common.enums.WorkflowStatus;
+import io.boomerang.common.model.*;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.BeanUtils;
-import io.boomerang.common.model.WorkflowStatus;
-import io.boomerang.common.model.ChangeLog;
-import io.boomerang.common.model.Workflow;
-import io.boomerang.common.model.WorkflowTrigger;
-import io.boomerang.common.model.WorkflowWorkspace;
 
 public class WorkflowCanvas {
 
@@ -29,20 +26,18 @@ public class WorkflowCanvas {
   private Long retries;
   private boolean upgradesAvailable = false;
   private WorkflowTrigger triggers = new WorkflowTrigger();
-  private List<WorkflowWorkspace> workspaces = new LinkedList<>();  
+  private List<WorkflowWorkspace> workspaces = new LinkedList<>();
   private List<AbstractParam> config = new LinkedList<>();
   private Map<String, Object> unknownFields = new HashMap<>();
   private List<CanvasNode> nodes;
   private List<CanvasEdge> edges;
-  
-  public WorkflowCanvas() {
-    
-  }
-  
+
+  public WorkflowCanvas() {}
+
   public WorkflowCanvas(Workflow workflow) {
     BeanUtils.copyProperties(workflow, this);
   }
-  
+
   public String getId() {
     return id;
   }
@@ -190,15 +185,15 @@ public class WorkflowCanvas {
   public List<CanvasNode> getNodes() {
     return nodes;
   }
-  
+
   public void setNodes(List<CanvasNode> nodes) {
     this.nodes = nodes;
   }
-  
+
   public List<CanvasEdge> getEdges() {
     return edges;
   }
-  
+
   public void setEdges(List<CanvasEdge> edges) {
     this.edges = edges;
   }

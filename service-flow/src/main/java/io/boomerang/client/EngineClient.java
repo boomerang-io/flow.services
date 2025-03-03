@@ -9,7 +9,7 @@ import io.boomerang.common.model.Workflow;
 import io.boomerang.common.model.WorkflowCount;
 import io.boomerang.common.model.WorkflowRun;
 import io.boomerang.common.model.WorkflowRunCount;
-import io.boomerang.common.model.WorkflowRunEventRequest;
+import io.boomerang.workflow.model.WorkflowRunEventRequest;
 import io.boomerang.common.model.WorkflowRunInsight;
 import io.boomerang.common.model.WorkflowRunRequest;
 import io.boomerang.common.model.WorkflowSubmitRequest;

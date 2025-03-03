@@ -1,21 +1,19 @@
 package io.boomerang.workflow.tekton;
 
+import io.boomerang.common.model.AbstractParam;
+import io.boomerang.common.model.ChangeLog;
+import io.boomerang.common.model.ParamSpec;
+import io.boomerang.common.model.Task;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import io.boomerang.workflow.model.AbstractParam;
-import io.boomerang.common.model.ChangeLog;
-import io.boomerang.common.model.ParamSpec;
-import io.boomerang.common.model.Task;
 
 public class TektonConverter {
 
-  private TektonConverter() {
-
-  }
+  private TektonConverter() {}
 
   public static TektonTask convertTaskTemplateToTektonTask(Task taskTemplate) {
     TektonTask tektonTask = new TektonTask();
@@ -26,10 +24,11 @@ public class TektonConverter {
     metadata.setName(taskTemplate.getName());
     metadata.setLabels(new HashMap<String, String>());
     List<AbstractParam> configList = taskTemplate.getConfig();
-    configList.forEach(c -> {
-      c.setDescription(null);
-      c.setDefaultValue(null);
-    });
+    configList.forEach(
+        c -> {
+          c.setDescription(null);
+          c.setDefaultValue(null);
+        });
     Map<String, Object> annotations = metadata.getAnnotations();
     annotations.putAll(taskTemplate.getAnnotations());
     annotations.put("boomerang.io/icon", taskTemplate.getIcon());
@@ -79,10 +78,10 @@ public class TektonConverter {
 
   /*
    * Converts a TektonTask to a Flow TaskTemplate.
-   * 
+   *
    * Version and Verified need to be set outside of this method once its known if the task exists
    * and the requestor has access to the task.
-   * 
+   *
    * TODO: figure out how Type is set
    */
   public static Task convertTektonTaskToTaskTemplate(TektonTask task) {
@@ -204,5 +203,4 @@ public class TektonConverter {
     taskTemplate.setChangelog(changelog);
     return taskTemplate;
   }
-
 }

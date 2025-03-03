@@ -1,11 +1,11 @@
 package io.boomerang.core;
 
+import io.boomerang.common.model.AbstractParam;
 import io.boomerang.core.entity.UserEntity;
 import io.boomerang.core.model.HeaderFeatures;
 import io.boomerang.core.model.HeaderNavigation;
 import io.boomerang.core.model.HeaderNavigationResponse;
 import io.boomerang.core.model.HeaderPlatform;
-import io.boomerang.workflow.model.AbstractParam;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.logging.log4j.util.Strings;

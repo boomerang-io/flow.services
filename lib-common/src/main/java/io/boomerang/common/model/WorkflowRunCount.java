@@ -1,16 +1,10 @@
 package io.boomerang.common.model;
 
 import java.util.Map;
+import lombok.Data;
 
+@Data
 public class WorkflowRunCount {
 
   private Map<String, Long> status;
-
-  public Map<String, Long> getStatus() {
-    return status;
-  }
-
-  public void setStatus(Map<String, Long> status) {
-    this.status = status;
-  }
 }

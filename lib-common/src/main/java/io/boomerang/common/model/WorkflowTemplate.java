@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.boomerang.common.entity.WorkflowTemplateEntity;
+import lombok.Data;
 import org.springframework.beans.BeanUtils;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -14,14 +15,28 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /*
  * Workflow Model joining Workflow Entity and Workflow Revision Entity
- * 
+ *
  * A number of the Workflow Revision elements are put under metadata
  */
+@Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
-@JsonPropertyOrder({"id", "name", "displayName", "version", "creationDate", "timeout", "retries", "description", "labels", "annotations", "params", "tasks" })
+@JsonPropertyOrder({
+  "id",
+  "name",
+  "displayName",
+  "version",
+  "creationDate",
+  "timeout",
+  "retries",
+  "description",
+  "labels",
+  "annotations",
+  "params",
+  "tasks"
+})
 public class WorkflowTemplate extends WorkflowTemplateEntity {
-  
+
   private boolean upgradesAvailable = false;
 
   private Map<String, Object> unknownFields = new HashMap<>();
@@ -36,10 +51,8 @@ public class WorkflowTemplate extends WorkflowTemplateEntity {
   public void setOtherField(String name, Object value) {
     unknownFields.put(name, value);
   }
-  
-  public WorkflowTemplate() {
-    
-  }
+
+  public WorkflowTemplate() {}
 
   /*
    * Creates a WorkflowTemplate from WorkflowTemplateEntity

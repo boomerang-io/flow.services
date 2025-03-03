@@ -1,21 +1,21 @@
 package io.boomerang.workflow.model;
 
-import java.util.HashMap;
-import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.boomerang.common.model.ExecutionCondition;
+import io.boomerang.common.enums.ExecutionCondition;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class CanvasEdgeData {
-  
+
   String decisionCondition;
-  
+
   ExecutionCondition executionCondition;
-  
-  @JsonIgnore
-  private Map<String, Object> additionalProperties = new HashMap<>();
-  
+
+  @JsonIgnore private Map<String, Object> additionalProperties = new HashMap<>();
+
   public String getDecisionCondition() {
     return decisionCondition;
   }

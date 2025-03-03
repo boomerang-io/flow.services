@@ -1,5 +1,17 @@
 package io.boomerang.engine;
 
+import io.boomerang.client.LogClient;
+import io.boomerang.common.entity.TaskRunEntity;
+import io.boomerang.common.enums.RunPhase;
+import io.boomerang.common.enums.RunStatus;
+import io.boomerang.common.model.TaskRun;
+import io.boomerang.common.model.TaskRunEndRequest;
+import io.boomerang.common.model.TaskRunStartRequest;
+import io.boomerang.engine.repository.TaskRunRepository;
+import io.boomerang.error.BoomerangError;
+import io.boomerang.error.BoomerangException;
+import io.boomerang.util.ParameterUtil;
+import io.boomerang.util.ResultUtil;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -8,8 +20,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-
-import io.boomerang.client.LogClient;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,17 +37,6 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-import io.boomerang.engine.entity.TaskRunEntity;
-import io.boomerang.engine.repository.TaskRunRepository;
-import io.boomerang.error.BoomerangError;
-import io.boomerang.error.BoomerangException;
-import io.boomerang.engine.model.TaskRun;
-import io.boomerang.engine.model.TaskRunEndRequest;
-import io.boomerang.engine.model.TaskRunStartRequest;
-import io.boomerang.engine.model.enums.RunPhase;
-import io.boomerang.engine.model.enums.RunStatus;
-import io.boomerang.util.ParameterUtil;
-import io.boomerang.util.ResultUtil;
 
 /*
  * Handles CRUD of TaskRuns
@@ -52,7 +51,12 @@ public class TaskRunService {
   private final TaskRunRepository taskRunRepository;
   private final MongoTemplate mongoTemplate;
 
-  public TaskRunService(@Lazy TaskExecutionClient taskExecutionClient, @Lazy TaskExecutionService taskExecutionService, @Lazy LogClient logClient, TaskRunRepository taskRunRepository, MongoTemplate mongoTemplate) {
+  public TaskRunService(
+      @Lazy TaskExecutionClient taskExecutionClient,
+      @Lazy TaskExecutionService taskExecutionService,
+      @Lazy LogClient logClient,
+      TaskRunRepository taskRunRepository,
+      MongoTemplate mongoTemplate) {
     this.taskExecutionClient = taskExecutionClient;
     this.taskExecutionService = taskExecutionService;
     this.logClient = logClient;
@@ -71,15 +75,22 @@ public class TaskRunService {
     throw new BoomerangException(BoomerangError.TASKRUN_INVALID_REF);
   }
 
-  public Page<TaskRun> query(Optional<Date> from, Optional<Date> to, Optional<Integer> queryLimit, Optional<Integer> queryPage, Optional<Direction> querySort, Optional<List<String>> queryLabels,
-      Optional<List<String>> queryStatus, Optional<List<String>> queryPhase) {
+  public Page<TaskRun> query(
+      Optional<Date> from,
+      Optional<Date> to,
+      Optional<Integer> queryLimit,
+      Optional<Integer> queryPage,
+      Optional<Direction> querySort,
+      Optional<List<String>> queryLabels,
+      Optional<List<String>> queryStatus,
+      Optional<List<String>> queryPhase) {
     Pageable pageable = Pageable.unpaged();
     final Sort sort = Sort.by(new Order(querySort.orElse(Direction.ASC), "creationDate"));
     if (queryLimit.isPresent()) {
       pageable = PageRequest.of(queryPage.get(), queryLimit.get(), sort);
     }
     List<Criteria> criteriaList = new ArrayList<>();
-    
+
     if (from.isPresent() && !to.isPresent()) {
       Criteria criteria = Criteria.where("creationDate").gte(from.get());
       criteriaList.add(criteria);
@@ -91,26 +102,29 @@ public class TaskRunService {
       criteriaList.add(criteria);
     }
 
-    //TODO: centralize the checks in a common filter class
+    // TODO: centralize the checks in a common filter class
     if (queryLabels.isPresent()) {
-      queryLabels.get().stream().forEach(l -> {
-        String decodedLabel = "";
-        try {
-          decodedLabel = URLDecoder.decode(l, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-        LOGGER.debug(decodedLabel.toString());
-        String[] label = decodedLabel.split("[=]+");
-        Criteria labelsCriteria =
-            Criteria.where("labels." + label[0].replace(".", "#")).is(label[1]);
-        criteriaList.add(labelsCriteria);
-      });
+      queryLabels.get().stream()
+          .forEach(
+              l -> {
+                String decodedLabel = "";
+                try {
+                  decodedLabel = URLDecoder.decode(l, "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                  // TODO Auto-generated catch block
+                  e.printStackTrace();
+                }
+                LOGGER.debug(decodedLabel.toString());
+                String[] label = decodedLabel.split("[=]+");
+                Criteria labelsCriteria =
+                    Criteria.where("labels." + label[0].replace(".", "#")).is(label[1]);
+                criteriaList.add(labelsCriteria);
+              });
     }
 
     if (queryStatus.isPresent()) {
-      if (queryStatus.get().stream().allMatch(q -> EnumUtils.isValidEnumIgnoreCase(RunStatus.class, q))) {
+      if (queryStatus.get().stream()
+          .allMatch(q -> EnumUtils.isValidEnumIgnoreCase(RunStatus.class, q))) {
         Criteria criteria = Criteria.where("status").in(queryStatus.get());
         criteriaList.add(criteria);
       } else {
@@ -119,14 +133,15 @@ public class TaskRunService {
     }
 
     if (queryPhase.isPresent()) {
-      if (queryPhase.get().stream().allMatch(q -> EnumUtils.isValidEnumIgnoreCase(RunPhase.class, q))) {
+      if (queryPhase.get().stream()
+          .allMatch(q -> EnumUtils.isValidEnumIgnoreCase(RunPhase.class, q))) {
         Criteria criteria = Criteria.where("phase").in(queryPhase.get());
         criteriaList.add(criteria);
       } else {
         throw new BoomerangException(BoomerangError.QUERY_INVALID_FILTERS, "phase");
       }
     }
-    
+
     Criteria[] criteriaArray = criteriaList.toArray(new Criteria[criteriaList.size()]);
     Criteria allCriteria = new Criteria();
     if (criteriaArray.length > 0) {
@@ -138,21 +153,19 @@ public class TaskRunService {
     } else {
       query.with(sort);
     }
-    
+
     List<TaskRunEntity> taskRunEntities = mongoTemplate.find(query, TaskRunEntity.class);
-    
+
     List<TaskRun> taskRuns = new LinkedList<>();
     taskRunEntities.forEach(e -> taskRuns.add(new TaskRun(e)));
 
-    Page<TaskRun> pages = PageableExecutionUtils.getPage(
-        taskRuns, pageable,
-        () -> taskRuns.size());
-    
+    Page<TaskRun> pages = PageableExecutionUtils.getPage(taskRuns, pageable, () -> taskRuns.size());
+
     return pages;
   }
 
-  public ResponseEntity<TaskRun> start(String taskRunId,
-      Optional<TaskRunStartRequest> optRunRequest) {
+  public ResponseEntity<TaskRun> start(
+      String taskRunId, Optional<TaskRunStartRequest> optRunRequest) {
     if (!Objects.isNull(taskRunId) && !taskRunId.isBlank()) {
       Optional<TaskRunEntity> optTaskRunEntity = taskRunRepository.findById(taskRunId);
       if (optTaskRunEntity.isPresent()) {
@@ -161,8 +174,9 @@ public class TaskRunService {
         if (optRunRequest.isPresent()) {
           taskRunEntity.getLabels().putAll(optRunRequest.get().getLabels());
           taskRunEntity.getAnnotations().putAll(optRunRequest.get().getAnnotations());
-          taskRunEntity.setParams(ParameterUtil.addUniqueParams(taskRunEntity.getParams(),
-              optRunRequest.get().getParams()));
+          taskRunEntity.setParams(
+              ParameterUtil.addUniqueParams(
+                  taskRunEntity.getParams(), optRunRequest.get().getParams()));
           if (!Objects.isNull(optRunRequest.get().getTimeout())
               && optRunRequest.get().getTimeout() != 0) {
             taskRunEntity.setTimeout(optRunRequest.get().getTimeout());
@@ -189,7 +203,9 @@ public class TaskRunService {
               && !optRunRequest.get().getStatusMessage().isEmpty()) {
             taskRunEntity.setStatusMessage(optRunRequest.get().getStatusMessage());
           }
-          taskRunEntity.setResults(ResultUtil.addUniqueResults(taskRunEntity.getResults(), optRunRequest.get().getResults()));
+          taskRunEntity.setResults(
+              ResultUtil.addUniqueResults(
+                  taskRunEntity.getResults(), optRunRequest.get().getResults()));
           if (optRunRequest.get().getStatus() == null) {
             taskRunEntity.setStatus(RunStatus.succeeded);
           } else if (!(RunStatus.failed.equals(optRunRequest.get().getStatus())
@@ -227,11 +243,14 @@ public class TaskRunService {
       LOGGER.info("Getting TaskRun[{}] log...", taskRunId);
       Optional<TaskRunEntity> optTaskRunEntity = taskRunRepository.findById(taskRunId);
 
-      //TODO sanitise and remove secure parameters
-//    List<String> removeList = buildRemovalList(taskId, taskExecution, activity);
-//    LOGGER.debug("Removal List Count: {} ", removeList.size());
+      // TODO sanitise and remove secure parameters
+      //    List<String> removeList = buildRemovalList(taskId, taskExecution, activity);
+      //    LOGGER.debug("Removal List Count: {} ", removeList.size());
       if (optTaskRunEntity.isPresent()) {
-        return logClient.streamLog(optTaskRunEntity.get().getWorkflowRef(), optTaskRunEntity.get().getWorkflowRunRef(), optTaskRunEntity.get().getId());
+        return logClient.streamLog(
+            optTaskRunEntity.get().getWorkflowRef(),
+            optTaskRunEntity.get().getWorkflowRunRef(),
+            optTaskRunEntity.get().getId());
       }
     }
     throw new BoomerangException(BoomerangError.TASKRUN_INVALID_REF);

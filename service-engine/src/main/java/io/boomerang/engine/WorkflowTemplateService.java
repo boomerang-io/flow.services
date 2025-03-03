@@ -1,5 +1,15 @@
 package io.boomerang.engine;
 
+import io.boomerang.common.entity.TaskRevisionEntity;
+import io.boomerang.common.entity.WorkflowTemplateEntity;
+import io.boomerang.common.enums.TaskType;
+import io.boomerang.common.model.ChangeLog;
+import io.boomerang.common.model.WorkflowTask;
+import io.boomerang.common.model.WorkflowTemplate;
+import io.boomerang.engine.repository.TaskRevisionRepository;
+import io.boomerang.engine.repository.WorkflowTemplateRepository;
+import io.boomerang.error.BoomerangError;
+import io.boomerang.error.BoomerangException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -21,16 +31,6 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
-import io.boomerang.engine.entity.TaskRevisionEntity;
-import io.boomerang.engine.entity.WorkflowTemplateEntity;
-import io.boomerang.engine.repository.TaskRevisionRepository;
-import io.boomerang.engine.repository.WorkflowTemplateRepository;
-import io.boomerang.error.BoomerangError;
-import io.boomerang.error.BoomerangException;
-import io.boomerang.engine.model.ChangeLog;
-import io.boomerang.engine.model.WorkflowTask;
-import io.boomerang.engine.model.WorkflowTemplate;
-import io.boomerang.engine.model.enums.TaskType;
 
 /*
  * This service implements the CRUD operations on a WorkflowTemplate
@@ -39,7 +39,7 @@ import io.boomerang.engine.model.enums.TaskType;
 public class WorkflowTemplateService {
 
   private static final Logger LOGGER = LogManager.getLogger();
-  
+
   private static final String CHANGELOG_INITIAL = "Initial WorkflowTemplate";
   private static final String CHANGELOG_UPDATE = "Updated WorkflowTemplate";
   private static final String NAME_REGEX = "^([0-9a-zA-Z\\\\-]+)$";
@@ -49,7 +49,11 @@ public class WorkflowTemplateService {
   private final TaskService taskService;
   private final TaskRevisionRepository taskRevisionRepository;
 
-  public WorkflowTemplateService(WorkflowTemplateRepository wfTemplateRepository, MongoTemplate mongoTemplate, TaskService taskService, TaskRevisionRepository taskRevisionRepository) {
+  public WorkflowTemplateService(
+      WorkflowTemplateRepository wfTemplateRepository,
+      MongoTemplate mongoTemplate,
+      TaskService taskService,
+      TaskRevisionRepository taskRevisionRepository) {
     this.wfTemplateRepository = wfTemplateRepository;
     this.mongoTemplate = mongoTemplate;
     this.taskService = taskService;
@@ -59,19 +63,18 @@ public class WorkflowTemplateService {
   /*
    * Get WorklfowTemplate
    */
-  public WorkflowTemplate get(String name, Optional<Integer> version,
-      boolean withTasks) { 
+  public WorkflowTemplate get(String name, Optional<Integer> version, boolean withTasks) {
     Optional<WorkflowTemplateEntity> wfTemplateEntity;
     if (version.isEmpty()) {
       wfTemplateEntity = wfTemplateRepository.findByNameAndLatestVersion(name);
       if (wfTemplateEntity.isEmpty()) {
-        //TODO change to correct error
+        // TODO change to correct error
         throw new BoomerangException(BoomerangError.TASK_INVALID_REF, name, "latest");
       }
     } else {
       wfTemplateEntity = wfTemplateRepository.findByNameAndVersion(name, version.get());
       if (wfTemplateEntity.isEmpty()) {
-        //TODO change to correct error
+        // TODO change to correct error
         throw new BoomerangException(BoomerangError.TASK_INVALID_REF, name, version.get());
       }
     }
@@ -81,83 +84,91 @@ public class WorkflowTemplateService {
   /*
    * Query for Workflow Templates.
    */
-  public Page<WorkflowTemplate> query(Optional<Integer> queryLimit, Optional<Integer> queryPage, Optional<Direction> querySort, Optional<List<String>> queryLabels,
+  public Page<WorkflowTemplate> query(
+      Optional<Integer> queryLimit,
+      Optional<Integer> queryPage,
+      Optional<Direction> querySort,
+      Optional<List<String>> queryLabels,
       Optional<List<String>> queryNames) {
     Pageable pageable = Pageable.unpaged();
     final Sort sort = Sort.by(new Order(querySort.orElse(Direction.ASC), "creationDate"));
     if (queryLimit.isPresent()) {
       pageable = PageRequest.of(queryPage.get(), queryLimit.get(), sort);
     }
-      List<Criteria> criteriaList = new ArrayList<>();
+    List<Criteria> criteriaList = new ArrayList<>();
 
-      if (queryLabels.isPresent()) {
-        queryLabels.get().stream().forEach(l -> {
-          String decodedLabel = "";
-          try {
-            decodedLabel = URLDecoder.decode(l, "UTF-8");
-          } catch (UnsupportedEncodingException e) {
-            throw new BoomerangException(e, BoomerangError.QUERY_INVALID_FILTERS, "labels");
-          }
-          LOGGER.debug(decodedLabel.toString());
-          String[] label = decodedLabel.split("[=]+");
-          Criteria labelsCriteria =
-              Criteria.where("labels." + label[0].replace(".", "#")).is(label[1]);
-          criteriaList.add(labelsCriteria);
-        });
-      }
-      
-      if (queryNames.isPresent()) {
-        Criteria criteria = Criteria.where("name").in(queryNames.get());
-        criteriaList.add(criteria);
-      }
+    if (queryLabels.isPresent()) {
+      queryLabels.get().stream()
+          .forEach(
+              l -> {
+                String decodedLabel = "";
+                try {
+                  decodedLabel = URLDecoder.decode(l, "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                  throw new BoomerangException(e, BoomerangError.QUERY_INVALID_FILTERS, "labels");
+                }
+                LOGGER.debug(decodedLabel.toString());
+                String[] label = decodedLabel.split("[=]+");
+                Criteria labelsCriteria =
+                    Criteria.where("labels." + label[0].replace(".", "#")).is(label[1]);
+                criteriaList.add(labelsCriteria);
+              });
+    }
 
-      Criteria[] criteriaArray = criteriaList.toArray(new Criteria[criteriaList.size()]);
-      Criteria allCriteria = new Criteria();
-      if (criteriaArray.length > 0) {
-        allCriteria.andOperator(criteriaArray);
-      }
-      Query query = new Query(allCriteria);
-      if (queryLimit.isPresent()) {
-        query.with(pageable);
-      } else {
-        query.with(sort);
-      }
-      
-      List<WorkflowTemplateEntity> wfTemplateEntities = mongoTemplate.find(query.with(pageable), WorkflowTemplateEntity.class);
-      
-      List<WorkflowTemplate> wfTemplates = new LinkedList<>();
-      wfTemplateEntities.forEach(e -> wfTemplates.add(new WorkflowTemplate(e)));
+    if (queryNames.isPresent()) {
+      Criteria criteria = Criteria.where("name").in(queryNames.get());
+      criteriaList.add(criteria);
+    }
 
-      Page<WorkflowTemplate> pages = PageableExecutionUtils.getPage(
-          wfTemplates, pageable,
-          () -> wfTemplates.size());
+    Criteria[] criteriaArray = criteriaList.toArray(new Criteria[criteriaList.size()]);
+    Criteria allCriteria = new Criteria();
+    if (criteriaArray.length > 0) {
+      allCriteria.andOperator(criteriaArray);
+    }
+    Query query = new Query(allCriteria);
+    if (queryLimit.isPresent()) {
+      query.with(pageable);
+    } else {
+      query.with(sort);
+    }
 
-      return pages;
+    List<WorkflowTemplateEntity> wfTemplateEntities =
+        mongoTemplate.find(query.with(pageable), WorkflowTemplateEntity.class);
+
+    List<WorkflowTemplate> wfTemplates = new LinkedList<>();
+    wfTemplateEntities.forEach(e -> wfTemplates.add(new WorkflowTemplate(e)));
+
+    Page<WorkflowTemplate> pages =
+        PageableExecutionUtils.getPage(wfTemplates, pageable, () -> wfTemplates.size());
+
+    return pages;
   }
 
   /*
    * Create Workflow Template.
    */
   public WorkflowTemplate create(WorkflowTemplate request) {
-    //Ensure name is provided
+    // Ensure name is provided
     if (request.getName() == null || request.getName().isBlank()) {
       throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
     }
-    
-    //Name Check
+
+    // Name Check
     if (!request.getName().matches(NAME_REGEX)) {
-      //TODO change the error
+      // TODO change the error
       throw new BoomerangException(BoomerangError.TASK_INVALID_NAME, request.getName());
     }
-    
-    //Unique Name Check
-    if (wfTemplateRepository.findByNameAndLatestVersion(request.getName().toLowerCase()).isPresent()) {
-      //TODO change the error
+
+    // Unique Name Check
+    if (wfTemplateRepository
+        .findByNameAndLatestVersion(request.getName().toLowerCase())
+        .isPresent()) {
+      // TODO change the error
       throw new BoomerangException(BoomerangError.TASK_ALREADY_EXISTS, request.getName());
     }
     WorkflowTemplateEntity wfTemplateEntity = new WorkflowTemplateEntity();
     wfTemplateEntity.setName(request.getName());
-    //Set Display Name if not provided
+    // Set Display Name if not provided
     if (request.getDisplayName() == null || request.getDisplayName().isBlank()) {
       wfTemplateEntity.setDisplayName(request.getName());
     }
@@ -202,7 +213,7 @@ public class WorkflowTemplateService {
       if (!TaskType.start.equals(wfTemplateTask.getType())
           && !TaskType.end.equals(wfTemplateTask.getType())) {
 
-        //Shared utility with DAGUtility
+        // Shared utility with DAGUtility
         taskService.retrieveAndValidateTask(wfTemplateTask);
       }
     }
@@ -215,30 +226,31 @@ public class WorkflowTemplateService {
    * WorkflowTemplate with supplied ID
    */
   public WorkflowTemplate apply(WorkflowTemplate request, boolean replace) {
-    //Ensure name is provided
+    // Ensure name is provided
     if (request.getName() == null || request.getName().isBlank()) {
       throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
     }
-    
-    //Name Check
+
+    // Name Check
     if (!request.getName().matches(NAME_REGEX)) {
-      //TODO change the error
+      // TODO change the error
       throw new BoomerangException(BoomerangError.TASK_INVALID_NAME, request.getName());
     }
-    
-    //Does it already exist?
-    Optional<WorkflowTemplateEntity> optWfTemplateEntity = wfTemplateRepository.findByNameAndLatestVersion(request.getName().toLowerCase());
+
+    // Does it already exist?
+    Optional<WorkflowTemplateEntity> optWfTemplateEntity =
+        wfTemplateRepository.findByNameAndLatestVersion(request.getName().toLowerCase());
     if (!optWfTemplateEntity.isPresent()) {
       return this.create(request);
     }
 
     WorkflowTemplateEntity wfTemplateEntity = optWfTemplateEntity.get();
-    //Override Id & version
+    // Override Id & version
     if (!replace) {
       wfTemplateEntity.setId(null);
       wfTemplateEntity.setVersion(optWfTemplateEntity.get().getVersion() + 1);
-    } 
-    if (request.getDisplayName()!= null && !request.getDisplayName().isBlank()) {
+    }
+    if (request.getDisplayName() != null && !request.getDisplayName().isBlank()) {
       wfTemplateEntity.setDisplayName(request.getDisplayName());
     }
     wfTemplateEntity.setCreationDate(new Date());
@@ -255,17 +267,17 @@ public class WorkflowTemplateService {
       }
     }
     wfTemplateEntity.setChangelog(changelog);
-    if (request.getDescription()!= null && !request.getDescription().isBlank()) {
+    if (request.getDescription() != null && !request.getDescription().isBlank()) {
       wfTemplateEntity.setDescription(request.getDescription());
     }
-    if (request.getLabels()!= null && !request.getLabels().isEmpty()) {
+    if (request.getLabels() != null && !request.getLabels().isEmpty()) {
       if (replace) {
         wfTemplateEntity.setLabels(request.getLabels());
       } else {
         wfTemplateEntity.getLabels().putAll(request.getLabels());
       }
     }
-    if (request.getAnnotations()!= null && !request.getAnnotations().isEmpty()) {
+    if (request.getAnnotations() != null && !request.getAnnotations().isEmpty()) {
       if (replace) {
         wfTemplateEntity.setAnnotations(request.getAnnotations());
       } else {
@@ -285,15 +297,16 @@ public class WorkflowTemplateService {
       wfTemplateEntity.setTasks(request.getTasks());
     }
     if (request.getTimeout() != null) {
-       wfTemplateEntity.setTimeout(request.getTimeout());
+      wfTemplateEntity.setTimeout(request.getTimeout());
     }
     if (request.getRetries() != null) {
       wfTemplateEntity.setRetries(request.getRetries());
-   }
+    }
     WorkflowTemplateEntity savedEntity = wfTemplateRepository.save(wfTemplateEntity);
-//    appliedWorkflow.setTasks(TaskMapper.workflowTasksToListOfTasks(newWorkflowRevisionEntity.getTasks()));
-     WorkflowTemplate template = new WorkflowTemplate(savedEntity);
-     template.setUpgradesAvailable(areTaskUpgradesAvailable(savedEntity));
+    //
+    // appliedWorkflow.setTasks(TaskMapper.workflowTasksToListOfTasks(newWorkflowRevisionEntity.getTasks()));
+    WorkflowTemplate template = new WorkflowTemplate(savedEntity);
+    template.setUpgradesAvailable(areTaskUpgradesAvailable(savedEntity));
     return template;
   }
 
@@ -301,14 +314,15 @@ public class WorkflowTemplateService {
    * Delete WorkflowTemplate
    */
   public void delete(String name) {
-    //Ensure name is provided
+    // Ensure name is provided
     if (name == null || name.isBlank()) {
       throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
     }
 
-    //Does it exist?
-    Optional<WorkflowTemplateEntity> optWfTemplateEntity = wfTemplateRepository.findByNameAndLatestVersion(name.toLowerCase());
-    
+    // Does it exist?
+    Optional<WorkflowTemplateEntity> optWfTemplateEntity =
+        wfTemplateRepository.findByNameAndLatestVersion(name.toLowerCase());
+
     if (optWfTemplateEntity.isPresent()) {
       wfTemplateRepository.deleteAllByName(name);
     }
@@ -319,13 +333,11 @@ public class WorkflowTemplateService {
       Optional<TaskRevisionEntity> task =
           taskRevisionRepository.findByParentRefAndLatestVersion(t.getTaskRef());
       if (task.isPresent()) {
-        if (t.getTaskVersion() != null
-            && (t.getTaskVersion() < task.get().getVersion())) {
+        if (t.getTaskVersion() != null && (t.getTaskVersion() < task.get().getVersion())) {
           return true;
         }
       }
     }
     return false;
   }
-  
 }

@@ -1,5 +1,7 @@
 package io.boomerang.workflow;
 
+import io.boomerang.common.enums.ActionStatus;
+import io.boomerang.common.enums.ActionType;
 import io.boomerang.security.AuthScope;
 import io.boomerang.security.enums.AuthType;
 import io.boomerang.security.enums.PermissionAction;
@@ -7,8 +9,6 @@ import io.boomerang.security.enums.PermissionScope;
 import io.boomerang.workflow.model.Action;
 import io.boomerang.workflow.model.ActionRequest;
 import io.boomerang.workflow.model.ActionSummary;
-import io.boomerang.common.model.ActionStatus;
-import io.boomerang.common.model.ActionType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
