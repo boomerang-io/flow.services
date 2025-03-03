@@ -12,6 +12,7 @@
         <groupId>io.boomerang</groupId>
         <artifactId>parent</artifactId>
         <version>1.0</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
