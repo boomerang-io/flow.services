@@ -1,7 +1,7 @@
 package io.boomerang.quartz;
 
+import io.boomerang.common.entity.WorkflowScheduleEntity;
 import io.boomerang.workflow.CronService;
-import io.boomerang.workflow.entity.WorkflowScheduleEntity;
 import io.boomerang.workflow.model.CronValidationResponse;
 import java.util.Date;
 import java.util.LinkedList;

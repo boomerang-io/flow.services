@@ -1,6 +1,27 @@
 package io.boomerang.engine;
 
 import static java.util.stream.Collectors.groupingBy;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.boomerang.common.entity.TaskRevisionEntity;
+import io.boomerang.common.entity.WorkflowEntity;
+import io.boomerang.common.entity.WorkflowRevisionEntity;
+import io.boomerang.common.entity.WorkflowRunEntity;
+import io.boomerang.common.enums.RunStatus;
+import io.boomerang.common.enums.TaskType;
+import io.boomerang.common.enums.WorkflowStatus;
+import io.boomerang.common.model.*;
+import io.boomerang.engine.repository.ActionRepository;
+import io.boomerang.engine.repository.TaskRevisionRepository;
+import io.boomerang.engine.repository.TaskRunRepository;
+import io.boomerang.engine.repository.WorkflowRepository;
+import io.boomerang.engine.repository.WorkflowRevisionRepository;
+import io.boomerang.engine.repository.WorkflowRunRepository;
+import io.boomerang.error.BoomerangError;
+import io.boomerang.error.BoomerangException;
+import io.boomerang.util.ConvertUtil;
+import io.boomerang.util.ParameterUtil;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -28,34 +49,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.boomerang.engine.entity.TaskRevisionEntity;
-import io.boomerang.engine.entity.WorkflowEntity;
-import io.boomerang.engine.entity.WorkflowRevisionEntity;
-import io.boomerang.engine.entity.WorkflowRunEntity;
-import io.boomerang.engine.repository.ActionRepository;
-import io.boomerang.engine.repository.TaskRevisionRepository;
-import io.boomerang.engine.repository.TaskRunRepository;
-import io.boomerang.engine.repository.WorkflowRepository;
-import io.boomerang.engine.repository.WorkflowRevisionRepository;
-import io.boomerang.engine.repository.WorkflowRunRepository;
-import io.boomerang.error.BoomerangError;
-import io.boomerang.error.BoomerangException;
-import io.boomerang.engine.model.ChangeLog;
-import io.boomerang.engine.model.ChangeLogVersion;
-import io.boomerang.engine.model.Task;
-import io.boomerang.engine.model.Workflow;
-import io.boomerang.engine.model.WorkflowCount;
-import io.boomerang.engine.model.WorkflowRun;
-import io.boomerang.engine.model.WorkflowRunRequest;
-import io.boomerang.engine.model.WorkflowSubmitRequest;
-import io.boomerang.engine.model.WorkflowTask;
-import io.boomerang.engine.model.enums.RunStatus;
-import io.boomerang.engine.model.enums.TaskType;
-import io.boomerang.engine.model.enums.WorkflowStatus;
-import io.boomerang.util.ConvertUtil;
-import io.boomerang.util.ParameterUtil;
 
 /*
  * Service implements the CRUD ops on a Workflow
@@ -63,7 +56,7 @@ import io.boomerang.util.ParameterUtil;
 @Service
 public class WorkflowService {
   private static final Logger LOGGER = LogManager.getLogger();
-  
+
   private static final String CHANGELOG_INITIAL = "Initial Workflow";
   private static final String CHANGELOG_UPDATE = "Updated Workflow";
   private static final String ANNOTATION_GENERATION = "4";
@@ -79,11 +72,16 @@ public class WorkflowService {
   private final TaskService taskService;
   private final WorkflowRunService workflowRunService;
 
-  public WorkflowService(WorkflowRepository workflowRepository,
+  public WorkflowService(
+      WorkflowRepository workflowRepository,
       WorkflowRevisionRepository workflowRevisionRepository,
-      WorkflowRunRepository workflowRunRepository, TaskRunRepository taskRunRepository,
-      ActionRepository actionRepository, TaskRevisionRepository taskRevisionRepository,
-      MongoTemplate mongoTemplate, TaskService taskService, WorkflowRunService workflowRunService) {
+      WorkflowRunRepository workflowRunRepository,
+      TaskRunRepository taskRunRepository,
+      ActionRepository actionRepository,
+      TaskRevisionRepository taskRevisionRepository,
+      MongoTemplate mongoTemplate,
+      TaskService taskService,
+      WorkflowRunService workflowRunService) {
     this.workflowRepository = workflowRepository;
     this.workflowRevisionRepository = workflowRevisionRepository;
     this.workflowRunRepository = workflowRunRepository;
@@ -95,7 +93,8 @@ public class WorkflowService {
     this.workflowRunService = workflowRunService;
   }
 
-  public ResponseEntity<Workflow> get(String workflowId, Optional<Integer> version, boolean withTasks) {
+  public ResponseEntity<Workflow> get(
+      String workflowId, Optional<Integer> version, boolean withTasks) {
     if (workflowId == null || workflowId.isBlank()) {
       throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
     }
@@ -117,17 +116,22 @@ public class WorkflowService {
 
     Workflow workflow = ConvertUtil.wfEntityToModel(optWfEntity.get(), optWfRevisionEntity.get());
     if (!withTasks) {
-      workflow.setTasks(new LinkedList<>()); 
+      workflow.setTasks(new LinkedList<>());
     }
-    
+
     // Determine if there are template upgrades available
     areTaskUpgradesAvailable(workflow);
-    
+
     return ResponseEntity.ok(workflow);
   }
 
-  public Page<Workflow> query(Optional<Integer> queryLimit, Optional<Integer> queryPage, Optional<Direction> querySort, Optional<List<String>> queryLabels,
-      Optional<List<String>> queryStatus, Optional<List<String>> queryIds) {
+  public Page<Workflow> query(
+      Optional<Integer> queryLimit,
+      Optional<Integer> queryPage,
+      Optional<Direction> querySort,
+      Optional<List<String>> queryLabels,
+      Optional<List<String>> queryStatus,
+      Optional<List<String>> queryIds) {
     Pageable pageable = Pageable.unpaged();
     final Sort sort = Sort.by(new Order(querySort.orElse(Direction.ASC), "creationDate"));
     if (queryLimit.isPresent()) {
@@ -136,19 +140,21 @@ public class WorkflowService {
     List<Criteria> criteriaList = new ArrayList<>();
 
     if (queryLabels.isPresent()) {
-      queryLabels.get().stream().forEach(l -> {
-        String decodedLabel = "";
-        try {
-          decodedLabel = URLDecoder.decode(l, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-          throw new BoomerangException(e, BoomerangError.QUERY_INVALID_FILTERS, "labels");
-        }
-        LOGGER.debug(decodedLabel.toString());
-        String[] label = decodedLabel.split("[=]+");
-        Criteria labelsCriteria =
-            Criteria.where("labels." + label[0].replace(".", "#")).is(label[1]);
-        criteriaList.add(labelsCriteria);
-      });
+      queryLabels.get().stream()
+          .forEach(
+              l -> {
+                String decodedLabel = "";
+                try {
+                  decodedLabel = URLDecoder.decode(l, "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                  throw new BoomerangException(e, BoomerangError.QUERY_INVALID_FILTERS, "labels");
+                }
+                LOGGER.debug(decodedLabel.toString());
+                String[] label = decodedLabel.split("[=]+");
+                Criteria labelsCriteria =
+                    Criteria.where("labels." + label[0].replace(".", "#")).is(label[1]);
+                criteriaList.add(labelsCriteria);
+              });
     }
 
     if (queryStatus.isPresent()) {
@@ -160,7 +166,7 @@ public class WorkflowService {
         throw new BoomerangException(BoomerangError.QUERY_INVALID_FILTERS, "status");
       }
     }
-    
+
     if (queryIds.isPresent()) {
       Criteria criteria = Criteria.where("id").in(queryIds.get());
       criteriaList.add(criteria);
@@ -177,36 +183,39 @@ public class WorkflowService {
     } else {
       query.with(sort);
     }
-    
+
     LOGGER.debug("Query: " + query.toString());
     List<WorkflowEntity> wfEntities = mongoTemplate.find(query, WorkflowEntity.class);
-    
+
     List<Workflow> workflows = new LinkedList<>();
-    wfEntities.forEach(e -> {
-      LOGGER.debug("Workflow: " + e.toString());
-      Optional<WorkflowRevisionEntity> optWfRevisionEntity =
-          workflowRevisionRepository.findByWorkflowRefAndLatestVersion(e.getId());
-      if (optWfRevisionEntity.isPresent()) {
-        LOGGER.debug("Revision: " + optWfRevisionEntity.get().toString());
-        Workflow w = ConvertUtil.wfEntityToModel(e, optWfRevisionEntity.get());
-        // Determine if there are template upgrades available
-        areTaskUpgradesAvailable(w);
-        workflows.add(w);
-      }
-    });
-    
-    Page<Workflow> pages = PageableExecutionUtils.getPage(
-        workflows, pageable,
-        () -> workflows.size());
+    wfEntities.forEach(
+        e -> {
+          LOGGER.debug("Workflow: " + e.toString());
+          Optional<WorkflowRevisionEntity> optWfRevisionEntity =
+              workflowRevisionRepository.findByWorkflowRefAndLatestVersion(e.getId());
+          if (optWfRevisionEntity.isPresent()) {
+            LOGGER.debug("Revision: " + optWfRevisionEntity.get().toString());
+            Workflow w = ConvertUtil.wfEntityToModel(e, optWfRevisionEntity.get());
+            // Determine if there are template upgrades available
+            areTaskUpgradesAvailable(w);
+            workflows.add(w);
+          }
+        });
+
+    Page<Workflow> pages =
+        PageableExecutionUtils.getPage(workflows, pageable, () -> workflows.size());
     LOGGER.debug(pages.toString());
     return pages;
   }
-  
+
   /*
    * Generates Counts for a given set of filters
    */
-  public ResponseEntity<WorkflowCount> count(Optional<Date> from, Optional<Date> to,
-      Optional<List<String>> labels, Optional<List<String>> queryWorkflows) {
+  public ResponseEntity<WorkflowCount> count(
+      Optional<Date> from,
+      Optional<Date> to,
+      Optional<List<String>> labels,
+      Optional<List<String>> queryWorkflows) {
     List<Criteria> criteriaList = new ArrayList<>();
 
     if (from.isPresent() && !to.isPresent()) {
@@ -222,19 +231,21 @@ public class WorkflowService {
 
     // TODO add the ability to OR labels not just AND
     if (labels.isPresent()) {
-      labels.get().stream().forEach(l -> {
-        String decodedLabel = "";
-        try {
-          decodedLabel = URLDecoder.decode(l, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-          throw new BoomerangException(e, BoomerangError.QUERY_INVALID_FILTERS, "labels");
-        }
-        LOGGER.debug(decodedLabel.toString());
-        String[] label = decodedLabel.split("[=]+");
-        Criteria labelsCriteria =
-            Criteria.where("labels." + label[0].replace(".", "#")).is(label[1]);
-        criteriaList.add(labelsCriteria);
-      });
+      labels.get().stream()
+          .forEach(
+              l -> {
+                String decodedLabel = "";
+                try {
+                  decodedLabel = URLDecoder.decode(l, "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                  throw new BoomerangException(e, BoomerangError.QUERY_INVALID_FILTERS, "labels");
+                }
+                LOGGER.debug(decodedLabel.toString());
+                String[] label = decodedLabel.split("[=]+");
+                Criteria labelsCriteria =
+                    Criteria.where("labels." + label[0].replace(".", "#")).is(label[1]);
+                criteriaList.add(labelsCriteria);
+              });
     }
 
     if (queryWorkflows.isPresent()) {
@@ -252,17 +263,18 @@ public class WorkflowService {
     List<WorkflowEntity> wfEntities = mongoTemplate.find(query, WorkflowEntity.class);
 
     // Collate by status count
-    Map<String, Long> result = wfEntities.stream()
-        .collect(groupingBy(v -> getStatusValue(v), Collectors.counting())); // NOSONAR
+    Map<String, Long> result =
+        wfEntities.stream()
+            .collect(groupingBy(v -> getStatusValue(v), Collectors.counting())); // NOSONAR
     result.put("all", Long.valueOf(wfEntities.size()));
 
     Arrays.stream(WorkflowStatus.values()).forEach(v -> result.putIfAbsent(v.toString(), 0L));
-    
+
     WorkflowCount wfCount = new WorkflowCount();
     wfCount.setStatus(result);
     return ResponseEntity.ok(wfCount);
   }
-  
+
   private String getStatusValue(WorkflowEntity v) {
     return v.getStatus() == null ? "no_status" : v.getStatus().toString();
   }
@@ -291,7 +303,7 @@ public class WorkflowService {
     request.setId(wfEntity.getId());
     wfRevisionEntity.setWorkflowRef(wfEntity.getId());
     workflowRevisionRepository.save(wfRevisionEntity);
-    //TODO: figure out a better approach to rollback
+    // TODO: figure out a better approach to rollback
 
     Workflow workflow = ConvertUtil.wfEntityToModel(wfEntity, wfRevisionEntity);
     // Determine if there are template upgrades available
@@ -330,7 +342,7 @@ public class WorkflowService {
       endTask.setType(TaskType.end);
       tasks.add(endTask);
       wfRevisionEntity.setTasks(tasks);
-    } else {      
+    } else {
       wfRevisionEntity.setTasks(request.getTasks());
     }
     wfRevisionEntity.setConfig(request.getConfig());
@@ -349,10 +361,9 @@ public class WorkflowService {
 
     // Check Task Template references are valid
     for (WorkflowTask wfTask : wfRevisionEntity.getTasks()) {
-      if (!TaskType.start.equals(wfTask.getType())
-          && !TaskType.end.equals(wfTask.getType())) {
+      if (!TaskType.start.equals(wfTask.getType()) && !TaskType.end.equals(wfTask.getType())) {
 
-        //Shared utility with DAGUtility
+        // Shared utility with DAGUtility
         Task taskTemplate = taskService.retrieveAndValidateTask(wfTask);
         wfTask.setTaskVersion(taskTemplate.getVersion());
       }
@@ -360,33 +371,36 @@ public class WorkflowService {
     return wfRevisionEntity;
   }
 
-  //TODO: handle more of the apply i.e. if original has element, and new does not, keep the original element.
+  // TODO: handle more of the apply i.e. if original has element, and new does not, keep the
+  // original element.
   public ResponseEntity<Workflow> apply(Workflow workflow, Boolean replace) {
-    //Apply can create new with specified ID if it exists
-    //TODO: add check that ID matches required format for MongoDB
-    if (workflow.getId() == null || workflow.getId().isBlank() || workflowRepository.findById(workflow.getId()).isEmpty()) {
-        return this.create(workflow, replace);
+    // Apply can create new with specified ID if it exists
+    // TODO: add check that ID matches required format for MongoDB
+    if (workflow.getId() == null
+        || workflow.getId().isBlank()
+        || workflowRepository.findById(workflow.getId()).isEmpty()) {
+      return this.create(workflow, replace);
     }
-    
-    //Update the Workflow Entity with new details
+
+    // Update the Workflow Entity with new details
     WorkflowEntity workflowEntity = workflowRepository.findById(workflow.getId()).get();
-    if (workflow.getName()!= null && !workflow.getName().isBlank()) {
+    if (workflow.getName() != null && !workflow.getName().isBlank()) {
       workflowEntity.setName(workflow.getName());
     }
-    if (workflow.getStatus()!= null) {
+    if (workflow.getStatus() != null) {
       workflowEntity.setStatus(workflow.getStatus());
     }
-    if (workflow.getDescription()!= null && !workflow.getDescription().isBlank()) {
+    if (workflow.getDescription() != null && !workflow.getDescription().isBlank()) {
       workflowEntity.setDescription(workflow.getDescription());
     }
-    if (workflow.getLabels()!= null && !workflow.getLabels().isEmpty()) {
+    if (workflow.getLabels() != null && !workflow.getLabels().isEmpty()) {
       if (replace) {
         workflowEntity.setLabels(workflow.getLabels());
       } else {
         workflowEntity.getLabels().putAll(workflow.getLabels());
       }
     }
-    if (workflow.getAnnotations()!= null && !workflow.getAnnotations().isEmpty()) {
+    if (workflow.getAnnotations() != null && !workflow.getAnnotations().isEmpty()) {
       if (replace) {
         workflowEntity.setAnnotations(workflow.getAnnotations());
       } else {
@@ -414,9 +428,11 @@ public class WorkflowService {
     workflowEntity.getAnnotations().put("boomerang.io/generation", ANNOTATION_GENERATION);
     workflowEntity.getAnnotations().put("boomerang.io/kind", ANNOTATION_KIND);
     workflowRepository.save(workflowEntity);
-    
-    //TODO, the creation of new better to include fields available on the old that aren't available on the new.
-    WorkflowRevisionEntity workflowRevisionEntity = workflowRevisionRepository.findByWorkflowRefAndLatestVersion(workflow.getId()).get();
+
+    // TODO, the creation of new better to include fields available on the old that aren't available
+    // on the new.
+    WorkflowRevisionEntity workflowRevisionEntity =
+        workflowRevisionRepository.findByWorkflowRefAndLatestVersion(workflow.getId()).get();
     Integer version = workflowRevisionEntity.getVersion();
     WorkflowRevisionEntity newWorkflowRevisionEntity = null;
     if (!replace) {
@@ -427,18 +443,19 @@ public class WorkflowService {
       newWorkflowRevisionEntity.setId(workflowRevisionEntity.getId());
     }
     newWorkflowRevisionEntity.setWorkflowRef(workflowRevisionEntity.getWorkflowRef());
-    
+
     workflowRevisionRepository.save(newWorkflowRevisionEntity);
-    
-    Workflow appliedWorkflow = ConvertUtil.wfEntityToModel(workflowEntity, newWorkflowRevisionEntity);
+
+    Workflow appliedWorkflow =
+        ConvertUtil.wfEntityToModel(workflowEntity, newWorkflowRevisionEntity);
     // Determine if there are template upgrades available
     areTaskUpgradesAvailable(appliedWorkflow);
     return ResponseEntity.ok(appliedWorkflow);
   }
-  
+
   /*
    * Queues the Workflow to be executed (and optionally starts the execution)
-   * 
+   *
    * Trigger will be set to 'Engine' if empty
    */
   public WorkflowRun submit(String workflowId, WorkflowSubmitRequest request, boolean start) {
@@ -446,8 +463,7 @@ public class WorkflowService {
     if (workflowId == null || workflowId.isBlank()) {
       throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
     }
-    final Optional<WorkflowEntity> optWorkflow =
-        workflowRepository.findById(workflowId);
+    final Optional<WorkflowEntity> optWorkflow = workflowRepository.findById(workflowId);
     if (optWorkflow.isEmpty()) {
       throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
     }
@@ -460,8 +476,9 @@ public class WorkflowService {
 
     Optional<WorkflowRevisionEntity> optWorkflowRevisionEntity;
     if (request.getWorkflowVersion() != null) {
-      optWorkflowRevisionEntity = workflowRevisionRepository
-          .findByWorkflowRefAndVersion(workflowId, request.getWorkflowVersion());
+      optWorkflowRevisionEntity =
+          workflowRevisionRepository.findByWorkflowRefAndVersion(
+              workflowId, request.getWorkflowVersion());
     } else {
       optWorkflowRevisionEntity =
           workflowRevisionRepository.findByWorkflowRefAndLatestVersion(workflowId);
@@ -496,8 +513,8 @@ public class WorkflowService {
       wfRunEntity.getAnnotations().putAll(request.getAnnotations());
     }
     if (request.getParams() != null && !request.getParams().isEmpty()) {
-      wfRunEntity
-          .setParams(ParameterUtil.addUniqueParams(wfRunEntity.getParams(), request.getParams()));
+      wfRunEntity.setParams(
+          ParameterUtil.addUniqueParams(wfRunEntity.getParams(), request.getParams()));
     }
     if (request.getWorkspaces() != null && !request.getWorkspaces().isEmpty()) {
       wfRunEntity.getWorkspaces().addAll(request.getWorkspaces());
@@ -512,10 +529,10 @@ public class WorkflowService {
       wfRunEntity.setDebug(request.getDebug());
     }
     // Set Trigger
-    if (Objects.isNull(request.getTrigger()) || request.getTrigger().isBlank()) {
-      wfRunEntity.setTrigger("Engine");
+    if (Objects.isNull(request.getTrigger())) {
+      wfRunEntity.setTrigger("engine");
     } else {
-      wfRunEntity.setTrigger(request.getTrigger());
+      wfRunEntity.setTrigger(request.getTrigger().getTrigger());
     }
     // Add System Generated Annotations
     Map<String, Object> annotations = new HashMap<>();
@@ -528,7 +545,7 @@ public class WorkflowService {
     wfRunEntity.getAnnotations().putAll(annotations);
     return workflowRunService.run(wfRunEntity, start);
   }
-  
+
   /*
    * Retrieve all the changelogs and return by version
    */
@@ -538,25 +555,27 @@ public class WorkflowService {
     }
     final Optional<WorkflowEntity> optWfEntity = workflowRepository.findById(workflowId);
     if (optWfEntity.isPresent()) {
-      List<WorkflowRevisionEntity> wfRevisionEntities = workflowRevisionRepository.findByWorkflowRef(workflowId);
+      List<WorkflowRevisionEntity> wfRevisionEntities =
+          workflowRevisionRepository.findByWorkflowRef(workflowId);
       if (wfRevisionEntities.isEmpty()) {
         throw new BoomerangException(BoomerangError.WORKFLOW_REVISION_NOT_FOUND);
       }
       List<ChangeLogVersion> changelogs = new LinkedList<>();
-      wfRevisionEntities.forEach(wfRevision -> {
-        ChangeLogVersion cl = new ChangeLogVersion();
-        cl.setVersion(wfRevision.getVersion());
-        cl.setAuthor(wfRevision.getChangelog().getAuthor());
-        cl.setReason(wfRevision.getChangelog().getReason());
-        cl.setDate(wfRevision.getChangelog().getDate());
-        changelogs.add(cl);
-      });
+      wfRevisionEntities.forEach(
+          wfRevision -> {
+            ChangeLogVersion cl = new ChangeLogVersion();
+            cl.setVersion(wfRevision.getVersion());
+            cl.setAuthor(wfRevision.getChangelog().getAuthor());
+            cl.setReason(wfRevision.getChangelog().getReason());
+            cl.setDate(wfRevision.getChangelog().getDate());
+            changelogs.add(cl);
+          });
       return ResponseEntity.ok(changelogs);
     }
 
     throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
   }
-  
+
   /*
    * Deletes the Workflow and its Revisions. Cascades to the WorkflowRuns and TaskRuns
    */
@@ -576,7 +595,8 @@ public class WorkflowService {
     for (WorkflowTask t : workflow.getTasks()) {
       Optional<TaskRevisionEntity> task =
           taskRevisionRepository.findByParentRefAndLatestVersion(t.getTaskRef());
-      if (task.isPresent() && t.getTaskVersion() != null
+      if (task.isPresent()
+          && t.getTaskVersion() != null
           && (t.getTaskVersion() < task.get().getVersion())) {
         t.setUpgradesAvailable(true);
         workflow.setUpgradesAvailable(true);

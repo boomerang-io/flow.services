@@ -1,14 +1,14 @@
 package io.boomerang.workflow;
 
+import io.boomerang.common.enums.RunPhase;
+import io.boomerang.common.enums.RunStatus;
+import io.boomerang.common.model.WorkflowRunInsight;
+import io.boomerang.common.model.WorkflowRunSummary;
 import io.boomerang.core.RelationshipService;
 import io.boomerang.core.audit.AuditEntity;
 import io.boomerang.core.audit.AuditRepository;
 import io.boomerang.core.audit.AuditScope;
 import io.boomerang.core.enums.RelationshipType;
-import io.boomerang.common.model.RunPhase;
-import io.boomerang.common.model.RunStatus;
-import io.boomerang.common.model.WorkflowRunInsight;
-import io.boomerang.common.model.WorkflowRunSummary;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;

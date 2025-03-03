@@ -10,10 +10,11 @@ import com.jayway.jsonpath.spi.json.JacksonJsonNodeJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import io.boomerang.client.EngineClient;
 import io.boomerang.client.WorkflowResponsePage;
+import io.boomerang.common.enums.TaskType;
+import io.boomerang.common.enums.TriggerEnum;
 import io.boomerang.common.model.ChangeLogVersion;
 import io.boomerang.common.model.ParamLayers;
 import io.boomerang.common.model.RunParam;
-import io.boomerang.common.model.TaskType;
 import io.boomerang.common.model.Trigger;
 import io.boomerang.common.model.Workflow;
 import io.boomerang.common.model.WorkflowCount;
@@ -40,7 +41,6 @@ import io.boomerang.workflow.model.CanvasNode;
 import io.boomerang.workflow.model.CanvasNodeData;
 import io.boomerang.workflow.model.CanvasNodePosition;
 import io.boomerang.workflow.model.CurrentQuotas;
-import io.boomerang.workflow.model.TriggerEnum;
 import io.boomerang.workflow.model.WorkflowCanvas;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -55,6 +55,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Sort.Direction;
@@ -902,7 +903,14 @@ public class WorkflowService {
    */
   protected Workflow convertCanvasToWorkflow(WorkflowCanvas canvas) {
     LOGGER.debug("Workflow Canvas: " + canvas.toString());
-    Workflow workflow = new Workflow(canvas);
+    /*
+     * Creates a Workflow from WorkflowCanvas
+     *
+     * Does not copy / convert the stored Tasks onto the Workflow. If you want the Tasks you need to run
+     * workflow.setTasks(TaskMapper.revisionTasksToListOfTasks(wfRevisionEntity.getTasks()));
+     */
+    Workflow workflow = new Workflow();
+    BeanUtils.copyProperties(canvas, workflow);
 
     // Make params the source of truth on the Workflow
     // First merge the config so that password defaultValues are preserved

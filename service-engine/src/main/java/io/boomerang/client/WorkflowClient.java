@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import io.boomerang.error.BoomerangException;
-import io.boomerang.engine.model.WorkflowSchedule;
+import io.boomerang.common.model.WorkflowSchedule;
 
 @Service
 @Primary
@@ -22,7 +22,7 @@ public class WorkflowClient {
 
   @Value("${flow.workflow.paramlayers.url}")
   private String workflowParamsURL;
-  
+
   @Value("${flow.workflow.createschedule.url}")
   private String workflowCreateScheduleURL;
 
@@ -34,7 +34,9 @@ public class WorkflowClient {
     try {
       LOGGER.info("URL: " + workflowCreateScheduleURL);
 
-      ResponseEntity<WorkflowSchedule> response = restTemplate.postForEntity(workflowCreateScheduleURL, workflowSchedule, WorkflowSchedule.class);
+      ResponseEntity<WorkflowSchedule> response =
+          restTemplate.postForEntity(
+              workflowCreateScheduleURL, workflowSchedule, WorkflowSchedule.class);
 
       LOGGER.info("Status Response: " + response.getStatusCode());
       LOGGER.info("Content Response: " + response.getBody().toString());
@@ -42,8 +44,11 @@ public class WorkflowClient {
       return response.getBody();
     } catch (RestClientException ex) {
       LOGGER.error(ex.toString());
-      throw new BoomerangException(ex, HttpStatus.INTERNAL_SERVER_ERROR.value(),
-          ex.getClass().getSimpleName(), "Exception in communicating with internal services.",
+      throw new BoomerangException(
+          ex,
+          HttpStatus.INTERNAL_SERVER_ERROR.value(),
+          ex.getClass().getSimpleName(),
+          "Exception in communicating with internal services.",
           HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

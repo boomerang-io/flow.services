@@ -1,12 +1,15 @@
 package io.boomerang.common.model;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.boomerang.common.enums.TaskDeletion;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import lombok.Data;
 
+@Data
 public class TaskRunSpec {
 
   private List<String> arguments;
@@ -18,56 +21,7 @@ public class TaskRunSpec {
   private Boolean debug = false;
   private int timeout;
   private TaskDeletion deletion;
-  @JsonIgnore
-  private Map<String, Object> additionalProperties = new HashMap<>();
-  
-  public List<String> getArguments() {
-    return arguments;
-  }
-
-  public List<String> getCommand() {
-    return command;
-  }
-
-  public List<TaskEnvVar> getEnvs() {
-    return envs;
-  }
-
-  public String getImage() {
-    return image;
-  }
-
-  public String getScript() {
-    return script;
-  }
-
-  public String getWorkingDir() {
-    return workingDir;
-  }
-
-  public void setArguments(List<String> arguments) {
-    this.arguments = arguments;
-  }
-
-  public void setCommand(List<String>  command) {
-    this.command = command;
-  }
-  
-  public void setEnvs(List<TaskEnvVar> envs) {
-    this.envs = envs;
-  }
-
-  public void setImage(String image) {
-    this.image = image;
-  }
-
-  public void setScript(String script) {
-    this.script = script;
-  }
-
-  public void setWorkingDir(String workingDir) {
-    this.workingDir = workingDir;
-  }
+  @JsonIgnore private Map<String, Object> additionalProperties = new HashMap<>();
 
   @JsonAnyGetter
   public Map<String, Object> getAdditionalProperties() {
@@ -77,29 +31,5 @@ public class TaskRunSpec {
   @JsonAnySetter
   public void setAdditionalProperty(String name, Object value) {
     this.additionalProperties.put(name, value);
-  }
-
-  public Boolean getDebug() {
-    return debug;
-  }
-
-  public void setDebug(Boolean debug) {
-    this.debug = debug;
-  }
-
-  public int getTimeout() {
-    return timeout;
-  }
-
-  public void setTimeout(int timeout) {
-    this.timeout = timeout;
-  }
-
-  public TaskDeletion getDeletion() {
-    return deletion;
-  }
-
-  public void setDeletion(TaskDeletion deletion) {
-    this.deletion = deletion;
   }
 }

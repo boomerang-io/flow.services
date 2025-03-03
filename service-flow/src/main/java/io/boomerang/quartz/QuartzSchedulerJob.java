@@ -1,5 +1,9 @@
 package io.boomerang.quartz;
 
+import io.boomerang.common.enums.TriggerEnum;
+import io.boomerang.common.enums.WorkflowScheduleType;
+import io.boomerang.common.model.WorkflowSchedule;
+import io.boomerang.common.model.WorkflowSubmitRequest;
 import io.boomerang.core.RelationshipService;
 import io.boomerang.core.TokenService;
 import io.boomerang.core.enums.RelationshipLabel;
@@ -7,10 +11,6 @@ import io.boomerang.core.enums.RelationshipType;
 import io.boomerang.core.model.Token;
 import io.boomerang.workflow.ScheduleService;
 import io.boomerang.workflow.WorkflowService;
-import io.boomerang.workflow.model.TriggerEnum;
-import io.boomerang.workflow.model.WorkflowSchedule;
-import io.boomerang.workflow.model.WorkflowScheduleType;
-import io.boomerang.common.model.WorkflowSubmitRequest;
 import java.util.ArrayList;
 import java.util.List;
 import org.quartz.JobDetail;

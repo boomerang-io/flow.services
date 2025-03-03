@@ -1,5 +1,18 @@
 package io.boomerang.engine;
 
+import io.boomerang.common.entity.TaskRunEntity;
+import io.boomerang.common.entity.WorkflowRevisionEntity;
+import io.boomerang.common.entity.WorkflowRunEntity;
+import io.boomerang.common.enums.*;
+import io.boomerang.common.model.Task;
+import io.boomerang.common.model.WorkflowTask;
+import io.boomerang.common.model.WorkflowTaskDependency;
+import io.boomerang.engine.repository.TaskRunRepository;
+import io.boomerang.error.BoomerangError;
+import io.boomerang.error.BoomerangException;
+import io.boomerang.util.GraphProcessor;
+import io.boomerang.util.ParameterUtil;
+import io.boomerang.util.ResultUtil;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -22,23 +35,6 @@ import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.traverse.TopologicalOrderIterator;
 import org.springframework.stereotype.Service;
-import io.boomerang.engine.entity.TaskRunEntity;
-import io.boomerang.engine.entity.WorkflowRevisionEntity;
-import io.boomerang.engine.entity.WorkflowRunEntity;
-import io.boomerang.engine.repository.TaskRunRepository;
-import io.boomerang.error.BoomerangError;
-import io.boomerang.error.BoomerangException;
-import io.boomerang.engine.model.WorkflowTask;
-import io.boomerang.engine.model.WorkflowTaskDependency;
-import io.boomerang.engine.model.Task;
-import io.boomerang.engine.model.enums.ExecutionCondition;
-import io.boomerang.engine.model.enums.RunPhase;
-import io.boomerang.engine.model.enums.RunStatus;
-import io.boomerang.engine.model.enums.TaskDeletion;
-import io.boomerang.engine.model.enums.TaskType;
-import io.boomerang.util.GraphProcessor;
-import io.boomerang.util.ParameterUtil;
-import io.boomerang.util.ResultUtil;
 
 @Service
 public class DAGUtility {
@@ -77,37 +73,41 @@ public class DAGUtility {
     for (final TaskRunEntity task : tasks) {
       for (final WorkflowTaskDependency dep : task.getDependencies()) {
         try {
-          String depTaskRefAsId = tasks.stream().filter(t -> t.getName().equals(dep.getTaskRef()))
-              .findFirst().get().getId();
+          String depTaskRefAsId =
+              tasks.stream()
+                  .filter(t -> t.getName().equals(dep.getTaskRef()))
+                  .findFirst()
+                  .get()
+                  .getId();
           final Pair<String, String> pair = Pair.of(depTaskRefAsId, task.getId());
           edgeList.add(pair);
         } catch (NoSuchElementException ex) {
-          throw new BoomerangException(BoomerangError.WORKFLOWRUN_INVALID_DEPENDENCY,
-              dep.getTaskRef());
+          throw new BoomerangException(
+              BoomerangError.WORKFLOWRUN_INVALID_DEPENDENCY, dep.getTaskRef());
         }
       }
     }
     return GraphProcessor.createGraph(vertices, edgeList);
   }
-  
+
   public List<TaskRunEntity> retrieveTaskList(String wfRunId) {
-    return taskRunRepository
-        .findByWorkflowRunRef(wfRunId);
+    return taskRunRepository.findByWorkflowRunRef(wfRunId);
   }
 
   // TODO: determine a better way to handle the start and end task without saving them as a
   // TaskRunEntity
-  public List<TaskRunEntity> createTaskList(WorkflowRevisionEntity wfRevisionEntity,
-      WorkflowRunEntity wfRunEntity) {
+  public List<TaskRunEntity> createTaskList(
+      WorkflowRevisionEntity wfRevisionEntity, WorkflowRunEntity wfRunEntity) {
     final List<TaskRunEntity> taskList = new LinkedList<>();
     for (final WorkflowTask wfRevisionTask : wfRevisionEntity.getTasks()) {
-      Optional<TaskRunEntity> existingTaskRunEntity = taskRunRepository
-          .findFirstByNameAndWorkflowRunRef(wfRevisionTask.getName(), wfRunEntity.getId());
+      Optional<TaskRunEntity> existingTaskRunEntity =
+          taskRunRepository.findFirstByNameAndWorkflowRunRef(
+              wfRevisionTask.getName(), wfRunEntity.getId());
       if (existingTaskRunEntity.isPresent() && existingTaskRunEntity.get() != null) {
         taskList.add(existingTaskRunEntity.get());
       } else {
-        LOGGER.debug("[{}] Creating TaskRunEntity: {}", wfRunEntity.getId(),
-            wfRevisionTask.getName());
+        LOGGER.debug(
+            "[{}] Creating TaskRunEntity: {}", wfRunEntity.getId(), wfRevisionTask.getName());
         TaskRunEntity taskRunEntity = new TaskRunEntity();
         taskRunEntity.setName(wfRevisionTask.getName());
         taskRunEntity.setStatus(RunStatus.notstarted);
@@ -128,12 +128,11 @@ public class DAGUtility {
         if (!TaskType.start.equals(wfRevisionTask.getType())
             && !TaskType.end.equals(wfRevisionTask.getType())) {
 
-          Task task =
-              taskService.retrieveAndValidateTask(wfRevisionTask);
+          Task task = taskService.retrieveAndValidateTask(wfRevisionTask);
           taskRunEntity.setTaskRef(wfRevisionTask.getTaskRef());
           taskRunEntity.setTaskVersion(task.getVersion());
-          LOGGER.debug("[{}] Found Task: {} @ {}", wfRunEntity.getId(),
-              task.getName(), task.getVersion());
+          LOGGER.debug(
+              "[{}] Found Task: {} @ {}", wfRunEntity.getId(), task.getName(), task.getVersion());
 
           // Stack the labels based on label propagation
           // Task Template -> Workflow Task -> Run
@@ -146,50 +145,69 @@ public class DAGUtility {
           annotations.put("boomerang.io/generation", "4");
           annotations.put("boomerang.io/kind", "TaskRun");
           // Add Request Annotations from Workflow Service
-          if (wfRunEntity.getAnnotations() != null && !wfRunEntity.getAnnotations().isEmpty() && wfRunEntity.getAnnotations().containsKey("boomerang.io/team-name")) {
-            annotations.put("boomerang.io/team-name", wfRunEntity.getAnnotations().get("boomerang.io/team-name"));
+          if (wfRunEntity.getAnnotations() != null
+              && !wfRunEntity.getAnnotations().isEmpty()
+              && wfRunEntity.getAnnotations().containsKey("boomerang.io/team-name")) {
+            annotations.put(
+                "boomerang.io/team-name",
+                wfRunEntity.getAnnotations().get("boomerang.io/team-name"));
           }
           taskRunEntity.getAnnotations().putAll(annotations);
 
           // Set Task RunResults
           taskRunEntity.setResults(ResultUtil.resultSpecToRunResult(task.getSpec().getResults()));
-          if (TaskType.script.equals(wfRevisionTask.getType()) || TaskType.custom.equals(wfRevisionTask.getType()) || TaskType.generic.equals(wfRevisionTask.getType())) {
+          if (TaskType.script.equals(wfRevisionTask.getType())
+              || TaskType.custom.equals(wfRevisionTask.getType())
+              || TaskType.generic.equals(wfRevisionTask.getType())) {
             taskRunEntity.setResults(ResultUtil.resultSpecToRunResult(wfRevisionTask.getResults()));
           }
-          
+
           // Set Task RunParams
-          if (task.getSpec().getParams() != null
-              && !task.getSpec().getParams().isEmpty()) {
-            LOGGER.debug("[{}] Task Template Params: {}", wfRunEntity.getId(),
+          if (task.getSpec().getParams() != null && !task.getSpec().getParams().isEmpty()) {
+            LOGGER.debug(
+                "[{}] Task Template Params: {}",
+                wfRunEntity.getId(),
                 task.getSpec().getParams().toString());
-            LOGGER.debug("[{}] Revision Task Params: {}", wfRunEntity.getId(),
+            LOGGER.debug(
+                "[{}] Revision Task Params: {}",
+                wfRunEntity.getId(),
                 wfRevisionTask.getParams().toString());
-            taskRunEntity.setParams(ParameterUtil.addUniqueParams(
-                ParameterUtil.paramSpecToRunParam(task.getSpec().getParams()),
-                wfRevisionTask.getParams()));
+            taskRunEntity.setParams(
+                ParameterUtil.addUniqueParams(
+                    ParameterUtil.paramSpecToRunParam(task.getSpec().getParams()),
+                    wfRevisionTask.getParams()));
           } else {
-            LOGGER.debug("[{}] Task Template Params: {}", wfRunEntity.getId(),
+            LOGGER.debug(
+                "[{}] Task Template Params: {}",
+                wfRunEntity.getId(),
                 wfRevisionTask.getParams().toString());
             taskRunEntity.setParams(wfRevisionTask.getParams());
           }
           LOGGER.debug("[{}] Task Run Params: {}", wfRunEntity.getId(), taskRunEntity.getParams());
           Long timeout = 0L;
-          if (wfRunEntity.getAnnotations() != null && !wfRunEntity.getAnnotations().isEmpty() && wfRunEntity.getAnnotations().containsKey("boomerang.io/task-timeout")) {
-            timeout = Long.valueOf(wfRunEntity.getAnnotations().get("boomerang.io/task-timeout").toString());
+          if (wfRunEntity.getAnnotations() != null
+              && !wfRunEntity.getAnnotations().isEmpty()
+              && wfRunEntity.getAnnotations().containsKey("boomerang.io/task-timeout")) {
+            timeout =
+                Long.valueOf(
+                    wfRunEntity.getAnnotations().get("boomerang.io/task-timeout").toString());
           }
-          if (!Objects.isNull(wfRevisionTask.getTimeout()) && wfRevisionTask.getTimeout() < timeout) {
+          if (!Objects.isNull(wfRevisionTask.getTimeout())
+              && wfRevisionTask.getTimeout() < timeout) {
             timeout = wfRevisionTask.getTimeout();
           }
           taskRunEntity.setTimeout(timeout);
-          
+
           // Set TaskRun Spec from Task Spec - Debug and Deletion come from an alternate
           // source
-          if (!Objects.isNull(task.getSpec().getImage())
-              && !task.getSpec().getImage().isEmpty()) {
+          if (!Objects.isNull(task.getSpec().getImage()) && !task.getSpec().getImage().isEmpty()) {
             taskRunEntity.getSpec().setImage(task.getSpec().getImage());
-          } else if (TaskType.template.equals(wfRevisionTask.getType()) || TaskType.script.equals(wfRevisionTask.getType())) {
-            taskRunEntity.getSpec().setImage(
-                wfRunEntity.getAnnotations().get("boomerang.io/task-default-image").toString());
+          } else if (TaskType.template.equals(wfRevisionTask.getType())
+              || TaskType.script.equals(wfRevisionTask.getType())) {
+            taskRunEntity
+                .getSpec()
+                .setImage(
+                    wfRunEntity.getAnnotations().get("boomerang.io/task-default-image").toString());
           }
           if (!Objects.isNull(task.getSpec().getCommand())) {
             taskRunEntity.getSpec().setCommand(task.getSpec().getCommand());
@@ -207,22 +225,30 @@ public class DAGUtility {
             taskRunEntity.getSpec().setWorkingDir(task.getSpec().getWorkingDir());
           }
           if (!Objects.isNull(task.getSpec().getAdditionalProperties())) {
-            taskRunEntity.getSpec().getAdditionalProperties()
+            taskRunEntity
+                .getSpec()
+                .getAdditionalProperties()
                 .putAll(task.getSpec().getAdditionalProperties());
           }
           TaskDeletion taskDeletion = TaskDeletion.Never;
-          if (wfRunEntity.getAnnotations() != null && !wfRunEntity.getAnnotations().isEmpty() && wfRunEntity.getAnnotations().containsKey("boomerang.io/task-deletion")) {
-            taskDeletion = TaskDeletion.getDeletion(
-                wfRunEntity.getAnnotations().get("boomerang.io/task-deletion").toString());
+          if (wfRunEntity.getAnnotations() != null
+              && !wfRunEntity.getAnnotations().isEmpty()
+              && wfRunEntity.getAnnotations().containsKey("boomerang.io/task-deletion")) {
+            taskDeletion =
+                TaskDeletion.getDeletion(
+                    wfRunEntity.getAnnotations().get("boomerang.io/task-deletion").toString());
           }
           taskRunEntity.getSpec().setDeletion(taskDeletion);
-          if (!Objects.isNull(wfRunEntity.getDebug())) {            
+          if (!Objects.isNull(wfRunEntity.getDebug())) {
             taskRunEntity.getSpec().setDebug(wfRunEntity.getDebug());
           }
         }
         taskRunRepository.save(taskRunEntity);
-        LOGGER.debug("[{}] TaskRunEntity ({}) created for: {}", wfRunEntity.getId(),
-            taskRunEntity.getId(), taskRunEntity.getName());
+        LOGGER.debug(
+            "[{}] TaskRunEntity ({}) created for: {}",
+            wfRunEntity.getId(),
+            taskRunEntity.getId(),
+            taskRunEntity.getName());
         taskList.add(taskRunEntity);
       }
     }
@@ -230,14 +256,14 @@ public class DAGUtility {
     return taskList;
   }
 
-  /* 
+  /*
    * Determine if there is a valid path for this task taking into account dependency and execution conditions
    */
   public boolean canRunTask(List<TaskRunEntity> tasks, TaskRunEntity current) {
     final TaskRunEntity start = this.getTaskByType(tasks, TaskType.start);
     Graph<String, DefaultEdge> graph = this.createGraph(tasks);
     updateGraphWithTaskRunStatus(graph, tasks);
-    // After graph has been updated and edges removed per 
+    // After graph has been updated and edges removed per
     // individual task conditions. Validate that all conditions are met for current task
     // Remove or gate this call if you want an OR rather than an AND on dependencies.
     allDependenciesValid(graph, current);
@@ -250,7 +276,7 @@ public class DAGUtility {
   public TaskRunEntity getTaskByType(List<TaskRunEntity> tasks, TaskType type) {
     return tasks.stream().filter(tsk -> type.equals(tsk.getType())).findAny().orElse(null);
   }
-  
+
   // Implement an AND check - all dependencies are met (all paths exist)
   // Validates that there are the same number of edges remaining as dependencies
   // If not, remove all edges. There will then no longer be a shortest path.
@@ -258,15 +284,14 @@ public class DAGUtility {
     int noOfEdges = graph.inDegreeOf(current.getId());
     LOGGER.debug("Dependencies met: {} <= {}", noOfEdges, current.getDependencies().size());
     if (noOfEdges != current.getDependencies().size()) {
-      //Copy set to not get a ConcurrentModificationException
+      // Copy set to not get a ConcurrentModificationException
       final Set<DefaultEdge> edgesToRemove = Set.copyOf(graph.incomingEdgesOf(current.getId()));
       graph.removeAllEdges(edgesToRemove);
     }
-    
   }
 
-  private void updateGraphWithTaskRunStatus(Graph<String, DefaultEdge> graph,
-      List<TaskRunEntity> tasks) {
+  private void updateGraphWithTaskRunStatus(
+      Graph<String, DefaultEdge> graph, List<TaskRunEntity> tasks) {
     TopologicalOrderIterator<String, DefaultEdge> orderIterator =
         new TopologicalOrderIterator<>(graph);
     while (orderIterator.hasNext()) {
@@ -298,8 +323,12 @@ public class DAGUtility {
    * Get the decision value and map the edges to next nodes
    * If next nodes don't have an edge with the correct value, then remove the edge (and hence no path will be found)
    */
-  private void processDecision(Graph<String, DefaultEdge> graph, List<TaskRunEntity> tasksToRun,
-      String value, final String currentVertex, TaskRunEntity currentTask) {
+  private void processDecision(
+      Graph<String, DefaultEdge> graph,
+      List<TaskRunEntity> tasksToRun,
+      String value,
+      final String currentVertex,
+      TaskRunEntity currentTask) {
     List<String> matchedNodes =
         calculateMatchedNodes(graph, tasksToRun, value, currentVertex, currentTask);
     LOGGER.debug("Nodes Matched: {}", matchedNodes.toString());
@@ -316,8 +345,11 @@ public class DAGUtility {
     }
   }
 
-  private List<String> calculateMatchedNodes(Graph<String, DefaultEdge> graph,
-      List<TaskRunEntity> tasksToRun, String value, final String currentVert,
+  private List<String> calculateMatchedNodes(
+      Graph<String, DefaultEdge> graph,
+      List<TaskRunEntity> tasksToRun,
+      String value,
+      final String currentVert,
       TaskRunEntity currentTask) {
     Set<DefaultEdge> outgoingEdges = graph.outgoingEdgesOf(currentVert);
 
@@ -350,8 +382,12 @@ public class DAGUtility {
             if (matched) {
               matchedNodes.add(node);
             }
-            LOGGER.debug("[{}] Matched: {}, Decision Value: {}, Condition: {}", currentVert, matched,
-                value, linkValue);
+            LOGGER.debug(
+                "[{}] Matched: {}, Decision Value: {}, Condition: {}",
+                currentVert,
+                matched,
+                value,
+                linkValue);
           } else {
             defaultNodes.add(node);
           }
@@ -364,8 +400,8 @@ public class DAGUtility {
     return matchedNodes;
   }
 
-  private void updateTaskInGraph(Graph<String, DefaultEdge> graph, List<TaskRunEntity> tasksToRun,
-      TaskRunEntity currentTask) {
+  private void updateTaskInGraph(
+      Graph<String, DefaultEdge> graph, List<TaskRunEntity> tasksToRun, TaskRunEntity currentTask) {
     String currentVert = currentTask.getId();
     List<String> matchedNodes = new LinkedList<>();
     Set<DefaultEdge> outgoingEdges = graph.outgoingEdgesOf(currentVert);
@@ -383,7 +419,8 @@ public class DAGUtility {
           ExecutionCondition condition = dependency.getExecutionCondition();
           String node = destTask.getId();
           if (condition != null
-              && (RunStatus.failed.equals(status) && ExecutionCondition.failure.equals(condition))
+                  && (RunStatus.failed.equals(status)
+                      && ExecutionCondition.failure.equals(condition))
               || (RunStatus.succeeded.equals(status)
                   && ExecutionCondition.success.equals(condition))
               || (ExecutionCondition.always.equals(condition))) {
@@ -405,10 +442,12 @@ public class DAGUtility {
     }
   }
 
-  private Optional<WorkflowTaskDependency> getOptionalDependency(final String currentVert,
-      TaskRunEntity destTask) {
-    Optional<WorkflowTaskDependency> optionalDependency = destTask.getDependencies().stream()
-        .filter(d -> d.getTaskRef().equals(currentVert)).findAny();
+  private Optional<WorkflowTaskDependency> getOptionalDependency(
+      final String currentVert, TaskRunEntity destTask) {
+    Optional<WorkflowTaskDependency> optionalDependency =
+        destTask.getDependencies().stream()
+            .filter(d -> d.getTaskRef().equals(currentVert))
+            .findAny();
     return optionalDependency;
   }
 
@@ -416,11 +455,13 @@ public class DAGUtility {
     return tasks.stream().filter(tsk -> id.equals(tsk.getId())).findAny().orElse(null);
   }
 
-  public List<TaskRunEntity> getTasksDependants(List<TaskRunEntity> tasks,
-      TaskRunEntity currentTask) {
+  public List<TaskRunEntity> getTasksDependants(
+      List<TaskRunEntity> tasks, TaskRunEntity currentTask) {
     return tasks.stream()
-        .filter(t -> t.getDependencies().stream()
-            .anyMatch(d -> d.getTaskRef().equals(currentTask.getName())))
+        .filter(
+            t ->
+                t.getDependencies().stream()
+                    .anyMatch(d -> d.getTaskRef().equals(currentTask.getName())))
         .collect(Collectors.toList());
   }
 }

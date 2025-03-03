@@ -1,17 +1,17 @@
 package io.boomerang.workflow;
 
 import io.boomerang.client.EngineClient;
+import io.boomerang.common.entity.WorkflowScheduleEntity;
+import io.boomerang.common.enums.WorkflowScheduleStatus;
+import io.boomerang.common.enums.WorkflowScheduleType;
+import io.boomerang.common.model.Workflow;
+import io.boomerang.common.model.WorkflowSchedule;
 import io.boomerang.core.RelationshipService;
 import io.boomerang.core.enums.RelationshipType;
 import io.boomerang.error.BoomerangError;
 import io.boomerang.error.BoomerangException;
 import io.boomerang.quartz.QuartzSchedulerService;
-import io.boomerang.workflow.entity.WorkflowScheduleEntity;
-import io.boomerang.workflow.model.WorkflowSchedule;
 import io.boomerang.workflow.model.WorkflowScheduleCalendar;
-import io.boomerang.workflow.model.WorkflowScheduleStatus;
-import io.boomerang.workflow.model.WorkflowScheduleType;
-import io.boomerang.common.model.Workflow;
 import io.boomerang.workflow.repository.WorkflowScheduleRepository;
 import java.util.ArrayList;
 import java.util.Date;

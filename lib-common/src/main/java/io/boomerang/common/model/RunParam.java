@@ -1,16 +1,17 @@
 package io.boomerang.common.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.boomerang.common.enums.ParamType;
+import lombok.Data;
 
+@Data
 public class RunParam {
-  
+
   private String name;
   private Object value;
-  @JsonIgnore
-  private ParamType type;
-  
-  protected RunParam() {
-  }
+  @JsonIgnore private ParamType type;
+
+  protected RunParam() {}
 
   public RunParam(String name, Object value) {
     this.name = name;
@@ -26,29 +27,5 @@ public class RunParam {
   @Override
   public String toString() {
     return "RunParam [name=" + name + ", type=" + type + ", value=" + value + "]";
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public Object getValue() {
-    return value;
-  }
-
-  public void setValue(Object value) {
-    this.value = value;
-  }
-
-  public ParamType getType() {
-    return type;
-  }
-
-  public void setType(ParamType type) {
-    this.type = type;
   }
 }

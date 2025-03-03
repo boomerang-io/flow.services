@@ -20,15 +20,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
 
 import io.boomerang.engine.repository.TaskRunRepository;
-import io.boomerang.engine.model.TaskRun;
 
 class TaskRunServiceTest {
 
-  @Mock
-  private TaskRunRepository taskRunRepository;
+  @Mock private TaskRunRepository taskRunRepository;
 
-  @InjectMocks
-  private TaskRunService taskRunService;
+  @InjectMocks private TaskRunService taskRunService;
 
   @BeforeEach
   void setUp() {
@@ -36,22 +33,35 @@ class TaskRunServiceTest {
   }
 
   @DisplayName("Test query method with different input parameters")
-  @ParameterizedTest(name = "from={0}, to={1}, pageSize={2}, pageNumber={3}, sort={4}, labels={5}, status={6}, phase={7}")
+  @ParameterizedTest(
+      name =
+          "from={0}, to={1}, pageSize={2}, pageNumber={3}, sort={4}, labels={5}, status={6}, phase={7}")
   @CsvSource({
-      "0, 9223372036854775807, 10, 0, ASC, label, status, phase",
-      "0, 9223372036854775807, 20, 1, DESC, label1, status1, phase1",
-      "0, 9223372036854775807, 30, 2, ASC, label2, status2, phase2"
+    "0, 9223372036854775807, 10, 0, ASC, label, status, phase",
+    "0, 9223372036854775807, 20, 1, DESC, label1, status1, phase1",
+    "0, 9223372036854775807, 30, 2, ASC, label2, status2, phase2"
   })
-  void testQuery(long from, long to, int pageSize, int pageNumber, String sort, String labels, String status,
+  void testQuery(
+      long from,
+      long to,
+      int pageSize,
+      int pageNumber,
+      String sort,
+      String labels,
+      String status,
       String phase) {
     List<TaskRun> taskRuns = new ArrayList<>();
     taskRuns.add(new TaskRun(new Date(), "label1", "status1", "phase1"));
     taskRuns.add(new TaskRun(new Date(), "label2", "status2", "phase2"));
     Page<TaskRun> page = new PageImpl<>(taskRuns);
     when(taskRunRepository
-        .findByCreationDateBetweenAndLabelsContainingIgnoreCaseAndStatusContainingIgnoreCaseAndPhaseContainingIgnoreCase(
-            new Date(from), new Date(to), labels, status, phase,
-            PageRequest.of(pageNumber, pageSize, Direction.fromString(sort), "creationDate")))
+            .findByCreationDateBetweenAndLabelsContainingIgnoreCaseAndStatusContainingIgnoreCaseAndPhaseContainingIgnoreCase(
+                new Date(from),
+                new Date(to),
+                labels,
+                status,
+                phase,
+                PageRequest.of(pageNumber, pageSize, Direction.fromString(sort), "creationDate")))
         .thenReturn(page);
 
     Optional<Date> fromDate = Optional.of(new Date(from));
@@ -60,8 +70,9 @@ class TaskRunServiceTest {
     Optional<String> label = Optional.of(labels);
     Optional<String> taskStatus = Optional.of(status);
     Optional<String> taskPhase = Optional.of(phase);
-    Page<TaskRun> result = taskRunService.query(fromDate, toDate, pageSize, pageNumber, sortDirection, label,
-        taskStatus, taskPhase);
+    Page<TaskRun> result =
+        taskRunService.query(
+            fromDate, toDate, pageSize, pageNumber, sortDirection, label, taskStatus, taskPhase);
 
     assertAll(
         () -> assertEquals(page, result),

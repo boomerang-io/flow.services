@@ -1,6 +1,14 @@
 package io.boomerang.workflow;
 
 import io.boomerang.client.EngineClient;
+import io.boomerang.common.entity.ActionEntity;
+import io.boomerang.common.enums.ActionStatus;
+import io.boomerang.common.enums.ActionType;
+import io.boomerang.common.enums.RunStatus;
+import io.boomerang.common.model.Actioner;
+import io.boomerang.common.model.TaskRun;
+import io.boomerang.common.model.TaskRunEndRequest;
+import io.boomerang.common.model.Workflow;
 import io.boomerang.core.RelationshipService;
 import io.boomerang.core.UserService;
 import io.boomerang.core.entity.UserEntity;
@@ -9,19 +17,11 @@ import io.boomerang.core.model.User;
 import io.boomerang.error.BoomerangError;
 import io.boomerang.error.BoomerangException;
 import io.boomerang.workflow.entity.ApproverGroupEntity;
-import io.boomerang.workflow.entity.ref.ActionEntity;
 import io.boomerang.workflow.model.Action;
 import io.boomerang.workflow.model.ActionRequest;
 import io.boomerang.workflow.model.ActionSummary;
-import io.boomerang.common.model.ActionStatus;
-import io.boomerang.common.model.ActionType;
-import io.boomerang.common.model.Actioner;
-import io.boomerang.common.model.RunStatus;
-import io.boomerang.common.model.TaskRun;
-import io.boomerang.common.model.TaskRunEndRequest;
-import io.boomerang.common.model.Workflow;
+import io.boomerang.workflow.repository.ActionRepository;
 import io.boomerang.workflow.repository.ApproverGroupRepository;
-import io.boomerang.workflow.repository.ref.ActionRepository;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
@@ -123,12 +123,12 @@ public class ActionService {
       }
 
       if (canBeActioned) {
-        Actioner audit = new Actioner();
-        audit.setActionDate(new Date());
-        audit.setApproverId(userEntity.getId());
-        audit.setComments(request.getComments());
-        audit.setApproved(request.isApproved());
-        actionEntity.getActioners().add(audit);
+        Actioner actioner = new Actioner();
+        actioner.setDate(new Date());
+        actioner.setApproverId(userEntity.getId());
+        actioner.setComments(request.getComments());
+        actioner.setApproved(request.isApproved());
+        actionEntity.getActioners().add(actioner);
       }
 
       int numberApprovals = actionEntity.getNumberOfApprovers();

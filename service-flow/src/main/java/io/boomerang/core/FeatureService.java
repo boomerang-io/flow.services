@@ -1,7 +1,7 @@
 package io.boomerang.core;
 
+import io.boomerang.common.model.AbstractParam;
 import io.boomerang.core.model.Features;
-import io.boomerang.workflow.model.AbstractParam;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.stereotype.Service;
