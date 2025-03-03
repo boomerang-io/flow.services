@@ -99,6 +99,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: service-flow/Dockerfile
           push: true
           tags: boomerangio/flow-service-workflow:latest,boomerangio/flow-service-workflow:${{ steps.get_version.outputs.VERSION }}
       - name: Image digest
