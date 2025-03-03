@@ -1,4 +1,4 @@
-# Boomerang Flow Services Monorepo=
+# Boomerang Flow Services Monorepo
 
 Welcome to the Boomerang Flow Services Monorepo! This repository is the powerhouse behind the Boomerang Flow Workflow
 services that enable the creation and execution of workflows as Directed Acyclic Graphs (DAGs).
