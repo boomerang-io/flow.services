@@ -1,12 +1,12 @@
 package io.boomerang.workflow;
 
 import io.boomerang.client.TaskResponsePage;
+import io.boomerang.common.model.ChangeLogVersion;
+import io.boomerang.common.model.Task;
 import io.boomerang.security.AuthScope;
 import io.boomerang.security.enums.AuthType;
 import io.boomerang.security.enums.PermissionAction;
 import io.boomerang.security.enums.PermissionScope;
-import io.boomerang.common.model.ChangeLogVersion;
-import io.boomerang.common.model.Task;
 import io.boomerang.workflow.tekton.TektonTask;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -41,7 +41,7 @@ public class TeamTaskControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.TASK,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.workflow, AuthType.session, AuthType.user})
   @Operation(
       summary =
           "Retrieve a specific task. If no version specified, the latest version is returned.")
@@ -70,7 +70,7 @@ public class TeamTaskControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.TASK,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.workflow, AuthType.session, AuthType.user})
   @Operation(
       summary =
           "Retrieve a specific task as Tekton Task YAML. If no version specified, the latest version is returned.")
@@ -99,7 +99,7 @@ public class TeamTaskControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.TASK,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.workflow, AuthType.session, AuthType.user})
   @Operation(
       summary =
           "Search for Tasks. If teams are provided it will query the teams. If no teams are provided it will query Global Task Templates")
@@ -157,7 +157,7 @@ public class TeamTaskControllerV2 {
   @AuthScope(
       action = PermissionAction.WRITE,
       scope = PermissionScope.TASK,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.session, AuthType.user})
   @Operation(
       summary = "Create a new Task",
       description =
@@ -183,7 +183,7 @@ public class TeamTaskControllerV2 {
   @AuthScope(
       action = PermissionAction.WRITE,
       scope = PermissionScope.TASK,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.session, AuthType.user})
   @Operation(
       summary = "Create a new Task Template using Tekton Task YAML",
       description =
@@ -209,7 +209,7 @@ public class TeamTaskControllerV2 {
   @AuthScope(
       action = PermissionAction.WRITE,
       scope = PermissionScope.TASK,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.session, AuthType.user})
   @Operation(
       summary = "Update, replace, or create new, Task",
       description =
@@ -240,7 +240,7 @@ public class TeamTaskControllerV2 {
   @AuthScope(
       action = PermissionAction.WRITE,
       scope = PermissionScope.TASK,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.session, AuthType.user})
   @Operation(
       summary = "Update, replace, or create new using Tekton Task YAML",
       description =
@@ -271,7 +271,7 @@ public class TeamTaskControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.TASK,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.session, AuthType.user})
   @Operation(
       summary = "Retrieve the changlog",
       description = "Retrieves each versions changelog and returns them all as a list.")
@@ -300,12 +300,16 @@ public class TeamTaskControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.TASK,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.session, AuthType.user})
   public void validateYaml(@RequestBody TektonTask tektonTask) {
     taskService.validateAsTekton(tektonTask);
   }
 
   @DeleteMapping(value = "/{name}")
+  @AuthScope(
+      action = PermissionAction.READ,
+      scope = PermissionScope.TASK,
+      types = {AuthType.global, AuthType.team, AuthType.session, AuthType.user})
   @Operation(summary = "Delete a Team Task")
   @ApiResponses(
       value = {
