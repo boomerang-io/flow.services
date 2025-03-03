@@ -14,6 +14,12 @@ The Engine services is the backbone providing the execution of the workflows as 
 With dependencies like CloudEvents and Quartz, this service ensures
 reliable event consumption and scheduled job execution.
 
+### Prerequisites
+
+1. Java 21
+2. Spring Boot 3
+3. Maven
+
 ### CloudEvents
 
 This service listen and consumes CloudEvents.
@@ -29,11 +35,13 @@ The following links will help provide guidance in development
 - https://github.com/StackAbuse/spring-boot-quartz/blob/master/src/main/java/com/stackabuse/service/SchedulerJobService.java
 - https://stackabuse.com/guide-to-quartz-with-spring-boot-job-scheduling-and-automation/
 
-## Prerequisites
+## Packaging
 
-1. Java 21
-2. Spring Boot 3
-3. Maven
+When ready to package the service(s) as a container, the tags will trigger the appropriate GitHub Action using the
+format `<svc>/<semver>`:
+
+- Engine Service: tag = `engine/1.0.0-beta.111`
+- Flow Service: tag = `flow/4.0.1`
 
 ## Developing and Testing Locally
 
