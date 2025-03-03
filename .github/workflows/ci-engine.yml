@@ -6,6 +6,10 @@ on:
   pull_request:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+  paths:
+    - service-engine/**
+    - lib-common/**
+    - .github/workflows/ci-engine.yml
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -18,13 +22,9 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
-          server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-          settings-path: ${{ github.workspace }} # location for the settings.xml file
-      - name: Maven Package
-        env:
-          GITHUB_TOKEN: ${{ github.token }} # GITHUB_TOKEN is the default env for the password
+      - name: Test
         run: |
-          mvn clean test --batch-mode -s settings.xml
+          mvn clean test --projects service-engine --batch-mode
       - name: Slack
         uses: 8398a7/action-slack@v3
         if: ${{ always() }}
@@ -44,18 +44,13 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
-          server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-          settings-path: ${{ github.workspace }} # location for the settings.xml file
-      - name: Maven Package
-        env:
-          GITHUB_TOKEN: ${{ github.token }} # GITHUB_TOKEN is the default env for the password
-        run: |
-          mvn clean package --batch-mode -Dmaven.test.skip=true -s settings.xml
+      - name: Build
+        run: mvn clean package --projects service-engine --also-make --batch-mode -Dmaven.test.skip=true
       - uses: actions/upload-artifact@v4
         if: ${{ success() }}
         with:
-          name: service-flow.jar
-          path: target/service-flow.jar
+          name: service-engine.jar
+          path: target/service-engine.jar
       - name: Slack
         uses: 8398a7/action-slack@v3
         if: ${{ always() }}
@@ -73,7 +68,7 @@ jobs:
         uses: actions/checkout@v3
       - uses: actions/download-artifact@v4
         with:
-          name: service-flow.jar
+          name: service-engine.jar
           path: ${{ github.workspace }}/target
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -93,7 +88,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: boomerangio/flow-service-workflow:latest,boomerangio/flow-service-workflow:${{ steps.get_version.outputs.VERSION }}
+          tags: boomerangio/flow-service-engine:latest,boomerangio/flow-service-engine:${{ steps.get_version.outputs.VERSION }}
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
       - name: Slack

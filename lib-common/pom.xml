@@ -7,14 +7,9 @@
     <packaging>jar</packaging>
     <name>lib-common</name>
     <description>Common library for Flow services</description>
-    <!--    <parent>-->
-    <!--        <groupId>io.boomerang</groupId>-->
-    <!--        <artifactId>parent</artifactId>-->
-    <!--        <version>1.0</version>-->
-    <!--    </parent>-->
     <parent>
         <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
+        <artifactId>spring-boot-parent</artifactId>
         <version>3.2.8</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>

@@ -1,20 +1,20 @@
 package io.boomerang.core;
 
+import io.boomerang.common.entity.ActionEntity;
 import io.boomerang.core.entity.TokenEntity;
 import io.boomerang.core.entity.UserEntity;
-import io.boomerang.core.enums.RoleEnum;
-import io.boomerang.core.enums.TokenTypePrefix;
-import io.boomerang.core.model.*;
 import io.boomerang.core.enums.RelationshipLabel;
 import io.boomerang.core.enums.RelationshipType;
+import io.boomerang.core.enums.RoleEnum;
+import io.boomerang.core.enums.TokenTypePrefix;
 import io.boomerang.core.enums.UserType;
+import io.boomerang.core.model.*;
 import io.boomerang.core.repository.RoleRepository;
 import io.boomerang.core.repository.TokenRepository;
 import io.boomerang.error.BoomerangError;
 import io.boomerang.error.BoomerangException;
 import io.boomerang.security.enums.AuthType;
 import io.boomerang.security.enums.PermissionScope;
-import io.boomerang.workflow.entity.ref.ActionEntity;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
