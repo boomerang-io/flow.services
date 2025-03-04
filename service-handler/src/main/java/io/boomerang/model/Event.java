@@ -1,9 +1,9 @@
-package io.boomerang.model.event;
+package io.boomerang.model;
 
+import io.cloudevents.CloudEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Date;
-import io.cloudevents.CloudEvent;
 
 public abstract class Event {
 
@@ -26,7 +26,7 @@ public abstract class Event {
   private Date date;
 
   private EventType type;
-  
+
   private String initiatorContext;
 
   protected Event() {}
@@ -45,8 +45,7 @@ public abstract class Event {
     throw new UnsupportedOperationException("Method not implemented!");
   }
 
-  public CloudEvent toCloudEvent()
-      throws UnsupportedOperationException, IOException {
+  public CloudEvent toCloudEvent() throws UnsupportedOperationException, IOException {
     throw new UnsupportedOperationException("Method not implemented!");
   }
 
@@ -109,14 +108,26 @@ public abstract class Event {
   // @formatter:off
   @Override
   public String toString() {
-    return "{" +
-      " id='" + getId() + "'" +
-      ", source='" + getSource() + "'" +
-      ", subject='" + getSubject() + "'" +
-      ", token='" + getToken() + "'" +
-      ", date='" + getDate() + "'" +
-      ", type='" + getType() + "'" +
-      "}";
+    return "{"
+        + " id='"
+        + getId()
+        + "'"
+        + ", source='"
+        + getSource()
+        + "'"
+        + ", subject='"
+        + getSubject()
+        + "'"
+        + ", token='"
+        + getToken()
+        + "'"
+        + ", date='"
+        + getDate()
+        + "'"
+        + ", type='"
+        + getType()
+        + "'"
+        + "}";
   }
   // @formatter:on
 }

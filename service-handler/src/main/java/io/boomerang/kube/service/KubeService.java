@@ -1,11 +1,11 @@
 package io.boomerang.kube.service;
 
-import java.util.List;
-import java.util.Map;
-import io.boomerang.model.ref.RunParam;
+import io.boomerang.common.model.RunParam;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import java.util.List;
+import java.util.Map;
 
 public interface KubeService {
 

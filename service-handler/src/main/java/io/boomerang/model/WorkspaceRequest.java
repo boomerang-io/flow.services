@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.boomerang.model.ref.WorkflowWorkspace;
+import io.boomerang.common.model.WorkflowWorkspace;
 
 @JsonIgnoreProperties
 public class WorkspaceRequest extends WorkflowWorkspace {
@@ -18,8 +18,15 @@ public class WorkspaceRequest extends WorkflowWorkspace {
 
   @Override
   public String toString() {
-    return "ControllerWorkspaceRequest [workflowRunRef=" + workflowRunRef + ", workflowRef="
-        + workflowRef + ", labels=" + labels + ", toString()=" + super.toString() + "]";
+    return "ControllerWorkspaceRequest [workflowRunRef="
+        + workflowRunRef
+        + ", workflowRef="
+        + workflowRef
+        + ", labels="
+        + labels
+        + ", toString()="
+        + super.toString()
+        + "]";
   }
 
   public String getWorkflowRef() {

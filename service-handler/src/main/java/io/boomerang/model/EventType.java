@@ -1,4 +1,4 @@
-package io.boomerang.model.event;
+package io.boomerang.model;
 
 public enum EventType {
 

@@ -1,9 +1,9 @@
 package io.boomerang.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.boomerang.common.model.RunResult;
 import java.util.ArrayList;
 import java.util.List;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.boomerang.model.ref.RunResult;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TaskResponse extends Response {

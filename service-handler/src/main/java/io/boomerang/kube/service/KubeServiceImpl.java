@@ -1,15 +1,6 @@
 package io.boomerang.kube.service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import io.boomerang.model.ref.RunParam;
+import io.boomerang.common.model.RunParam;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapList;
@@ -21,16 +12,23 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Component
-//@Configurable
+// @Configurable
 public class KubeServiceImpl implements KubeService {
 
   private static final Logger LOGGER = LogManager.getLogger(KubeServiceImpl.class);
 
-  @Autowired
-  protected KubeHelperServiceImpl helperKubeService;
-    
+  @Autowired protected KubeHelperService helperKubeService;
+
   protected static final Integer ONE_DAY_IN_SECONDS = 86400; // 60*60*24
 
   @Value("${kube.image.pullPolicy}")
@@ -44,7 +42,7 @@ public class KubeServiceImpl implements KubeService {
 
   @Value("${kube.task.restartPolicy}")
   protected String kubeJobRestartPolicy;
-    
+
   @Value("${kube.task.ttlDays}")
   protected Integer kubeJobTTLDays;
 
@@ -74,17 +72,20 @@ public class KubeServiceImpl implements KubeService {
   public KubeServiceImpl() {
     this.client = new DefaultKubernetesClient();
   }
-  
-//  Using setter instead of Constructor due to autowiring issues
+
+  //  Using setter instead of Constructor due to autowiring issues
   public void setClient(KubernetesClient client) {
     LOGGER.info("Creating Client with default namespace: " + client.getNamespace());
     this.client = client;
   }
-  
+
   @Override
-  public boolean checkWorkspacePVCExists(String workspaceRef, String workspaceType, boolean failIfNotBound) {    
-    return workspaceRef != null && workspaceType!= null
-        ? checkPVCExists(helperKubeService.getWorkspaceLabels(null,  workspaceRef, workspaceType, null), failIfNotBound)
+  public boolean checkWorkspacePVCExists(
+      String workspaceRef, String workspaceType, boolean failIfNotBound) {
+    return workspaceRef != null && workspaceType != null
+        ? checkPVCExists(
+            helperKubeService.getWorkspaceLabels(null, workspaceRef, workspaceType, null),
+            failIfNotBound)
         : false;
   }
 
@@ -105,19 +106,28 @@ public class KubeServiceImpl implements KubeService {
     }
     return pvcExists;
   }
-  
+
   protected String getPVCName(Map<String, String> labels) {
     try {
-      PersistentVolumeClaimList pvcList =
-          client.persistentVolumeClaims().withLabels(labels).list();
+      PersistentVolumeClaimList pvcList = client.persistentVolumeClaims().withLabels(labels).list();
 
       LOGGER.info("PVC List: " + pvcList.toString());
-      
+
       if (!pvcList.getItems().isEmpty()) {
-        LOGGER.info(" PVCs() - Found " + pvcList.getItems().size() + " persistentvolumeclaims: "
-            + pvcList.getItems().stream().reduce("", (pvcNames, pvc) -> pvcNames +=
-                pvc.getMetadata().getName() + "(" + pvc.getMetadata().getCreationTimestamp() + ")",
-                String::concat));
+        LOGGER.info(
+            " PVCs() - Found "
+                + pvcList.getItems().size()
+                + " persistentvolumeclaims: "
+                + pvcList.getItems().stream()
+                    .reduce(
+                        "",
+                        (pvcNames, pvc) ->
+                            pvcNames +=
+                                pvc.getMetadata().getName()
+                                    + "("
+                                    + pvc.getMetadata().getCreationTimestamp()
+                                    + ")",
+                        String::concat));
         if (pvcList.getItems().get(0).getMetadata().getName() != null) {
           LOGGER.info(" Chosen PVC Name: " + pvcList.getItems().get(0).getMetadata().getName());
           return pvcList.getItems().get(0).getMetadata().getName();
@@ -130,44 +140,86 @@ public class KubeServiceImpl implements KubeService {
   }
 
   @Override
-  public PersistentVolumeClaim createWorkspacePVC(String workflowRef, String workspaceRef, String workspaceType,
-      Map<String, String> customLabels, String size, String className, String accessMode,
-      long waitSeconds) throws KubernetesClientException, InterruptedException {
-    return createPVC(helperKubeService.getWorkspaceAnnotations(workflowRef, workspaceRef, workspaceType),
-        helperKubeService.getWorkspaceLabels(workflowRef, workspaceRef, workspaceType, customLabels), size, className,
-        accessMode, waitSeconds);
+  public PersistentVolumeClaim createWorkspacePVC(
+      String workflowRef,
+      String workspaceRef,
+      String workspaceType,
+      Map<String, String> customLabels,
+      String size,
+      String className,
+      String accessMode,
+      long waitSeconds)
+      throws KubernetesClientException, InterruptedException {
+    return createPVC(
+        helperKubeService.getWorkspaceAnnotations(workflowRef, workspaceRef, workspaceType),
+        helperKubeService.getWorkspaceLabels(
+            workflowRef, workspaceRef, workspaceType, customLabels),
+        size,
+        className,
+        accessMode,
+        waitSeconds);
   }
 
-  private PersistentVolumeClaim createPVC(Map<String, String> annotations,
-      Map<String, String> labels, String size, String className, String accessMode,
-      long waitSeconds) throws KubernetesClientException, InterruptedException {
+  private PersistentVolumeClaim createPVC(
+      Map<String, String> annotations,
+      Map<String, String> labels,
+      String size,
+      String className,
+      String accessMode,
+      long waitSeconds)
+      throws KubernetesClientException, InterruptedException {
 
     LOGGER.debug("Creating PersistentVolumeClaim object");
 
-    PersistentVolumeClaim persistentVolumeClaim = new PersistentVolumeClaimBuilder()
-        .withNewMetadata().withGenerateName(helperKubeService.getPrefixPVC() + "-")
-        .withLabels(labels).withAnnotations(annotations).endMetadata().withNewSpec()
-        .withStorageClassName(className).withAccessModes(accessMode).withNewResources()
-        .addToRequests("storage", new Quantity(size)).endResources().endSpec().build();
+    PersistentVolumeClaim persistentVolumeClaim =
+        new PersistentVolumeClaimBuilder()
+            .withNewMetadata()
+            .withGenerateName(helperKubeService.getPrefixPVC() + "-")
+            .withLabels(labels)
+            .withAnnotations(annotations)
+            .endMetadata()
+            .withNewSpec()
+            .withStorageClassName(className)
+            .withAccessModes(accessMode)
+            .withNewResources()
+            .addToRequests("storage", new Quantity(size))
+            .endResources()
+            .endSpec()
+            .build();
 
     PersistentVolumeClaim result = client.persistentVolumeClaims().create(persistentVolumeClaim);
 
-    client.resource(result).waitUntilCondition(
-        r -> "Bound".equals(r.getStatus().getPhase()) || "Pending".equals(r.getStatus().getPhase()),
-        waitSeconds, TimeUnit.SECONDS);
+    client
+        .resource(result)
+        .waitUntilCondition(
+            r ->
+                "Bound".equals(r.getStatus().getPhase())
+                    || "Pending".equals(r.getStatus().getPhase()),
+            waitSeconds,
+            TimeUnit.SECONDS);
 
     LOGGER.info(result);
     return result;
   }
 
-  private boolean isPVCAvailable(boolean failIfNotBound,
-      PersistentVolumeClaimList persistentVolumeClaimList) {
+  private boolean isPVCAvailable(
+      boolean failIfNotBound, PersistentVolumeClaimList persistentVolumeClaimList) {
     if (!persistentVolumeClaimList.getItems().isEmpty()) {
-      persistentVolumeClaimList.getItems().forEach(pvc -> LOGGER
-          .info("PVC: " + pvc.getMetadata().getName() + " (" + pvc.getStatus().getPhase() + ")"));
+      persistentVolumeClaimList
+          .getItems()
+          .forEach(
+              pvc ->
+                  LOGGER.info(
+                      "PVC: "
+                          + pvc.getMetadata().getName()
+                          + " ("
+                          + pvc.getStatus().getPhase()
+                          + ")"));
       if (failIfNotBound) {
         if (persistentVolumeClaimList.getItems().stream()
-            .filter(pvc -> "Bound".equalsIgnoreCase(pvc.getStatus().getPhase())).count() > 0) {
+                .filter(pvc -> "Bound".equalsIgnoreCase(pvc.getStatus().getPhase()))
+                .count()
+            > 0) {
           // TODO update to check if they are terminating (even though they are still bound)
           return true;
         }
@@ -193,92 +245,105 @@ public class KubeServiceImpl implements KubeService {
     client.persistentVolumeClaims().withLabels(labels).delete();
   }
 
-//  public ConfigMap createWorkflowConfigMap(String workflowName, String workflowId,
-//      String workflowActivityId, Map<String, String> customLabels, Map<String, String> inputProps) {
-//    
-//  Map<String, String> dataMap = new HashMap<>();
-//  Map<String, String> sysProps = new HashMap<>();
-//  sysProps.put("workflow-name", workflowName);
-//  sysProps.put("workflow-id", workflowId);
-//  sysProps.put("workflow-activity-id", workflowActivityId);
-//  dataMap.put("workflow.input.properties",
-//      helperKubeService.createConfigMapProp(inputProps));
-//  dataMap.put("workflow.system.properties",
-//      helperKubeService.createConfigMapProp(sysProps));
-//  
-////  Watch cmWatcher = watchWorkflowConfigMap(client, helperKubeService.getWorkflowLabels(workflowId, workflowActivityId, customLabels));
-//    
-////  try (Watch ignored = watchWorkflowConfigMap(client,
-////      helperKubeService.getWorkflowLabels(workflowId, workflowActivityId, customLabels));) {
-//    ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
-//        .withGenerateName(helperKubeService.getPrefixCM() + "-")
-//        .withLabels(
-//            helperKubeService.getWorkflowLabels(workflowId, workflowActivityId, customLabels))
-//        .withAnnotations(helperKubeService.getAnnotations("workflow", workflowName, workflowId,
-//            workflowActivityId, null, null))
-//        .endMetadata().addToData(dataMap).build();
-//    ConfigMap result = client.configMaps().create(configMap);
-////  }
-//  
-//    return result;
-//  }
-  
-//  private static Watch watchWorkflowConfigMap(KubernetesClient client, Map<String, String> labels) {
-//    
-//    return client.configMaps().withLabels(labels).watch(new Watcher<ConfigMap>() {
-//      @Override
-//      public void eventReceived(Action action, ConfigMap resource) {
-//        LOGGER.info("Watch event received {}: {}", action.name(), resource.getMetadata().getName());
-//        switch (action.name()) {
-//          case "DELETED":
-//            LOGGER.info(resource.getMetadata().getName() + "got deleted");
-//              break;
-//        }
-//      }
-//
-//      @Override
-//      public void onClose(WatcherException e) {
-//        LOGGER.error("Watch error received: {}", e.getMessage(), e);
-//        //Cause the pod to restart
-//        System.exit(1);
-//      }
-//
-//      @Override
-//      public void onClose() {
-//        LOGGER.info("Watch gracefully closed");
-//      }
-//    });
-//  }
+  //  public ConfigMap createWorkflowConfigMap(String workflowName, String workflowId,
+  //      String workflowActivityId, Map<String, String> customLabels, Map<String, String>
+  // inputProps) {
+  //
+  //  Map<String, String> dataMap = new HashMap<>();
+  //  Map<String, String> sysProps = new HashMap<>();
+  //  sysProps.put("workflow-name", workflowName);
+  //  sysProps.put("workflow-id", workflowId);
+  //  sysProps.put("workflow-activity-id", workflowActivityId);
+  //  dataMap.put("workflow.input.properties",
+  //      helperKubeService.createConfigMapProp(inputProps));
+  //  dataMap.put("workflow.system.properties",
+  //      helperKubeService.createConfigMapProp(sysProps));
+  //
+  ////  Watch cmWatcher = watchWorkflowConfigMap(client,
+  // helperKubeService.getWorkflowLabels(workflowId, workflowActivityId, customLabels));
+  //
+  ////  try (Watch ignored = watchWorkflowConfigMap(client,
+  ////      helperKubeService.getWorkflowLabels(workflowId, workflowActivityId, customLabels));) {
+  //    ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
+  //        .withGenerateName(helperKubeService.getPrefixCM() + "-")
+  //        .withLabels(
+  //            helperKubeService.getWorkflowLabels(workflowId, workflowActivityId, customLabels))
+  //        .withAnnotations(helperKubeService.getAnnotations("workflow", workflowName, workflowId,
+  //            workflowActivityId, null, null))
+  //        .endMetadata().addToData(dataMap).build();
+  //    ConfigMap result = client.configMaps().create(configMap);
+  ////  }
+  //
+  //    return result;
+  //  }
+
+  //  private static Watch watchWorkflowConfigMap(KubernetesClient client, Map<String, String>
+  // labels) {
+  //
+  //    return client.configMaps().withLabels(labels).watch(new Watcher<ConfigMap>() {
+  //      @Override
+  //      public void eventReceived(Action action, ConfigMap resource) {
+  //        LOGGER.info("Watch event received {}: {}", action.name(),
+  // resource.getMetadata().getName());
+  //        switch (action.name()) {
+  //          case "DELETED":
+  //            LOGGER.info(resource.getMetadata().getName() + "got deleted");
+  //              break;
+  //        }
+  //      }
+  //
+  //      @Override
+  //      public void onClose(WatcherException e) {
+  //        LOGGER.error("Watch error received: {}", e.getMessage(), e);
+  //        //Cause the pod to restart
+  //        System.exit(1);
+  //      }
+  //
+  //      @Override
+  //      public void onClose() {
+  //        LOGGER.info("Watch gracefully closed");
+  //      }
+  //    });
+  //  }
 
   @Override
-public ConfigMap createTaskConfigMap(String workflowId,
-    String workflowRunId, String taskName, String taskRunId,
-    Map<String, String> customLabels, List<RunParam> params) {
+  public ConfigMap createTaskConfigMap(
+      String workflowId,
+      String workflowRunId,
+      String taskName,
+      String taskRunId,
+      Map<String, String> customLabels,
+      List<RunParam> params) {
 
-//  Map<String, String> dataMap = new HashMap<>();
-//  Map<String, String> sysProps = new HashMap<>();
-//  sysProps.put("taskrun-name", taskName);
-//  sysProps.put("taskrun-ref", taskRunId);
-//  sysProps.put("workflow-ref", workflowId);
-//  sysProps.put("workflowrun-ref", workflowRunId);
-//  dataMap.put("task.input.properties", helperKubeService.createConfigMapProp(params));
-//  dataMap.put("task.system.properties", helperKubeService.createConfigMapProp(sysProps));
+    //  Map<String, String> dataMap = new HashMap<>();
+    //  Map<String, String> sysProps = new HashMap<>();
+    //  sysProps.put("taskrun-name", taskName);
+    //  sysProps.put("taskrun-ref", taskRunId);
+    //  sysProps.put("workflow-ref", workflowId);
+    //  sysProps.put("workflowrun-ref", workflowRunId);
+    //  dataMap.put("task.input.properties", helperKubeService.createConfigMapProp(params));
+    //  dataMap.put("task.system.properties", helperKubeService.createConfigMapProp(sysProps));
 
-  ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
-      .withGenerateName(helperKubeService.getPrefixCM() + "-")
-      .withLabels(helperKubeService.getTaskLabels(workflowId, workflowRunId, taskRunId, customLabels))
-      .withAnnotations(helperKubeService.getAnnotations("task", workflowId,
-          workflowRunId, taskRunId))
-      .endMetadata().addToData(helperKubeService.createConfigMapData(params)).build();
-  
-  LOGGER.debug("ConfigMap: " + configMap.toString());
-  
-  ConfigMap result = client.configMaps().create(configMap);
-  
-  LOGGER.info(result.toString());
+    ConfigMap configMap =
+        new ConfigMapBuilder()
+            .withNewMetadata()
+            .withGenerateName(helperKubeService.getPrefixCM() + "-")
+            .withLabels(
+                helperKubeService.getTaskLabels(workflowId, workflowRunId, taskRunId, customLabels))
+            .withAnnotations(
+                helperKubeService.getAnnotations("task", workflowId, workflowRunId, taskRunId))
+            .endMetadata()
+            .addToData(helperKubeService.createConfigMapData(params))
+            .build();
 
-  return result;
-}
+    LOGGER.debug("ConfigMap: " + configMap.toString());
+
+    ConfigMap result = client.configMaps().create(configMap);
+
+    LOGGER.info(result.toString());
+
+    return result;
+  }
 
   // protected V1ConfigMap createTaskConfigMapBodyFromEnv(String workflowName, String workflowId,
   // String workflowActivityId, String taskName, String taskId, Map<String, String> parameters) {
@@ -310,10 +375,16 @@ public ConfigMap createTaskConfigMap(String workflowId,
   }
 
   @Override
-  public void deleteTaskConfigMap(String workflowId, String workflowActivityId, String taskActivityId, Map<String, String> customLabels) {
-    deleteConfigMap(helperKubeService.getTaskLabels(workflowId, workflowActivityId, taskActivityId, customLabels));
+  public void deleteTaskConfigMap(
+      String workflowId,
+      String workflowActivityId,
+      String taskActivityId,
+      Map<String, String> customLabels) {
+    deleteConfigMap(
+        helperKubeService.getTaskLabels(
+            workflowId, workflowActivityId, taskActivityId, customLabels));
   }
-  
+
   private void deleteConfigMap(Map<String, String> labels) {
 
     LOGGER.debug("Deleting ConfigMap...");
@@ -322,37 +393,56 @@ public ConfigMap createTaskConfigMap(String workflowId,
 
     client.configMaps().withLabels(labels).delete();
   }
-  
-  protected String getConfigMapName(Map<String, String> labels) {
-  try {
-    ConfigMapList configMapList = client.configMaps().withLabels(labels).list();
 
-    LOGGER.info("ConfigMap List: " + configMapList.toString());
-    
-    if (!configMapList.getItems().isEmpty()) {
-      LOGGER.info(" ConfigMaps() - Found " + configMapList.getItems().size() + " persistentvolumeclaims: "
-          + configMapList.getItems().stream().reduce("", (cmNames, cm) -> cmNames +=
-              cm.getMetadata().getName() + "(" + cm.getMetadata().getCreationTimestamp() + ")",
-              String::concat));
-      if (configMapList.getItems().get(0).getMetadata().getName() != null) {
-        LOGGER.info(" Chosen ConfigMap Name: " + configMapList.getItems().get(0).getMetadata().getName());
-        return configMapList.getItems().get(0).getMetadata().getName();
+  protected String getConfigMapName(Map<String, String> labels) {
+    try {
+      ConfigMapList configMapList = client.configMaps().withLabels(labels).list();
+
+      LOGGER.info("ConfigMap List: " + configMapList.toString());
+
+      if (!configMapList.getItems().isEmpty()) {
+        LOGGER.info(
+            " ConfigMaps() - Found "
+                + configMapList.getItems().size()
+                + " persistentvolumeclaims: "
+                + configMapList.getItems().stream()
+                    .reduce(
+                        "",
+                        (cmNames, cm) ->
+                            cmNames +=
+                                cm.getMetadata().getName()
+                                    + "("
+                                    + cm.getMetadata().getCreationTimestamp()
+                                    + ")",
+                        String::concat));
+        if (configMapList.getItems().get(0).getMetadata().getName() != null) {
+          LOGGER.info(
+              " Chosen ConfigMap Name: " + configMapList.getItems().get(0).getMetadata().getName());
+          return configMapList.getItems().get(0).getMetadata().getName();
+        }
       }
+    } catch (Exception e) {
+      LOGGER.error(e);
     }
-  } catch (Exception e) {
-    LOGGER.error(e);
+    return "";
   }
-  return "";
-  }
-  
+
   protected Boolean isTaskRunResultTooLarge(Map<String, String> labels) {
     try {
       List<Pod> pods = client.pods().withLabels(labels).list().getItems();
-    
+
       if (pods != null && !pods.isEmpty()) {
         Pod pod = pods.get(0);
-//        LogWatch watch = client.pods().inNamespace(pod.getMetadata().getNamespace()).withName(pod.getMetadata().getName()).tailingLines(10).watchLog(out);
-        String lastLine =  client.pods().inNamespace(pod.getMetadata().getNamespace()).withName(pod.getMetadata().getName()).tailingLines(1).getLog();;
+        //        LogWatch watch =
+        // client.pods().inNamespace(pod.getMetadata().getNamespace()).withName(pod.getMetadata().getName()).tailingLines(10).watchLog(out);
+        String lastLine =
+            client
+                .pods()
+                .inNamespace(pod.getMetadata().getNamespace())
+                .withName(pod.getMetadata().getName())
+                .tailingLines(1)
+                .getLog();
+        ;
         if (lastLine.contains("Termination message is above max allowed size 4096")) {
           return Boolean.TRUE;
         }

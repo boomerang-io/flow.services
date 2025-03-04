@@ -1,12 +1,13 @@
-package io.boomerang.model.ref;
+package io.boomerang.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import io.boomerang.common.enums.WorkflowStatus;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.data.annotation.Id;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
