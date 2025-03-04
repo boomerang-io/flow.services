@@ -1,4 +1,4 @@
-FROM eclipse-temurin:18-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 ENV JAVA_OPTS=""
 ENV BMRG_HOME=/opt/boomerang
 ENV BMRG_SVC=service-handler

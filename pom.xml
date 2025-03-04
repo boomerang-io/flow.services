@@ -10,6 +10,7 @@
         <module>lib-common</module>
         <module>service-flow</module>
         <module>service-engine</module>
+        <module>service-handler</module>
     </modules>
 
     <parent>
