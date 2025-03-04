@@ -3,11 +3,27 @@
 Welcome to the Boomerang Flow Services Monorepo! This repository is the powerhouse behind the Boomerang Flow Workflow
 services that enable the creation and execution of workflows as Directed Acyclic Graphs (DAGs).
 
-The Flow service provides v2 RESTful APIs for the CRUD operations backing the front-end and direct consumption with:
+The [Flow service](./service-flow) provides v2 RESTful APIs for the CRUD operations backing the front-end and direct
+consumption with:
 comprehensive User & Team Management, relationship graph
 between objects, authentication and authorisation, scheduling engine and so on.
 
-The Engine services is the backbone providing the execution of the workflows as Directed Acyclic Graphs (DAGs).
+The [Engine service](./service-engine) is the backbone providing the execution of the workflows as Directed Acyclic
+Graphs (DAGs).
+
+The [Handler service](./service-handler) is the service that listens to events and executes the appropriate tasks. The
+Handler that comes with Boomerang Flow by default is the Tekon Handler and executes the Tasks using Tekton on
+Kubernetes. Additional implementations can be added, such as running tasks on IBM Code Engine or Azure Container Apps,
+etc
+
+```mermaid
+graph LR
+    A[External Requests] -->|HTTP| B[Flow Service]
+    B -->|HTTP| C[Engine Service]
+    C -->|Events| D[Handler 1]
+    C -->|Events| E[Handler 2]
+    C -->|Events| F[Handler n]
+```
 
 ## Dependencies
 
