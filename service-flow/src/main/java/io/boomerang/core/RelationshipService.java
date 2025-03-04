@@ -100,8 +100,15 @@ public class RelationshipService {
       String toSlug,
       Optional<Map<String, String>> nodeData,
       Optional<Map<String, String>> edgeData) {
-    RelationshipNodeEntity node = this.createNode(toType, toRef, toSlug, nodeData);
-    this.createEdge(fromType, from, label, toType, node.getRef(), edgeData);
+    RelationshipNodeEntity fromResult =
+        this.getNodeFromGraph(fromType, from, graphCache.getGraph());
+    if (Objects.isNull(fromResult)) {
+      throw new IllegalArgumentException("From node does not exist");
+    }
+    RelationshipNodeEntity toNode = this.createNode(toType, toRef, toSlug, nodeData);
+    edgeRepository.save(
+        new RelationshipEdgeEntity(fromResult.getId(), label, toNode.getId(), edgeData));
+    this.graphCache.buildGraph(nodeRepository.findAll(), edgeRepository.findAll());
   }
 
   /*
