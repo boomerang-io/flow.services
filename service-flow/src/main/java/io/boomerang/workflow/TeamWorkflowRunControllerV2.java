@@ -1,12 +1,12 @@
 package io.boomerang.workflow;
 
+import io.boomerang.common.model.WorkflowRun;
+import io.boomerang.common.model.WorkflowRunCount;
+import io.boomerang.common.model.WorkflowRunRequest;
 import io.boomerang.security.AuthScope;
 import io.boomerang.security.enums.AuthType;
 import io.boomerang.security.enums.PermissionAction;
 import io.boomerang.security.enums.PermissionScope;
-import io.boomerang.common.model.WorkflowRun;
-import io.boomerang.common.model.WorkflowRunCount;
-import io.boomerang.common.model.WorkflowRunRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -44,7 +44,7 @@ public class TeamWorkflowRunControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.WORKFLOWRUN,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
   @Operation(summary = "Search for WorkflowRuns")
   @ApiResponses(
       value = {
@@ -144,7 +144,7 @@ public class TeamWorkflowRunControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.WORKFLOWRUN,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
   @Operation(summary = "Retrieve a summary of WorkflowRuns by Status.")
   @ApiResponses(
       value = {
@@ -195,7 +195,7 @@ public class TeamWorkflowRunControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.WORKFLOWRUN,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
   @Operation(summary = "Retrieve a specific WorkflowRun.")
   @ApiResponses(
       value = {
@@ -226,7 +226,7 @@ public class TeamWorkflowRunControllerV2 {
   @AuthScope(
       action = PermissionAction.ACTION,
       scope = PermissionScope.WORKFLOWRUN,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
   @Operation(
       summary = "Start WorkflowRun execution. The WorkflowRun has to already have been queued.")
   @ApiResponses(
@@ -256,7 +256,7 @@ public class TeamWorkflowRunControllerV2 {
   @AuthScope(
       action = PermissionAction.ACTION,
       scope = PermissionScope.WORKFLOWRUN,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
   @Operation(summary = "End a WorkflowRun")
   @ApiResponses(
       value = {
@@ -284,7 +284,7 @@ public class TeamWorkflowRunControllerV2 {
   @AuthScope(
       action = PermissionAction.ACTION,
       scope = PermissionScope.WORKFLOWRUN,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
   @Operation(summary = "Cancel a WorkflowRun")
   @ApiResponses(
       value = {
@@ -312,7 +312,7 @@ public class TeamWorkflowRunControllerV2 {
   @AuthScope(
       action = PermissionAction.ACTION,
       scope = PermissionScope.WORKFLOWRUN,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
   @Operation(summary = "Retry WorkflowRun execution.")
   @ApiResponses(
       value = {

@@ -1,0 +1,407 @@
+{
+	"info": {
+		"_postman_id": "bba3d328-cc15-4858-91d1-8eea297aebeb",
+		"name": "flow.service.controller",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create Workspace - Local Path",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"tysons-workspace\",\n\t\"id\": \"19880224\",\n\t\"storage\": {\n\t\t\"enable\": true,\n        \"className\": \"local-path\",\n        \"accessMode\": \"ReadWriteOnce\"\n\t}\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/controller/workspace/create",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"controller",
+						"workspace",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Workspace - default",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"tysons-workspace\",\n\t\"id\": \"19880224\",\n\t\"storage\": {\n\t\t\"enable\": true\n\t}\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/controller/workspace/create",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"controller",
+						"workspace",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Workspace",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"tysons-test-workflow\",\n\t\"id\": \"19880224\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/controller/workspace/delete",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"controller",
+						"workspace",
+						"delete"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Workflow",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"workflowName\": \"tysons-test-workflow\",\n\t\"workflowId\": \"19870627\",\n\t\"workflowActivityId\": \"2021041301\",\n\t\"storage\": {\n\t\t\"enable\": false\n\t},\n\t\"parameters\": {\n\t\t\"channel\":\"@gchickma\",\n\t\t\"message\":\"tyson is cool\"\n\t}\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/controller/workflow/create",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"controller",
+						"workflow",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Workflow",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"workflowName\": \"tysons-test-workflow\",\n\t\"workflowId\": \"19870627\",\n\t\"workflowActivityId\": \"2021041301\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/controller/workflow/terminate",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"controller",
+						"workflow",
+						"terminate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Execute Task",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"workflowName\": \"tysons-test-workflow\",\n\t\"workflowId\": \"19870627\",\n\t\"workflowActivityId\": \"2021041301\",\n\t\"taskName\": \"Send Slack Message\",\n\t\"taskId\": \"20200528\",\n\t\"taskActivityId\": \"2020052801\",\n\t\"taskType\": \"template\",\n\t\"parameters\": {\n\t\t\"channel\":\"#ise-support\",\n\t\t\"title\":\"Hello\",\n\t\t\"message\":\"this should work\",\n\t\t\"with-dash\":\"do i have dots?\"\n\t},\n    \"results\": [{\n        \"name\": \"date2\",\n        \"description\": \"\"\n    }],\n    \"image\": \"bash:latest\",\n    \"command\": \"sh\",\n\t\"arguments\": [\n        \"-c\",\n        \"sleep 300 && date | tee /tekton/results/date2\"\n\t],\n    \"configuration\": {\n        \"deletion\": \"Never\"\n    },\n    \"workspaces\": [{\n        \"workspaceId\": \"19880224\"\n    }]\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/controller/task/execute",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"controller",
+						"task",
+						"execute"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Execute Task - No Workspace",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"workflowName\": \"tysons-test-workflow\",\n\t\"workflowId\": \"19870627\",\n\t\"workflowActivityId\": \"2021041301\",\n\t\"taskName\": \"Send Slack Message\",\n\t\"taskId\": \"20200528\",\n\t\"taskActivityId\": \"2020052801\",\n\t\"taskType\": \"template\",\n\t\"parameters\": {\n\t\t\"channel\":\"#ise-support\",\n\t\t\"title\":\"Hello\",\n\t\t\"message\":\"this should work\",\n\t\t\"with-dash\":\"do i have dots?\"\n\t},\n    \"results\": [{\n        \"name\": \"date\",\n        \"description\": \"\"\n    }],\n    \"image\": \"bash:latest\",\n    \"command\": \"sh\",\n\t\"arguments\": [\n        \"-c\",\n        \"date | tee /tekton/results/date\"\n\t],\n    \"configuration\": {\n        \"lifecycle\": false,\n        \"deletion\": \"Never\"\n    }\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/controller/task/execute",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"controller",
+						"task",
+						"execute"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Execute Custom Task",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"workflowName\": \"tysons-test-workflow\",\n\t\"workflowId\": \"19880224\",\n\t\"workflowActivityId\": \"2019011401\",\n\t\"taskName\": \"Send Slack Message\",\n\t\"taskId\": \"198802241\",\n\t\"parameters\": {\n\t\t\"channel\":\"${p:Send Slack Message/channel}\",\n\t\t\"title\":\"Hello\",\n\t\t\"message\":\"this should work\"\n\t},\n\t\"image\":\"busyboxplus:curl\",\n\t\"command\": \"\",\n\t\"arguments\": [\n\t\t\"-v\",\n\t\t\"http://google.com\"\n\t]\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/controller/task/custom/execute",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"controller",
+						"task",
+						"custom",
+						"execute"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Terminate Task",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"workflowName\": \"tysons-test-workflow\",\n\t\"workflowId\": \"19870627\",\n\t\"workflowActivityId\": \"2021041301\",\n\t\"taskName\": \"Send Slack Message\",\n\t\"taskId\": \"20200528\",\n\t\"taskActivityId\": \"2020052801\",\n\t\"taskType\": \"template\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/controller/task/terminate",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"controller",
+						"task",
+						"terminate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Log For Task",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:8080/controller/log/get?workflowId=19880224&workflowActivityId=2019011401&taskId=198802241",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"controller",
+						"log",
+						"get"
+					],
+					"query": [
+						{
+							"key": "workflowId",
+							"value": "19880224"
+						},
+						{
+							"key": "workflowActivityId",
+							"value": "2019011401"
+						},
+						{
+							"key": "taskId",
+							"value": "198802241"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Stream Log For Task",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:8080/controller/log/stream?workflowId=19870627&workflowActivityId=2021041301&taskId=20200528&taskActivityId=2020052801",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"controller",
+						"log",
+						"stream"
+					],
+					"query": [
+						{
+							"key": "workflowId",
+							"value": "19870627"
+						},
+						{
+							"key": "workflowActivityId",
+							"value": "2021041301"
+						},
+						{
+							"key": "taskId",
+							"value": "20200528"
+						},
+						{
+							"key": "taskActivityId",
+							"value": "2020052801"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Swagger",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0cmJ1bGFAdXMuaWJtLmNvbSIsImF0X2hhc2giOiJlUzBlcy12MHdWQ3dNNDdQaVItZ0ZBIiwicmVhbG1OYW1lIjoiVzNJRFJlYWxtIiwiaXNzIjoiaHR0cHM6Ly93M2lkLmFscGhhLnNzby5pYm0uY29tL2lzYW0iLCJhdWQiOiJNemsxTXpObE16a3ROell4TXkwMCIsImV4cCI6MTgyNDY4OTY2MSwiaWF0IjoxNTI0NTk4MjIwLCJuYmYiOjE1MjQ1OTgxMDAsImVtYWlsQWRkcmVzcyI6InRyYnVsYUB1cy5pYm0uY29tIiwibGFzdE5hbWUiOiJSb3kiLCJibHVlR3JvdXBzIjpbIk1hbmFnZXJzYW5kSVNTdXBwb3J0IiwiV1BQTCUyMFVTJTIwTm9uLUxlbm92byUyMEVtcGxveWVlcyIsIklUU0FTJTIwRHluYW1pYyUyME1hbmFnZXJzIiwiSUJNTWFuYWdlcnMiLCJNYW5hZ2VycyUyMCUyNiUyMEhSJTIwUGFydG5lcnMiLCJpYm1sZWFybmluZyIsIklUU0FTJTIwR2VuZXJhbCUyMEFjY2VzcyUyMDIiLCJ1c2VyJTIwLSUyMHBlcmYiLCJXV19NR1JfRElTVCIsIkxBX1N0YXRzIiwiQkhQRU9DQVRTIiwiSUJNJTIwTWFuYWdlcnMiLCJFT0RfQ0NfQ29nbm9zX0dyb3VwIiwiMTM5TWdyIiwidGhpbmttYW5hZ2VtZW50LXByb2QiLCJBbGwlMjBJQk0lMjBNYW5hZ2VycyUyMChZKSIsIkNUUkVHbG9iYWxNZ3JzIiwiQkhQRU9FVkVSWU9ORSIsIm1hYyIsIkdsb2JhbE1ncnNDb21wU291cmNlIiwiSFJXZWJDb21wU291cmNlIiwiaHIuYWxsbWdycyIsIkhSRUNNV1dNYW5hZ2VycyIsIkhSRUNNV1dNYW5hZ2Vyc0FuZEhSV2ViU3VwcG9ydCIsIkNUUkVHbG9iYWxNZ3JzUGFyZW50IiwiSFJFQ01XV01hbmFnZXJzQW5kSFJBbmRIUldlYlN1cHBvcnQiLCJIUkVDTVdXTWFuYWdlcnNBbmRNYW5hZ2VyU3VwcG9ydCIsIkJIU0FQTUdSR1JQIiwiY29tLmlibS50YXAubWxkYi5hY2Nlc3MuaW50ZXJuYWwuYXV0by51cyIsImNvbS5pYm0udGFwLm1sZGIuYWNjZXNzLmludGVybmFsIiwiY29tLmlibS50YXAubWxkYi5hY2Nlc3MubmV3IiwiQkhQRU9TVUJFWFAiLCJCSFBFT0FQUFJERUwiLCJNU19fVklTSU9fX18yMDEzU0VfX0MiLCJNU19fVklTSU9fX18yMDEwU0VfX01BU1RFUiIsIk1TX19WSVNJT19fXzIwMDdTRV9fTUFTVEVSIiwiTVNfX1ZJU0lPX19fMjAxM1NFX19NQVNURVIiLCJJQk0lMjBVUyUyMFJlZ3VsYXJzIiwiTElTJTIwUmVndWxhciUyMFVTIiwibGVnYWxpYm0iLCJhaHVzZXIiLCJPU1BGX01BTkFHRVIiLCJNQU5BR0VSX09TUEYiLCJNSF9USElOS21hbmFnZW1lbnQiLCJBU0VBTiUyMFBlb3BsZSUyME1hbmFnZXJzX0VuZ2FnZW1lbnRfSW5kb25lc2lhIiwicmVjZWl2SWRHcm91cCIsIlVTTWFuYWdlcnNDNEciLCJjb2dub3MucHJvZC5oci53cGEuY29tLnVzIiwiRFNUQVBQTEVJQk0iLCJ3dy1tdXJhbGx5IiwiR2l0TGFiQWNjZXNzIiwiU0wzMjI4OTRfdnBub25seSIsIkRTVCUyMFNvZnRMYXllciUyMEludGVybmFsJTIwc3ViQWNjdHMiLCJTQ19QUk9YWV80X0dST1VQIiwiV0lOX1ZNX01BQ19NQVNURVIiLCJNU19XSU44X01BQyIsIlZNX0ZVU0lPTl9QUk84X01BQyIsIk1GcyUyMGZvciUyMGlPUyUyMC0lMjBubyUyMEpwIiwiQXBwbGVHYXJhZ2VHaXRsYWIiLCJ3dy1zbGFjay1zd2lmdCIsIldXSERDLmJhc2UiLCJUUF9HQlMyIiwiVFBfdXNlcnMiLCJ3dy1wYWdlcmR1dHkiLCJ3dy1pbnZpc2lvbi1yZXZpZXdlci1DQUlPZmZlcmluZ3NSZXZpZXciLCJ3dy1pbnZpc2lvbi1yZXZpZXdlciIsIm5vbi1kc3RJQ0QiLCJ0ZXN0ZGF5by1kYXlvIiwiV1dIREMucnRwLmJvb21lcmFuZyIsIldXSERDLlJUUCIsIklTJTIwV1NSIiwiSVMlMjBXU1IlMjBNYW5hZ2VycyUyMC0lMjBVUyIsIlNlYXJjaExpZ2h0IiwiUEFDX0FVRElUX01BTkFHRVIyIiwiY2I1IiwiZ2JzYWxsdGVjaCIsImludmlzaW9udXNlcnMiLCJib29tZXJhbmdwbGF0Zm9ybS1pY3AtZ2JzLWVuZ2luZWVyaW5nIiwiYm9vbWVyYW5ncGxhdGZvcm0taWNwLWlzYXAiLCJ3dy1pbnZpc2lvbi1pYm1kZXNpZ24yMDE4cHVyY2hhc2UiLCJ3dy1pbnZpc2lvbi1pYm1iZXRhIiwid3ctaW52aXNpb24tYWxsIl0sImNsaWVudElQIjoiMTYyLjE1OC42Mi41MCIsImF1dGhNZXRob2QiOiJleHQtYXV0aC1pbnRlcmZhY2UiLCJ1c2VyQWdlbnQiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMC4xMzsgcnY6NjAuMCkgR2Vja28vMjAxMDAxMDEgRmlyZWZveC82MC4wIiwiY24iOiJUWVNPTiUyMFcuJTIwTEFXUklFIiwiZG4iOiJ1aWQ9NEc3NjA5ODk3LGM9dXMsb3U9Ymx1ZXBhZ2VzLG89aWJtLmNvbSIsInVpZCI6IjRHNzYwOTg5NyIsImZpcnN0TmFtZSI6Ik1BUkNVUyIsImp0aSI6IjE4NDRkN2UwLTI1OTEtNGMxMi1hYzgzLThiNThlYmMxNmIxMSJ9.SLQViFy9RvcYIDlrhrrlQ72WFcGlKv6qxiPBYki3dZc",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/controller/api-docs",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"controller",
+						"api-docs"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
