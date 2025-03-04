@@ -14,23 +14,30 @@ import org.springframework.stereotype.Component;
 
 @Aspect
 @Component
-@ConditionalOnProperty(name="flow.events.sink.enabled", havingValue="true", matchIfMissing = false)
+@ConditionalOnProperty(
+    name = "flow.events.sink.enabled",
+    havingValue = "true",
+    matchIfMissing = false)
 public class WorkflowEntityUpdateInterceptor {
   private static final Logger LOGGER = LogManager.getLogger();
 
   private final WorkflowRepository workflowRepository;
   private final EventSinkService eventSinkService;
 
-  public WorkflowEntityUpdateInterceptor(WorkflowRepository workflowRepository, EventSinkService eventSinkService) {
+  public WorkflowEntityUpdateInterceptor(
+      WorkflowRepository workflowRepository, EventSinkService eventSinkService) {
     this.workflowRepository = workflowRepository;
     this.eventSinkService = eventSinkService;
   }
 
-  @Before("execution(* io.boomerang.data.repository.WorkflowRepository.save(..))"
-      + " && args(entityToBeSaved)")
+  @Before(
+      "execution(* io.boomerang.engine.repository.WorkflowRepository.save(..))"
+          + " && args(entityToBeSaved)")
   public void saveInvoked(JoinPoint thisJoinPoint, Object entityToBeSaved) {
 
-    LOGGER.info("Intercepted save action on entity {} from {}", entityToBeSaved,
+    LOGGER.info(
+        "Intercepted save action on entity {} from {}",
+        entityToBeSaved,
         thisJoinPoint.getSignature().getDeclaringTypeName());
 
     if (entityToBeSaved instanceof WorkflowEntity) {
@@ -43,17 +50,25 @@ public class WorkflowEntityUpdateInterceptor {
     if (StringUtils.isNotBlank(newEntity.getId())) {
 
       // Retrieve old entity and compare the statuses
-      workflowRepository.findById(newEntity.getId()).ifPresent(oldEntity -> {
-        if (oldEntity.getStatus() != newEntity.getStatus()) {
+      workflowRepository
+          .findById(newEntity.getId())
+          .ifPresent(
+              oldEntity -> {
+                if (oldEntity.getStatus() != newEntity.getStatus()) {
 
-          // Status has changed, publish status update CloudEvent
-//          eventingService.publishStatusCloudEvent(newActivityEntity);
-          //TODO: separate out phase and status events
-          eventSinkService.publishStatusCloudEvent(newEntity);
+                  // Status has changed, publish status update CloudEvent
+                  //          eventingService.publishStatusCloudEvent(newActivityEntity);
+                  // TODO: separate out phase and status events
+                  eventSinkService.publishStatusCloudEvent(newEntity);
 
-          LOGGER.info("Workflow Status has changed [Status: " + oldEntity.getStatus() + "] -> [Status: " + newEntity.getStatus() + "].");
-        }
-      });
+                  LOGGER.info(
+                      "Workflow Status has changed [Status: "
+                          + oldEntity.getStatus()
+                          + "] -> [Status: "
+                          + newEntity.getStatus()
+                          + "].");
+                }
+              });
     }
   }
 }

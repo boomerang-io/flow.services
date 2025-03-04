@@ -31,7 +31,7 @@ public class TaskRunEntityUpdateInterceptor {
   }
 
   @Before(
-      "execution(* io.boomerang.data.repository.TaskRunRepository.save(..))"
+      "execution(* io.boomerang.engine.repository.TaskRunRepository.save(..))"
           + " && args(entityToBeSaved)")
   public void saveInvoked(JoinPoint thisJoinPoint, Object entityToBeSaved) {
     LOGGER.info(

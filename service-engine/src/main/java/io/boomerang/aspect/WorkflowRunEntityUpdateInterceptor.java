@@ -38,7 +38,7 @@ public class WorkflowRunEntityUpdateInterceptor {
   }
 
   @Before(
-      "execution(* io.boomerang.data.repository.WorkflowRunRepository.save(..))"
+      "execution(* io.boomerang.engine.repository.WorkflowRunRepository.save(..))"
           + " && args(entityToBeSaved)")
   @ConditionalOnProperty(
       name = "flow.events.sink.enabled",
@@ -57,7 +57,7 @@ public class WorkflowRunEntityUpdateInterceptor {
 
   @AfterReturning(
       pointcut =
-          "execution(* io.boomerang.data.repository.WorkflowRunRepository.save(..)) && args(request)",
+          "execution(* io.boomerang.engine.repository.WorkflowRunRepository.save(..)) && args(request)",
       returning = "entity")
   @ConditionalOnProperty(name = "flow.audit.enabled", havingValue = "true", matchIfMissing = false)
   public void saveInvoked(

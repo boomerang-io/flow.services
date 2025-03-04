@@ -1,5 +1,7 @@
 package io.boomerang.client;
 
+import io.boomerang.common.model.WorkflowSchedule;
+import io.boomerang.error.BoomerangException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,17 +13,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import io.boomerang.error.BoomerangException;
-import io.boomerang.common.model.WorkflowSchedule;
 
 @Service
 @Primary
 public class WorkflowClient {
 
   private static final Logger LOGGER = LogManager.getLogger();
-
-  @Value("${flow.workflow.paramlayers.url}")
-  private String workflowParamsURL;
 
   @Value("${flow.workflow.createschedule.url}")
   private String workflowCreateScheduleURL;
