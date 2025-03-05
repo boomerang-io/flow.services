@@ -1,8 +1,8 @@
 package io.boomerang.core;
 
+import io.boomerang.core.enums.NavigationType;
 import io.boomerang.core.model.Features;
 import io.boomerang.core.model.Navigation;
-import io.boomerang.core.enums.NavigationType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -112,12 +112,12 @@ public class NavigationService {
       response.add(schedules);
 
       Navigation integrations = new Navigation();
-      schedules.setName("Integrations");
-      schedules.setType(NavigationType.link);
-      schedules.setDisabled(disabled);
-      schedules.setIcon("AppConnectivity");
-      schedules.setLink(flowAppsUrl + teamIdURLContext + "/integrations");
-      schedules.setBeta(true);
+      integrations.setName("Integrations");
+      integrations.setType(NavigationType.link);
+      integrations.setDisabled(disabled);
+      integrations.setIcon("AppConnectivity");
+      integrations.setLink(flowAppsUrl + teamIdURLContext + "/integrations");
+      integrations.setBeta(true);
       response.add(integrations);
 
       response.add(divider);
