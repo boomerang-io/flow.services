@@ -1,7 +1,6 @@
 package io.boomerang.common.util;
 
 import io.boomerang.common.model.AbstractParam;
-import io.boomerang.common.model.ParamSpec;
 import io.boomerang.common.model.RunParam;
 import java.util.List;
 
@@ -51,15 +50,14 @@ public class DataAdapterUtil {
 
   public static AbstractParam filterAbstractParam(
       AbstractParam param, boolean isDefaultValue, String fieldType) {
-    if (param == null || fieldType == null || !fieldType.equals(param.getType())) {
-      return null;
+    if (param != null || fieldType != null || fieldType.equals(param.getType())) {
+      if (isDefaultValue) {
+        param.setDefaultValue(null);
+      } else {
+        param.setValue(null);
+      }
+      param.setHiddenValue(Boolean.TRUE);
     }
-    if (isDefaultValue) {
-      param.setDefaultValue(null);
-    } else {
-      param.setValue(null);
-    }
-    param.setHiddenValue(Boolean.TRUE);
     return param;
   }
 
@@ -67,26 +65,18 @@ public class DataAdapterUtil {
    * Method for filtering sensitive data from Parameters based on AbstractConfig type (e.g. make
    * null the value of any password type field)
    *
-   * @param properties
+   * @param params
    * @param fieldType
    * @return
    */
-  public static void filterParamSpecValueByFieldType(
-      List<AbstractParam> config, List<ParamSpec> params, String fieldType) {
-    if (config.stream().anyMatch(c -> fieldType.equals(c.getType()))) {
-      config.stream()
-          .filter(c -> fieldType.equals(c.getType()))
-          .forEach(
-              c -> {
-                c.setValue("");
-                params.stream()
-                    .filter(param -> param.getName().equalsIgnoreCase((c.getKey())))
-                    .forEach(
-                        p -> {
-                          p.setDefaultValue("");
-                        });
-              });
-    }
+  public static void filterParamSpecValueByFieldType(List<AbstractParam> params, String fieldType) {
+    params.stream()
+        .filter(p -> fieldType.equals(p.getType()))
+        .forEach(
+            p -> {
+              p.setValue("");
+              p.setDefaultValue("");
+            });
   }
 
   /**
@@ -106,7 +96,7 @@ public class DataAdapterUtil {
               c -> {
                 c.setValue("");
                 params.stream()
-                    .filter(param -> param.getName().equalsIgnoreCase((c.getKey())))
+                    .filter(param -> param.getName().equalsIgnoreCase((c.getName())))
                     .forEach(
                         p -> {
                           p.setValue("");

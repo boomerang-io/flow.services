@@ -3,28 +3,19 @@ package io.boomerang.error;
 import org.springframework.http.HttpStatus;
 
 public enum BoomerangError {
-  
-  /** 
+
+  /**
    * Add reusable error list here. Map to messages.properties
-   * 
+   *
    * @param code the internal codes documented for end users and systems to integrate
    * @param reason Key to look up in messages.properties
    * @param HttpStatus status to respond as
-   * 
-   * Last updated 2023/10/05 - keep this date updated as this is used across the services.
-   * 
-   * 0-999: Matches existing ranges of public HTTP status codes
-   * 10xx: System & Generic errors such as invalid queries or request based issues
-   * 11xx: Team based errors
-   * 12xx: Workflow based errors
-   * 13xx: WorkflowRun based errors
-   * 14xx: TaskTemplate based errors
-   * 15xx: TaskRun based errors
-   * 16xx: Action based errors
-   * 17xx: Schedule based errors
-   * 18xx: Param based errors
-   * 
-   * */
+   *     <p>Last updated 2023/10/05 - keep this date updated as this is used across the services.
+   *     <p>0-999: Matches existing ranges of public HTTP status codes 10xx: System & Generic errors
+   *     such as invalid queries or request based issues 11xx: Team based errors 12xx: Workflow
+   *     based errors 13xx: WorkflowRun based errors 14xx: TaskTemplate based errors 15xx: TaskRun
+   *     based errors 16xx: Action based errors 17xx: Schedule based errors 18xx: Param based errors
+   */
   USER_UNABLE_TO_DELETE(101, "USER_UNABLE_TO_DELETE", HttpStatus.BAD_REQUEST),
   USER_NOT_FOUND(101, "USER_NOT_FOUND", HttpStatus.BAD_REQUEST),
   IMPORT_WORKFLOW_FAILED(400, "IMPORT_WORKFLOW_FAILED", HttpStatus.BAD_REQUEST),
@@ -67,8 +58,8 @@ public enum BoomerangError {
   SCHEDULE_INVALID_REF(1701, "SCHEDULE_INVALID_REF", HttpStatus.BAD_REQUEST),
   SCHEDULE_INVALID_REQ(1702, "SCHEDULE_INVALID_REQ", HttpStatus.BAD_REQUEST),
   PARAMS_INVALID_REFERENCE(1801, "PARAMS_INVALID_REFERENCE", HttpStatus.BAD_REQUEST),
-  PARAMS_NON_UNIQUE_KEY(1802, "PARAMS_NON_UNIQUE_KEY", HttpStatus.BAD_REQUEST);
-  
+  PARAMS_NON_UNIQUE_REFERENCE(1802, "PARAMS_NON_UNIQUE_REFERENCE", HttpStatus.BAD_REQUEST);
+
   private final int code;
   private final String reason;
   private final HttpStatus status;

@@ -1,18 +1,16 @@
 package io.boomerang.common.entity;
 
-import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import io.boomerang.common.model.ChangeLog;
+import io.boomerang.common.model.Task;
+import io.boomerang.common.model.TaskSpec;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import io.boomerang.common.model.AbstractParam;
-import io.boomerang.common.model.ChangeLog;
-import io.boomerang.common.model.TaskSpec;
-import io.boomerang.common.model.Task;
 
 /*
  * The versioned elements of a task
@@ -34,7 +32,6 @@ public class TaskRevisionEntity {
   private Integer version;
   private ChangeLog changelog;
   private TaskSpec spec = new TaskSpec();
-  private List<AbstractParam> config;
 
   public TaskRevisionEntity() {
     // Do nothing

@@ -129,7 +129,7 @@ public class WorkflowService {
 
     // Filter out sensitive values
     DataAdapterUtil.filterParamSpecValueByFieldType(
-        workflow.getConfig(), workflow.getParams(), FieldType.PASSWORD.value());
+        workflow.getParams(), FieldType.PASSWORD.value());
 
     return workflow;
   }
@@ -182,16 +182,14 @@ public class WorkflowService {
             queryLimit, queryPage, querySort, queryLabels, queryStatus, Optional.of(refs));
 
     LOGGER.debug("Workflow Response: {}", response.toString());
-    // Filter out sensitive values
     if (!response.getContent().isEmpty()) {
       response
           .getContent()
           .forEach(
               w -> {
-                if (w.getConfig() != null) {
-                  DataAdapterUtil.filterParamSpecValueByFieldType(
-                      w.getConfig(), w.getParams(), FieldType.PASSWORD.value());
-                }
+                // Filter out sensitive values
+                DataAdapterUtil.filterParamSpecValueByFieldType(
+                    w.getParams(), FieldType.PASSWORD.value());
                 // Convert Workflow TaskRefs to Slugs
                 convertTaskRefsToSlugs(queryTeam, w);
               });
@@ -257,9 +255,11 @@ public class WorkflowService {
         Optional.empty(),
         Optional.empty());
 
+    // TODO go through and ensure all the required ParamSpec elements are set
+
     // Filter out sensitive values
     DataAdapterUtil.filterParamSpecValueByFieldType(
-        workflow.getConfig(), workflow.getParams(), FieldType.PASSWORD.value());
+        workflow.getParams(), FieldType.PASSWORD.value());
 
     // Convert Workflow TaskRefs to Slugs
     convertTaskRefsToSlugs(team, workflow);
@@ -348,11 +348,13 @@ public class WorkflowService {
         // Convert TaskSlugs to Refs(IDs)
         convertTaskSlugsToRefs(team, workflow);
 
+        // TODO go through and ensure all the required ParamSpec elements are set
+
         Workflow appliedWorkflow = engineClient.applyWorkflow(workflow, replace);
 
         // Filter out sensitive values
         DataAdapterUtil.filterParamSpecValueByFieldType(
-            appliedWorkflow.getConfig(), appliedWorkflow.getParams(), FieldType.PASSWORD.value());
+            appliedWorkflow.getParams(), FieldType.PASSWORD.value());
 
         // Convert Workflow TaskRefs(IDs) to Slugs
         convertTaskRefsToSlugs(team, appliedWorkflow);
@@ -375,15 +377,15 @@ public class WorkflowService {
     if (workflowId == null || workflowId.isBlank()) {
       throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
     }
-    if (relationshipService.check(
-        RelationshipType.WORKFLOW,
-        workflowId,
-        Optional.of(RelationshipType.TEAM),
-        Optional.of(List.of(team)))) {
-      return this.internalSubmit(team, workflowId, request, start);
-    } else {
-      throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
-    }
+    //    if (relationshipService.check(
+    //        RelationshipType.WORKFLOW,
+    //        workflowId,
+    //        Optional.of(RelationshipType.TEAM),
+    //        Optional.of(List.of(team)))) {
+    return this.internalSubmit(team, workflowId, request, start);
+    //    } else {
+    //      throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
+    //    }
   }
 
   /*
@@ -842,8 +844,7 @@ public class WorkflowService {
     Map<String, String> taskNameToNodeId = new HashMap<>();
 
     // Make config the source of truth on the canvas
-    wfCanvas.setConfig(
-        ParameterUtil.paramSpecToAbstractParamV2(workflow.getParams(), workflow.getConfig()));
+    wfCanvas.setConfig(workflow.getParams());
 
     // Create Nodes
     wfTasks.forEach(
@@ -912,12 +913,8 @@ public class WorkflowService {
     Workflow workflow = new Workflow();
     BeanUtils.copyProperties(canvas, workflow);
 
-    // Make params the source of truth on the Workflow
-    // First merge the config so that password defaultValues are preserved
-    workflow.setConfig(ParameterUtil.mergeAbstractParms(workflow.getConfig(), canvas.getConfig()));
-    // Next merge params using the merged config
-    workflow.setParams(
-        ParameterUtil.abstractParamsToParamSpecsV2(workflow.getConfig(), workflow.getParams()));
+    // Convert Config to Params for Workflow storage
+    workflow.setParams(canvas.getConfig());
 
     List<CanvasNode> nodes = canvas.getNodes();
     List<CanvasEdge> edges = canvas.getEdges();

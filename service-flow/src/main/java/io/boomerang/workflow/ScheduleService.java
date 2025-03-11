@@ -42,7 +42,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ScheduleService {
 
-  private final Logger logger = LogManager.getLogger(getClass());
+  private final Logger LOGGER = LogManager.getLogger(getClass());
 
   private final QuartzSchedulerService taskScheduler;
   private final WorkflowScheduleRepository scheduleRepository;
@@ -228,7 +228,7 @@ public class ScheduleService {
       return new WorkflowSchedule(entity, this.taskScheduler.getNextTriggerDate(entity));
     } catch (Exception e) {
       // Trap exception as we still want to return the dates that we can
-      logger.debug("Unable to retrieve next schedule date for {}, skipping.", entity.getId());
+      LOGGER.debug("Unable to retrieve next schedule date for {}, skipping.", entity.getId());
       return new WorkflowSchedule(entity);
     }
   }
@@ -307,7 +307,7 @@ public class ScheduleService {
       } catch (Exception e) {
         // Trap exception as we still want to return the dates that we can
         e.printStackTrace();
-        logger.debug(
+        LOGGER.debug(
             "Unable to retrieve calendar for Schedule: {}, skipping.", scheduleEntity.getId());
       }
     }
@@ -356,7 +356,7 @@ public class ScheduleService {
             if (WorkflowScheduleType.runOnce.equals(scheduleEntity.getType())) {
               Date currentDate = new Date();
               if (scheduleEntity.getDateSchedule().getTime() < currentDate.getTime()) {
-                logger.error(
+                LOGGER.error(
                     "Cannot enable schedule ("
                         + scheduleEntity.getId()
                         + ") as it is in the past.");
@@ -444,10 +444,10 @@ public class ScheduleService {
       WorkflowScheduleEntity schedule = optSchedule.get();
       if (WorkflowScheduleType.runOnce.equals(schedule.getType())) {
         Date currentDate = new Date();
-        logger.info("Current DateTime: ", currentDate.getTime());
-        logger.info("Schedule DateTime: ", schedule.getDateSchedule().getTime());
+        LOGGER.info("Current DateTime: ", currentDate.getTime());
+        LOGGER.info("Schedule DateTime: ", schedule.getDateSchedule().getTime());
         if (schedule.getDateSchedule().getTime() < currentDate.getTime()) {
-          logger.info("Cannot enable schedule (" + schedule.getId() + ") as it is in the past.");
+          LOGGER.info("Cannot enable schedule (" + schedule.getId() + ") as it is in the past.");
           schedule.setStatus(WorkflowScheduleStatus.error);
           scheduleRepository.save(schedule);
         } else {
@@ -530,17 +530,19 @@ public class ScheduleService {
             Optional.empty(),
             Optional.empty())) {
       this.internalDelete(schedule.get());
+    } else {
+      throw new BoomerangException(BoomerangError.SCHEDULE_INVALID_REF);
     }
-    throw new BoomerangException(BoomerangError.SCHEDULE_INVALID_REF);
   }
 
   private void internalDelete(WorkflowScheduleEntity entity) {
     try {
+      LOGGER.debug("Deleting schedule: {}", entity.getId());
       this.taskScheduler.cancelJob(entity);
       scheduleRepository.deleteById(entity.getId());
     } catch (SchedulerException e) {
-      logger.info("Unable to delete schedule: {}.", entity.getId());
-      logger.error(e);
+      LOGGER.info("Unable to delete schedule: {}.", entity.getId());
+      LOGGER.error(e);
     }
   }
 

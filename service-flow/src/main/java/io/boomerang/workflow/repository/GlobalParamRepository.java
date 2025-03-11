@@ -1,19 +1,17 @@
 package io.boomerang.workflow.repository;
 
+import io.boomerang.workflow.entity.GlobalParamEntity;
 import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import io.boomerang.workflow.entity.GlobalParamEntity;
 
-public interface GlobalParamRepository
-    extends MongoRepository<GlobalParamEntity, String> {
+public interface GlobalParamRepository extends MongoRepository<GlobalParamEntity, String> {
 
   @Override
   Optional<GlobalParamEntity> findById(String id);
 
-  Optional<GlobalParamEntity> findOneByKey(String key);
+  Optional<GlobalParamEntity> findOneByName(String name);
 
-  void deleteByKey(String key);
+  void deleteByName(String name);
 
-  Integer countByKey(String key);
-
+  Integer countByName(String name);
 }

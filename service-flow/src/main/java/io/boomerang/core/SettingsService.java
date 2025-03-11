@@ -1,6 +1,5 @@
 package io.boomerang.core;
 
-import io.boomerang.common.model.AbstractParam;
 import io.boomerang.common.util.DateUtil;
 import io.boomerang.core.entity.SettingEntity;
 import io.boomerang.core.enums.ConfigurationType;
@@ -8,6 +7,7 @@ import io.boomerang.core.model.EncryptionConfig;
 import io.boomerang.core.model.Setting;
 import io.boomerang.core.repository.SettingsRepository;
 import io.boomerang.workflow.model.AESAlgorithm;
+import io.boomerang.workflow.model.SettingConfig;
 import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
@@ -66,15 +66,15 @@ public class SettingsService {
   }
 
   private void setConfigsValue(final Setting setting, final SettingEntity entity) {
-    for (final AbstractParam config : setting.getConfig()) {
+    for (final SettingConfig config : setting.getConfig()) {
       final String newValue = config.getValue();
-      final Optional<AbstractParam> result =
+      final Optional<SettingConfig> result =
           entity.getConfig().stream()
               .parallel()
               .filter(x -> config.getKey().equals(x.getKey()))
               .findFirst();
       if (result.isPresent()) {
-        final AbstractParam originalConfig = result.get();
+        final SettingConfig originalConfig = result.get();
         originalConfig.setValue(newValue);
       }
     }
@@ -92,10 +92,10 @@ public class SettingsService {
     return waitForEventUrl;
   }
 
-  public AbstractParam getSettingConfig(String key, String name) {
+  public SettingConfig getSettingConfig(String key, String name) {
     final SettingEntity settings = this.settingsRepository.findOneByKey(key);
-    final List<AbstractParam> configList = settings.getConfig();
-    final Optional<AbstractParam> result =
+    final List<SettingConfig> configList = settings.getConfig();
+    final Optional<SettingConfig> result =
         configList.stream().parallel().filter(x -> name.equals(x.getKey())).findFirst();
 
     if (result.isPresent() && SECURED_TYPE.equalsIgnoreCase(result.get().getType())) {

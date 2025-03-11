@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import io.boomerang.common.model.WorkflowAbstractParam;
 import io.boomerang.common.util.DataAdapterUtil.FieldType;
 import io.boomerang.integrations.data.entity.RevisionEntity;
 import io.boomerang.integrations.data.entity.WorkflowEntity;

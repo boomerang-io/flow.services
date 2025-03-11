@@ -212,7 +212,7 @@ public class TeamControllerV2 {
     teamService.leave(team);
   }
 
-  @DeleteMapping(value = "/{team}/parameters")
+  @DeleteMapping(value = "/{team}/parameters/{name}")
   @AuthScope(
       action = PermissionAction.DELETE,
       scope = PermissionScope.TEAM,
@@ -221,8 +221,8 @@ public class TeamControllerV2 {
       @Parameter(name = "team", description = "Team as owner reference.", required = true)
           @PathVariable
           String team,
-      @RequestBody List<String> keys) {
-    teamService.deleteParameters(team, keys);
+      @PathVariable String name) {
+    teamService.deleteParameter(team, name);
   }
 
   @DeleteMapping(value = "/{team}/approvers")

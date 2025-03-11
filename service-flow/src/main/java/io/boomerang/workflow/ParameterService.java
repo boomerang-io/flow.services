@@ -11,21 +11,23 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /*
  * CRUD for Global Params
- *
- * TODO: check if this is feature gated in settings
  */
 @Service
-public class GlobalParamService {
+public class ParameterService {
+
+  private final Logger LOGGER = LogManager.getLogger(getClass());
 
   private final GlobalParamRepository paramRepository;
 
-  public GlobalParamService(@Autowired GlobalParamRepository paramRepository) {
+  public ParameterService(@Autowired GlobalParamRepository paramRepository) {
     this.paramRepository = paramRepository;
   }
 
@@ -50,8 +52,8 @@ public class GlobalParamService {
   }
 
   public AbstractParam update(AbstractParam param) {
-    if (!Objects.isNull(param) && param.getKey() != null) {
-      Optional<GlobalParamEntity> optParamEntity = paramRepository.findOneByKey(param.getKey());
+    if (!Objects.isNull(param) && param.getName() != null) {
+      Optional<GlobalParamEntity> optParamEntity = paramRepository.findOneByName(param.getName());
       if (!optParamEntity.isEmpty()) {
         // Copy updatedParam to ParamEntity except for ID (requester should not know ID);
         BeanUtils.copyProperties(param, optParamEntity.get(), "id");
@@ -62,25 +64,28 @@ public class GlobalParamService {
     throw new BoomerangException(BoomerangError.PARAMS_INVALID_REFERENCE);
   }
 
-  public AbstractParam create(AbstractParam param) {
-    if (!Objects.isNull(param) && param.getKey() != null) {
+  public AbstractParam create(AbstractParam request) {
+    if (!Objects.isNull(request) && request.getName() != null) {
 
-      // Ensure key is unique
-      if (paramRepository.countByKey(param.getKey()) > 0) {
-        throw new BoomerangException(BoomerangError.PARAMS_NON_UNIQUE_KEY);
+      // Ensure Name is unique
+      if (paramRepository.countByName(request.getName()) > 0) {
+        throw new BoomerangException(BoomerangError.PARAMS_NON_UNIQUE_REFERENCE);
       }
+      LOGGER.debug("Requested GlobalParamEntity: " + request.toString());
 
       GlobalParamEntity entity = new GlobalParamEntity();
-      BeanUtils.copyProperties(param, entity, "id");
+      BeanUtils.copyProperties(request, entity, "id");
+      LOGGER.debug("Creating GlobalParamEntity: " + entity.toString());
       entity = paramRepository.save(entity);
+      LOGGER.debug("Saving GlobalParamEntity: " + entity.toString());
       return convertToAbstractParamAndFilter(entity);
     }
     throw new BoomerangException(BoomerangError.PARAMS_INVALID_REFERENCE);
   }
 
-  public void delete(String key) {
-    if (!Objects.isNull(key) && key != null && paramRepository.countByKey(key) > 0) {
-      paramRepository.deleteByKey(key);
+  public void delete(String name) {
+    if (!Objects.isNull(name) && name != null && paramRepository.countByName(name) > 0) {
+      paramRepository.deleteByName(name);
     }
     throw new BoomerangException(BoomerangError.PARAMS_INVALID_REFERENCE);
   }
@@ -90,7 +95,10 @@ public class GlobalParamService {
    */
   private AbstractParam convertToAbstractParamAndFilter(GlobalParamEntity entity) {
     AbstractParam param = new AbstractParam();
-    BeanUtils.copyProperties(entity, param, "id");
-    return DataAdapterUtil.filterAbstractParam(param, false, FieldType.PASSWORD.value());
+    BeanUtils.copyProperties(entity, param);
+    LOGGER.debug("Copied GlobalParamEntity to AbstractParam: " + param.toString());
+    param = DataAdapterUtil.filterAbstractParam(param, false, FieldType.PASSWORD.value());
+    LOGGER.debug("Converted GlobalParamEntity to AbstractParam: " + param.toString());
+    return param;
   }
 }

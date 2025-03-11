@@ -1,24 +1,23 @@
 package io.boomerang.common.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import io.boomerang.common.model.AbstractParam;
+import io.boomerang.common.model.ChangeLog;
+import io.boomerang.common.model.ParamSpec;
+import io.boomerang.common.model.WorkflowTask;
+import io.boomerang.common.model.WorkflowWorkspace;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import io.boomerang.common.model.ChangeLog;
-import io.boomerang.common.model.ParamSpec;
-import io.boomerang.common.model.WorkflowTask;
-import io.boomerang.common.model.AbstractParam;
-import io.boomerang.common.model.WorkflowWorkspace;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)

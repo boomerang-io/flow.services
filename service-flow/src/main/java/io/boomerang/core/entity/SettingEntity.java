@@ -1,9 +1,10 @@
 package io.boomerang.core.entity;
 
-import io.boomerang.common.model.AbstractParam;
 import io.boomerang.core.enums.ConfigurationType;
 import java.util.Date;
 import java.util.List;
+
+import io.boomerang.workflow.model.SettingConfig;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -12,7 +13,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "#{@mongoConfiguration.fullCollectionName('settings')}")
 public class SettingEntity {
 
-  private List<AbstractParam> config;
+  private List<SettingConfig> config;
   private String description;
   @Id private String id;
   private String key;

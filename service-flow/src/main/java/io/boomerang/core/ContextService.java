@@ -1,6 +1,5 @@
 package io.boomerang.core;
 
-import io.boomerang.common.model.AbstractParam;
 import io.boomerang.core.entity.UserEntity;
 import io.boomerang.core.model.HeaderFeatures;
 import io.boomerang.core.model.HeaderNavigation;
@@ -8,6 +7,8 @@ import io.boomerang.core.model.HeaderNavigationResponse;
 import io.boomerang.core.model.HeaderPlatform;
 import java.util.ArrayList;
 import java.util.List;
+
+import io.boomerang.workflow.model.SettingConfig;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -150,7 +151,7 @@ public class ContextService {
   // return null instead of throwing exception when appName is not configured in settings.
   private String getAppNameInSettings() {
     try {
-      AbstractParam config = settingsService.getSettingConfig("customizations", "appName");
+      SettingConfig config = settingsService.getSettingConfig("customizations", "appName");
       return config == null ? null : config.getValue();
     } catch (Exception e) {
       return null;

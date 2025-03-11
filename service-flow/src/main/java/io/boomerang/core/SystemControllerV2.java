@@ -44,7 +44,7 @@ public class SystemControllerV2 {
 
   @Autowired private UserService userService;
 
-  @Autowired private GlobalParamService paramService;
+  @Autowired private ParameterService paramService;
 
   @Autowired private NavigationService navigationService;
 

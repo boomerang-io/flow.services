@@ -2,7 +2,6 @@ package io.boomerang.workflow;
 
 import io.boomerang.common.model.AbstractParam;
 import io.boomerang.common.model.ParamLayers;
-import io.boomerang.common.model.ParamSpec;
 import io.boomerang.common.model.Workflow;
 import io.boomerang.core.SettingsService;
 import io.boomerang.core.entity.TokenEntity;
@@ -31,17 +30,17 @@ public class ParameterManager {
 
   private SettingsService settingsService;
   private TeamRepository teamRepository;
-  private GlobalParamService globalParamService;
+  private ParameterService parameterService;
   private TokenRepository tokenRepository;
 
   public ParameterManager(
       SettingsService settingsService,
       TeamRepository teamRepository,
-      GlobalParamService globalParamService,
+      ParameterService parameterService,
       TokenRepository tokenRepository) {
     this.settingsService = settingsService;
     this.teamRepository = teamRepository;
-    this.globalParamService = globalParamService;
+    this.parameterService = parameterService;
     this.tokenRepository = tokenRepository;
   }
 
@@ -63,7 +62,7 @@ public class ParameterManager {
       buildTeamParams(teamParams, teamId);
     }
     // Set the Keys from the Workflow - ignore values
-    for (ParamSpec wfParam : workflow.getParams()) {
+    for (AbstractParam wfParam : workflow.getParams()) {
       workflowParams.put(wfParam.getName(), "");
     }
     buildContextParams(contextParams, workflow);
@@ -96,10 +95,10 @@ public class ParameterManager {
    * Build up global Params layer - defaultValue is not used with Global Params and can be ignored.
    */
   private void buildGlobalParams(Map<String, Object> globalParams) {
-    List<AbstractParam> params = this.globalParamService.getAllUnfiltered();
+    List<AbstractParam> params = this.parameterService.getAllUnfiltered();
     for (AbstractParam param : params) {
       if (param.getValue() != null) {
-        globalParams.put(param.getKey(), param.getValue());
+        globalParams.put(param.getName(), param.getValue());
       }
     }
   }
@@ -115,7 +114,7 @@ public class ParameterManager {
     TeamEntity teamEntity = optTeamEntity.get();
     if (teamEntity.getParameters() != null && !teamEntity.getParameters().isEmpty()) {
       for (AbstractParam param : teamEntity.getParameters()) {
-        teamParams.put(param.getKey(), param.getValue());
+        teamParams.put(param.getName(), param.getValue());
       }
     }
   }

@@ -30,7 +30,7 @@ public class ScheduleControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.SCHEDULE,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.workflow, AuthType.session})
   @Operation(summary = "Validate a Schedules CRON.")
   public CronValidationResponse validateCron(
       @Parameter(name = "cron", description = "A CRON expression to validate", required = true)

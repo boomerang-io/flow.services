@@ -1,9 +1,10 @@
 package io.boomerang.core;
 
-import io.boomerang.common.model.AbstractParam;
 import io.boomerang.core.model.Features;
 import java.util.HashMap;
 import java.util.Map;
+
+import io.boomerang.workflow.model.SettingConfig;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,7 +22,7 @@ public class FeatureService {
     Features flowFeatures = new Features();
     Map<String, Object> features = new HashMap<>();
 
-    AbstractParam config = settingsService.getSettingConfig("task", "edit.verified");
+    SettingConfig config = settingsService.getSettingConfig("task", "edit.verified");
 
     if (config != null) {
       features.put(VERIFIED_TASK_EDIT_KEY, config.getBooleanValue());

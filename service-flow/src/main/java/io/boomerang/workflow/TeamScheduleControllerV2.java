@@ -45,7 +45,7 @@ public class TeamScheduleControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.SCHEDULE,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.workflow, AuthType.session})
   @Operation(summary = "Retrieve a Schedule.")
   public WorkflowSchedule get(
       @Parameter(
@@ -63,7 +63,7 @@ public class TeamScheduleControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.SCHEDULE,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.workflow, AuthType.session})
   @Operation(summary = "Search for Schedules")
   public Page<WorkflowSchedule> query(
       @Parameter(
@@ -107,7 +107,7 @@ public class TeamScheduleControllerV2 {
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.SCHEDULE,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.workflow, AuthType.session})
   @Operation(summary = "Retrieve Calendars for Schedules by Dates.")
   public List<WorkflowScheduleCalendar> getCalendarsForSchedules(
       @Parameter(
@@ -133,7 +133,7 @@ public class TeamScheduleControllerV2 {
   @AuthScope(
       action = PermissionAction.WRITE,
       scope = PermissionScope.SCHEDULE,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.workflow, AuthType.session})
   @Operation(summary = "Create a Schedule.")
   public WorkflowSchedule createSchedule(
       @Parameter(
@@ -151,7 +151,7 @@ public class TeamScheduleControllerV2 {
   @AuthScope(
       action = PermissionAction.WRITE,
       scope = PermissionScope.SCHEDULE,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.workflow, AuthType.session})
   @Operation(summary = "Apply a Schedule.")
   public WorkflowSchedule updateSchedule(
       @RequestBody WorkflowSchedule schedule,
@@ -169,7 +169,7 @@ public class TeamScheduleControllerV2 {
   @AuthScope(
       action = PermissionAction.DELETE,
       scope = PermissionScope.SCHEDULE,
-      types = {AuthType.team})
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.workflow, AuthType.session})
   @Operation(summary = "Delete a Schedule.")
   public void deleteSchedule(
       @Parameter(

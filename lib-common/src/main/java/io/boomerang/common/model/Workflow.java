@@ -54,9 +54,8 @@ public class Workflow {
   private boolean upgradesAvailable = false;
   private WorkflowTrigger triggers = new WorkflowTrigger();
   private List<WorkflowTask> tasks = new LinkedList<>();
-  private List<ParamSpec> params = new LinkedList<>();
+  private List<AbstractParam> params = new LinkedList<>();
   private List<WorkflowWorkspace> workspaces = new LinkedList<>();
-  private List<AbstractParam> config = new LinkedList<>();
   private Map<String, Object> unknownFields = new HashMap<>();
 
   @Override
@@ -97,8 +96,6 @@ public class Workflow {
         + params
         + ", workspaces="
         + workspaces
-        + ", config="
-        + config
         + ", unknownFields="
         + unknownFields
         + "]";

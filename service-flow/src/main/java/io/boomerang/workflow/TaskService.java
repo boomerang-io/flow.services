@@ -5,7 +5,6 @@ import io.boomerang.client.TaskResponsePage;
 import io.boomerang.common.model.ChangeLog;
 import io.boomerang.common.model.ChangeLogVersion;
 import io.boomerang.common.model.Task;
-import io.boomerang.common.util.ParameterUtil;
 import io.boomerang.core.RelationshipService;
 import io.boomerang.core.UserService;
 import io.boomerang.core.enums.RelationshipLabel;
@@ -101,16 +100,6 @@ public class TaskService {
 
   private Task internalGet(String id, Optional<Integer> version) {
     Task taskTemplate = engineClient.getTask(id, version);
-
-    // Process Parameters - create configs for any Params
-    taskTemplate
-        .getSpec()
-        .setParams(
-            ParameterUtil.abstractParamsToParamSpecs(
-                taskTemplate.getConfig(), taskTemplate.getSpec().getParams()));
-    taskTemplate.setConfig(
-        ParameterUtil.paramSpecToAbstractParam(
-            taskTemplate.getSpec().getParams(), taskTemplate.getConfig()));
 
     // Switch author from ID to Name
     switchChangeLogAuthorToUserName(taskTemplate.getChangelog());
@@ -277,10 +266,6 @@ public class TaskService {
     // Set verified to false - this is only able to be set via Engine or Loader
     request.setVerified(false);
 
-    // Process Parameters - ensure Param and Config share the same params
-    ParameterUtil.abstractParamsToParamSpecs(request.getConfig(), request.getSpec().getParams());
-    ParameterUtil.paramSpecToAbstractParam(request.getSpec().getParams(), request.getConfig());
-
     // Update Changelog
     updateChangeLog(request.getChangelog());
 
@@ -354,15 +339,6 @@ public class TaskService {
 
     // Update Changelog
     updateChangeLog(request.getChangelog());
-
-    // Process Parameters - ensure Param and Config share the same params
-    request
-        .getSpec()
-        .setParams(
-            ParameterUtil.abstractParamsToParamSpecs(
-                request.getConfig(), request.getSpec().getParams()));
-    request.setConfig(
-        ParameterUtil.paramSpecToAbstractParam(request.getSpec().getParams(), request.getConfig()));
 
     Task template = engineClient.applyTask(request, replace);
     switchChangeLogAuthorToUserName(template.getChangelog());

@@ -1,5 +1,21 @@
 package io.boomerang.misc;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Option;
+import com.jayway.jsonpath.spi.json.JacksonJsonNodeJsonProvider;
+import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
+import io.boomerang.tests.TestUtil;
+import io.cloudevents.CloudEvent;
+import io.cloudevents.json.Json;
+import io.cloudevents.v1.AttributesImpl;
+import io.cloudevents.v1.CloudEventBuilder;
+import io.cloudevents.v1.CloudEventImpl;
+import io.cloudevents.v1.http.Unmarshallers;
 import java.io.IOException;
 import java.net.URI;
 import java.time.ZonedDateTime;
@@ -9,22 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.Option;
-import com.jayway.jsonpath.spi.json.JacksonJsonNodeJsonProvider;
-import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
-import io.boomerang.common.model.WorkflowAbstractParam;
-import io.boomerang.tests.TestUtil;
-import io.cloudevents.CloudEvent;
-import io.cloudevents.json.Json;
-import io.cloudevents.v1.AttributesImpl;
-import io.cloudevents.v1.CloudEventBuilder;
-import io.cloudevents.v1.CloudEventImpl;
-import io.cloudevents.v1.http.Unmarshallers;
 
 public class EventProcessorTest {
 
@@ -39,8 +39,11 @@ public class EventProcessorTest {
 
     System.out.println("Process Message - Event as Message String: " + payload);
 
-    CloudEvent<AttributesImpl, JsonNode> event = Unmarshallers.structured(JsonNode.class)
-        .withHeaders(() -> headers).withPayload(() -> payload).unmarshal();
+    CloudEvent<AttributesImpl, JsonNode> event =
+        Unmarshallers.structured(JsonNode.class)
+            .withHeaders(() -> headers)
+            .withPayload(() -> payload)
+            .unmarshal();
 
     System.out.println("Process Message - Attributes: " + event.getAttributes().toString());
     System.out.println("Process Message - Payload: " + event.getData().get().toString());
@@ -48,7 +51,8 @@ public class EventProcessorTest {
     JsonNode cloudEventData = event.getData().get();
     if (cloudEventData != null) {
       System.out.println("Process Message - data as JsonNode: " + cloudEventData);
-    } ;
+    }
+    ;
 
     processTrigger(cloudEventData, "1234", "dockerhub");
   }
@@ -64,8 +68,14 @@ public class EventProcessorTest {
     System.out.println("Payload: " + payload.toPrettyString());
 
     final CloudEventImpl<JsonNode> cloudEvent =
-        CloudEventBuilder.<JsonNode>builder().withType(eventType).withId(eventId).withSource(uri)
-            .withData(payload).withSubject("test").withTime(ZonedDateTime.now()).build();
+        CloudEventBuilder.<JsonNode>builder()
+            .withType(eventType)
+            .withId(eventId)
+            .withSource(uri)
+            .withData(payload)
+            .withSubject("test")
+            .withTime(ZonedDateTime.now())
+            .build();
 
     final String jsonPayload = Json.encode(cloudEvent);
     System.out.println("CloudEvent: " + jsonPayload);
@@ -79,9 +89,11 @@ public class EventProcessorTest {
     // ObjectMapper mapper = new ObjectMapper();
     // JsonNode jsonPayload = mapper.convertValue(payload, JsonNode.class);
     Configuration jacksonConfig =
-        Configuration.builder().mappingProvider(new JacksonMappingProvider())
+        Configuration.builder()
+            .mappingProvider(new JacksonMappingProvider())
             .jsonProvider(new JacksonJsonNodeJsonProvider())
-            .options(Option.DEFAULT_PATH_LEAF_TO_NULL).build();
+            .options(Option.DEFAULT_PATH_LEAF_TO_NULL)
+            .build();
     List<WorkflowAbstractParam> inputProperties = new LinkedList<>();
     // Test String property that exists
     WorkflowAbstractParam flowProperty1 = new WorkflowAbstractParam();
@@ -100,15 +112,16 @@ public class EventProcessorTest {
       // JsonNode parsedEventData = JsonPath.using(jacksonConfig).parse(payload);
       assertNotNull(inputProperties);
       try {
-        inputProperties.forEach(inputProperty -> {
-          JsonNode propertyValue =
-              JsonPath.using(jacksonConfig).parse(payload).read("$." + inputProperty.getKey());
-          // JsonPath.read(parsedEventData, "$." + inputProperty.getKey());
+        inputProperties.forEach(
+            inputProperty -> {
+              JsonNode propertyValue =
+                  JsonPath.using(jacksonConfig).parse(payload).read("$." + inputProperty.getKey());
+              // JsonPath.read(parsedEventData, "$." + inputProperty.getKey());
 
-          if (!propertyValue.isNull()) {
-            properties.put(inputProperty.getKey(), propertyValue.toString());
-          }
-        });
+              if (!propertyValue.isNull()) {
+                properties.put(inputProperty.getKey(), propertyValue.toString());
+              }
+            });
       } catch (Exception e) {
         System.out.println("processTrigger() - Error: " + e.toString());
       }
@@ -119,8 +132,9 @@ public class EventProcessorTest {
 
     properties.put("io.boomerang.triggers.data", payload.toString());
 
-    properties.forEach((k, v) -> {
-      System.out.println(k + "=" + v);
-    });
+    properties.forEach(
+        (k, v) -> {
+          System.out.println(k + "=" + v);
+        });
   }
 }

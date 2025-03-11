@@ -1,16 +1,10 @@
 package io.boomerang.common.util;
 
+import io.boomerang.common.enums.ConfigType;
 import io.boomerang.common.enums.ParamType;
-import io.boomerang.common.model.AbstractParam;
-import io.boomerang.common.model.ParamSpec;
-import io.boomerang.common.model.RunParam;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import io.boomerang.common.model.*;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ParameterUtil {
@@ -214,185 +208,88 @@ public class ParameterUtil {
     return reducedParamList;
   }
 
-  /*
-   * Turns the AbstractParam used by the UI into ParamSpec used by the Engine and Handlers
-   *
-   * TODO: what is the mapping of ConfigType to ParamType
-   */
-  public static List<ParamSpec> abstractParamsToParamSpecs(
-      List<AbstractParam> abstractParams, List<ParamSpec> paramSpecs) {
-    List<ParamSpec> params = new LinkedList<>();
-    if (abstractParams != null && !abstractParams.isEmpty()) {
-      for (AbstractParam ap : abstractParams) {
-        ParamSpec param = new ParamSpec();
-        if (paramSpecs != null
-            && !paramSpecs.isEmpty()
-            && paramSpecs.stream().anyMatch(p -> p.getName().equals(ap.getKey()))) {
-          param =
-              paramSpecs.stream().filter(p -> p.getName().equals(ap.getKey())).findFirst().get();
-          paramSpecs.remove(param);
-        } else {
-          param.setName(ap.getKey());
-        }
-        param.setDefaultValue(ap.getDefaultValue());
-        param.setDescription(ap.getDescription());
-        param.setType(ParamType.string);
-        params.add(param);
-      }
-      ;
-    }
-    // If any paramSpecs are remaining, return them
-    if (paramSpecs != null && !paramSpecs.isEmpty()) {
-      params.addAll(paramSpecs);
-    }
-    return params;
-  }
+//  /*
+//   * Turns the AbstractParam used by the UI into ParamSpec used by the Engine and Handlers
+//   */
+//  public static List<ParamSpec> abstractParamsToParamSpecs(List<AbstractParam> abstractParams) {
+//    List<ParamSpec> params = new LinkedList<>();
+//    if (abstractParams != null && !abstractParams.isEmpty()) {
+//      for (AbstractParam ap : abstractParams) {
+//        ParamSpec param = new ParamSpec();
+//        param.setName(ap.getKey());
+//        param.setDescription(ap.getDescription());
+//        switch (ConfigType.getConfigType(ap.getType())) {
+//          case MULTISELECT -> param.setType(ParamType.array);
+//          case JSON -> param.setType(ParamType.object);
+//          default -> param.setType(ParamType.string);
+//        }
+//        param.setDefaultValue(ap.getDefaultValue());
+//        Config config = new Config();
+//        BeanUtils.copyProperties(ap, config);
+//        param.setConfig(config);
+//        params.add(param);
+//      }
+//      ;
+//    }
+//    return params;
+//  }
 
-  // Similar to above, however assumes that the Abstract Param is source of truth.
-  // That means if there is no defaultValue or description in the Abstract Param, then null is the
-  // correct value to set
-  // If the Abstract Param doesn't exist but it does in the ParamSpec, then do not return it, it
-  // must have been deleted.
-  public static List<ParamSpec> abstractParamsToParamSpecsV2(
-      List<AbstractParam> abstractParams, List<ParamSpec> paramSpecs) {
-    List<ParamSpec> params = new LinkedList<>();
-    if (abstractParams != null && !abstractParams.isEmpty()) {
-      for (AbstractParam ap : abstractParams) {
-        ParamSpec param = new ParamSpec();
-        // We mainly do this for secret abstractParams where the value would have been set to the UI
-        // as blank
-        if (paramSpecs != null
-            && !paramSpecs.isEmpty()
-            && paramSpecs.stream().anyMatch(p -> p.getName().equals(ap.getKey()))) {
-          param =
-              paramSpecs.stream().filter(p -> p.getName().equals(ap.getKey())).findFirst().get();
-          paramSpecs.remove(param);
-        } else {
-          param.setName(ap.getKey());
-        }
-        param.setName(ap.getKey());
-        // If secret, only replace the stored value when not empty (as its removed on display to the
-        // UI)
-        if (ap.getType().equals("password")
-            && !Objects.isNull(ap.getDefaultValue())
-            && !ap.getDefaultValue().isEmpty()) {
-          param.setDefaultValue(ap.getDefaultValue());
-        }
-        param.setDescription(ap.getDescription());
-        // TODO: conditionally know the type based on AbstractParam type
-        // Need to do a mapping
-        param.setType(ParamType.string);
-        params.add(param);
-      }
-      ;
-    }
-    return params;
-  }
+  //
+  //  // Loop through the newAPs and if of password type with empty defaultValue, retrieve the
+  // original
+  //  // value
+  //  public static List<AbstractParam> mergeAbstractParms(
+  //      List<AbstractParam> origAP, List<AbstractParam> newAP) {
+  //    if (newAP != null && !newAP.isEmpty()) {
+  //      for (AbstractParam ap : newAP) {
+  //        if (ap.getType().equals("password") && ap.getDefaultValue().toString().isEmpty()) {
+  //          if (origAP.stream().anyMatch(p -> p.getKey().equals(ap.getKey()))) {
+  //            ap.setDefaultValue(
+  //                origAP.stream()
+  //                    .filter(p -> p.getKey().equals(ap.getKey()))
+  //                    .findFirst()
+  //                    .get()
+  //                    .getDefaultValue());
+  //          }
+  //        }
+  //      }
+  //    }
+  //    return newAP;
+  //  }
+  //
+  //  /*
+  //   * Turns the ParamSpec into an AbstractParam for Canvas UI
+  //   *
+  //   * TODO this loses the type when going back and forth. Need to move the model to use the same
+  // ParamSpec instead of AbstractParam
+  //   */
+  //  public static List<AbstractParam> paramSpecToAbstractParam(List<ParamSpec> paramSpecs) {
+  //    List<AbstractParam> params = new LinkedList<>();
+  //    if (paramSpecs != null && !paramSpecs.isEmpty()) {
+  //      for (ParamSpec ps : paramSpecs) {
+  //        AbstractParam ap = new AbstractParam();
+  //        BeanUtils.copyProperties(ps.getConfig(), ap);
+  //        ap.setKey(ps.getName());
+  //        ap.setDefaultValue(ps.getDefaultValue() != null ? ps.getDefaultValue() : null);
+  //        ap.setDescription(ps.getDescription());
+  //        // Set needed Label
+  //        if (Objects.isNull(ap.getLabel()) || ap.getLabel().isBlank()) {
+  //          ap.setLabel(ps.getName());
+  //        }
+  //        params.add(ap);
+  //      }
+  //    }
+  //    return params;
+  //  }
 
-  // Loop through the newAPs and if of password type with empty defaultValue, retrieve the original
-  // value
-  public static List<AbstractParam> mergeAbstractParms(
-      List<AbstractParam> origAP, List<AbstractParam> newAP) {
-    if (newAP != null && !newAP.isEmpty()) {
-      for (AbstractParam ap : newAP) {
-        if (ap.getType().equals("password") && ap.getDefaultValue().isEmpty()) {
-          if (origAP.stream().anyMatch(p -> p.getKey().equals(ap.getKey()))) {
-            ap.setDefaultValue(
-                origAP.stream()
-                    .filter(p -> p.getKey().equals(ap.getKey()))
-                    .findFirst()
-                    .get()
-                    .getDefaultValue());
-          }
-        }
-      }
+  public static ParamType getTektonParamType(String type) {
+    switch (ConfigType.getConfigType(type)) {
+      case ConfigType.MULTISELECT:
+        return ParamType.array;
+      case ConfigType.JSON:
+        return ParamType.object;
+      default:
+        return ParamType.string;
     }
-    return newAP;
-  }
-
-  /*
-   * Turns the ParamSpec into an AbstractParam. Used if the Workflow was created by API or other
-   * means not the UI
-   *
-   * TODO: what is the mapping of ConfigType to ParamType
-   */
-  public static List<AbstractParam> paramSpecToAbstractParam(
-      List<ParamSpec> paramSpecs, List<AbstractParam> abstractParams) {
-    List<AbstractParam> params = new LinkedList<>();
-    if (paramSpecs != null && !paramSpecs.isEmpty()) {
-      for (ParamSpec ps : paramSpecs) {
-        AbstractParam param = new AbstractParam();
-        if (abstractParams.stream().anyMatch(p -> p.getKey().equals(ps.getName()))) {
-          param =
-              abstractParams.stream()
-                  .filter(p -> p.getKey().equals(ps.getName()))
-                  .findFirst()
-                  .get();
-          abstractParams.remove(param);
-        } else {
-          param.setKey(ps.getName());
-        }
-        if (ps.getDefaultValue() != null) {
-          param.setDefaultValue(ps.getDefaultValue().toString());
-        }
-        param.setDescription(ps.getDescription());
-        // TOOD better type mapping
-        if (param.getType().isEmpty()) {
-          param.setType("text");
-        }
-        params.add(param);
-      }
-    }
-    // If any abstractParams are remaining, return them
-    if (abstractParams != null && !abstractParams.isEmpty()) {
-      params.addAll(abstractParams);
-    }
-    return params;
-  }
-
-  // Similar to above, however assumes that the Param spec has the correct value
-  public static List<AbstractParam> paramSpecToAbstractParamV2(
-      List<ParamSpec> paramSpecs, List<AbstractParam> abstractParams) {
-    // If paramSpecs is empty, return empty params
-    List<AbstractParam> params = new LinkedList<>();
-    if (paramSpecs != null && !paramSpecs.isEmpty()) {
-      for (ParamSpec ps : paramSpecs) {
-        AbstractParam param = new AbstractParam();
-        if (abstractParams.stream().anyMatch(p -> p.getKey().equals(ps.getName()))) {
-          param =
-              abstractParams.stream()
-                  .filter(p -> p.getKey().equals(ps.getName()))
-                  .findFirst()
-                  .get();
-          abstractParams.remove(param);
-        } else {
-          param.setKey(ps.getName());
-        }
-        // Any value from Param Spec is trusted, thus override even if empty / null
-        param.setDefaultValue(
-            Objects.isNull(ps.getDefaultValue()) ? null : ps.getDefaultValue().toString());
-        param.setDescription(ps.getDescription());
-        // Check before defaulting as may be an existing property and because the following elements
-        // don't exist on ParamSpec, we have to merge.
-        if (Objects.isNull(param.getLabel()) || param.getLabel().isEmpty()) {
-          param.setLabel(ps.getName());
-        }
-        if (Objects.isNull(param.getType()) || param.getType().isEmpty()) {
-          // TOOD better type mapping
-          // Would have to detect multiline values
-          // Handle objects vs arrays
-          param.setType("text");
-        }
-        if (Objects.isNull(param.isReadOnly())) {
-          param.setReadOnly(false);
-        }
-        if (Objects.isNull(param.getPlaceholder()) || param.getPlaceholder().isEmpty()) {
-          param.setPlaceholder("");
-        }
-        params.add(param);
-      }
-      ;
-    }
-    return params;
   }
 }

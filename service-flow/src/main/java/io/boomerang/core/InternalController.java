@@ -1,10 +1,10 @@
 package io.boomerang.core;
 
 import io.boomerang.common.entity.WorkflowScheduleEntity;
-import io.boomerang.common.model.AbstractParam;
 import io.boomerang.common.model.WorkflowSchedule;
 import io.boomerang.core.entity.SettingEntity;
 import io.boomerang.workflow.ScheduleService;
+import io.boomerang.workflow.model.SettingConfig;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -49,7 +49,7 @@ public class InternalController {
       SettingEntity settings = settingsService.getSettingByKey(key);
       return ResponseEntity.ok(
           settings.getConfig().stream()
-              .collect(Collectors.toMap(AbstractParam::getKey, AbstractParam::getValue)));
+              .collect(Collectors.toMap(SettingConfig::getKey, SettingConfig::getValue)));
     } catch (Exception e) {
       return ResponseEntity.noContent().build();
     }

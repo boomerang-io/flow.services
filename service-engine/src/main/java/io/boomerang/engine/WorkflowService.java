@@ -345,7 +345,6 @@ public class WorkflowService {
     } else {
       wfRevisionEntity.setTasks(request.getTasks());
     }
-    wfRevisionEntity.setConfig(request.getConfig());
     wfRevisionEntity.setTimeout(request.getTimeout());
     wfRevisionEntity.setRetries(request.getRetries());
 

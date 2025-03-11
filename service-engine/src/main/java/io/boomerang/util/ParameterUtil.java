@@ -1,6 +1,8 @@
 package io.boomerang.util;
 
-import io.boomerang.common.enums.ParamType;
+import static io.boomerang.common.util.ParameterUtil.getTektonParamType;
+
+import io.boomerang.common.model.AbstractParam;
 import io.boomerang.common.model.ParamSpec;
 import io.boomerang.common.model.RunParam;
 import java.util.HashMap;
@@ -20,14 +22,9 @@ public class ParameterUtil {
    * @param the new parameter to add
    * @return the parameter list
    */
-  public static List<RunParam> paramSpecToRunParam(List<ParamSpec> parameterList) {
+  public static List<RunParam> paramSpecToRunParam(List<AbstractParam> parameterList) {
     return parameterList.stream()
-        .map(
-            p ->
-                new RunParam(
-                    p.getName(),
-                    p.getDefaultValue(),
-                    p.getType() != null ? p.getType() : ParamType.string))
+        .map(p -> new RunParam(p.getName(), p.getDefaultValue(), getTektonParamType(p.getType())))
         .collect(Collectors.toList());
   }
 

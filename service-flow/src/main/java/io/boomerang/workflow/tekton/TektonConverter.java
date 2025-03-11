@@ -1,76 +1,79 @@
 package io.boomerang.workflow.tekton;
 
-import io.boomerang.common.model.AbstractParam;
-import io.boomerang.common.model.ChangeLog;
-import io.boomerang.common.model.ParamSpec;
-import io.boomerang.common.model.Task;
+import static io.boomerang.common.util.ParameterUtil.getTektonParamType;
+
+import io.boomerang.common.enums.ConfigType;
+import io.boomerang.common.model.*;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.beans.BeanUtils;
 
 public class TektonConverter {
 
   private TektonConverter() {}
 
-  public static TektonTask convertTaskTemplateToTektonTask(Task taskTemplate) {
+  public static TektonTask convertTaskTemplateToTektonTask(Task task) {
     TektonTask tektonTask = new TektonTask();
     tektonTask.setApiVersion("tekton.dev/v1beta1");
     tektonTask.setKind("Task");
 
     Metadata metadata = new Metadata();
-    metadata.setName(taskTemplate.getName());
+    metadata.setName(task.getName());
     metadata.setLabels(new HashMap<String, String>());
-    List<AbstractParam> configList = taskTemplate.getConfig();
-    configList.forEach(
-        c -> {
-          c.setDescription(null);
-          c.setDefaultValue(null);
-        });
+
+    List<AbstractParam> paramAnnotation = new LinkedList<>();
+    if (task.getSpec().getParams() != null && !task.getSpec().getParams().isEmpty()) {
+      task.getSpec()
+          .getParams()
+          .forEach(
+              ap -> {
+                ap.setDescription(null);
+                ap.setDefaultValue(null);
+                paramAnnotation.add(ap);
+              });
+    }
+
     Map<String, Object> annotations = metadata.getAnnotations();
-    annotations.putAll(taskTemplate.getAnnotations());
-    annotations.put("boomerang.io/icon", taskTemplate.getIcon());
-    annotations.put("boomerang.io/params", configList);
-    annotations.put("boomerang.io/category", taskTemplate.getCategory());
-    annotations.put("boomerang.io/displayName", taskTemplate.getDisplayName());
-    annotations.put("boomerang.io/version", taskTemplate.getVersion());
-    annotations.put("boomerang.io/verified", taskTemplate.isVerified());
+    annotations.putAll(task.getAnnotations());
+    annotations.put("boomerang.io/icon", task.getIcon());
+    annotations.put("boomerang.io/params", paramAnnotation);
+    annotations.put("boomerang.io/category", task.getCategory());
+    annotations.put("boomerang.io/displayName", task.getDisplayName());
+    annotations.put("boomerang.io/version", task.getVersion());
+    annotations.put("boomerang.io/verified", task.isVerified());
     tektonTask.setMetadata(metadata);
 
     Spec spec = new Spec();
-    spec.setDescription(taskTemplate.getDescription());
+    spec.setDescription(task.getDescription());
 
     Step step = new Step();
-    step.setName(taskTemplate.getName());
-    step.setImage(taskTemplate.getSpec().getImage());
-    step.setScript(taskTemplate.getSpec().getScript());
-    step.setWorkingDir(taskTemplate.getSpec().getWorkingDir());
-    step.setEnv(taskTemplate.getSpec().getEnvs());
-    step.setCommand(taskTemplate.getSpec().getCommand());
-    step.setArgs(taskTemplate.getSpec().getArguments());
+    step.setName(task.getName());
+    step.setImage(task.getSpec().getImage());
+    step.setScript(task.getSpec().getScript());
+    step.setWorkingDir(task.getSpec().getWorkingDir());
+    step.setEnv(task.getSpec().getEnvs());
+    step.setCommand(task.getSpec().getCommand());
+    step.setArgs(task.getSpec().getArguments());
 
     List<Step> steps = new LinkedList<>();
     steps.add(step);
     spec.setSteps(steps);
 
-    // Assumes that on creation - the web client config is transformed to Params
-    List<Param> params = new LinkedList<>();
-    if (taskTemplate.getSpec().getParams() != null) {
-      for (ParamSpec templateParam : taskTemplate.getSpec().getParams()) {
-        Param param = new Param();
-        param.setName(templateParam.getName());
-        param.setDescription(templateParam.getDescription());
-        if (templateParam.getDefaultValue() != null) {
-          param.setDefaultValue(templateParam.getDefaultValue());
-        }
-        param.setType(templateParam.getType());
-        params.add(param);
+    List<ParamSpec> params = new LinkedList<>();
+    if (task.getSpec().getParams() != null) {
+      for (AbstractParam param : task.getSpec().getParams()) {
+        ParamSpec tektonParam = new ParamSpec();
+        BeanUtils.copyProperties(param, tektonParam, "type");
+        tektonParam.setType(getTektonParamType(param.getType()));
+        params.add(tektonParam);
       }
     }
     spec.setParams(params);
-    spec.setResults(taskTemplate.getSpec().getResults());
+    spec.setResults(task.getSpec().getResults());
     tektonTask.setSpec(spec);
 
     return tektonTask;
@@ -84,43 +87,41 @@ public class TektonConverter {
    *
    * TODO: figure out how Type is set
    */
-  public static Task convertTektonTaskToTaskTemplate(TektonTask task) {
-    Task taskTemplate = new Task();
+  public static Task convertTektonTaskToTaskTemplate(TektonTask tektonTask) {
+    Task task = new Task();
 
-    Metadata metadata = task.getMetadata();
-    taskTemplate.setName(metadata.getName());
-    taskTemplate.setLabels(metadata.getLabels());
+    Metadata metadata = tektonTask.getMetadata();
+    task.setName(metadata.getName());
+    task.setLabels(metadata.getLabels());
 
-    List<AbstractParam> config = new LinkedList<>();
-    taskTemplate.setConfig(config);
     List<AbstractParam> annotationParams = new LinkedList<>();
     if (metadata.getAnnotations() != null && !metadata.getAnnotations().isEmpty()) {
       Map<String, Object> annotations = metadata.getAnnotations();
       Object icon = annotations.get("boomerang.io/icon");
       if (icon != null) {
-        taskTemplate.setIcon(icon.toString());
+        task.setIcon(icon.toString());
       }
       annotations.remove("boomerang.io/icon");
       Object category = annotations.get("boomerang.io/category");
       if (category != null) {
-        taskTemplate.setCategory(category.toString());
+        task.setCategory(category.toString());
       }
       annotations.remove("boomerang.io/category");
       // Check if description is set as an annotation. It will be overridden if the Spec has the
       // optional description
       Object description = annotations.get("description");
       if (description != null) {
-        taskTemplate.setDescription(description.toString());
+        task.setDescription(description.toString());
       }
       annotations.remove("description");
       Object displayName = annotations.get("boomerang.io/displayName");
       if (displayName != null) {
-        taskTemplate.setDisplayName(displayName.toString());
+        task.setDisplayName(displayName.toString());
       }
       annotations.remove("boomerang.io/displayName");
       Object version = annotations.get("boomerang.io/version");
       if (version != null) {
-        taskTemplate.setVersion((Integer) version);
+        task.setVersion((Integer) version);
       }
       annotations.remove("boomerang.io/version");
       annotations.remove("boomerang.io/verified");
@@ -128,47 +129,50 @@ public class TektonConverter {
       if (abstractParams != null) {
         annotationParams = (List<AbstractParam>) abstractParams;
       }
+      annotations.remove("boomerang.io/params");
     }
 
-    Spec spec = task.getSpec();
+    Spec spec = tektonTask.getSpec();
     if (spec.getDescription() != null && !spec.getDescription().isBlank()) {
-      taskTemplate.setDescription(spec.getDescription());
+      task.setDescription(spec.getDescription());
     }
     Step step = spec.getSteps().get(0);
     if (step.getImage() != null && !step.getImage().isBlank()) {
-      taskTemplate.getSpec().setImage(step.getImage());
+      task.getSpec().setImage(step.getImage());
     }
     if (step.getScript() != null && !step.getScript().isBlank()) {
-      taskTemplate.getSpec().setScript(step.getScript());
+      task.getSpec().setScript(step.getScript());
     }
     if (step.getWorkingDir() != null && !step.getWorkingDir().isBlank()) {
-      taskTemplate.getSpec().setWorkingDir(step.getWorkingDir());
+      task.getSpec().setWorkingDir(step.getWorkingDir());
     }
     if (step.getEnv() != null && !step.getEnv().isEmpty()) {
-      taskTemplate.getSpec().setEnvs(step.getEnv());
+      task.getSpec().setEnvs(step.getEnv());
     }
     if (step.getCommand() != null && !step.getCommand().isEmpty()) {
-      taskTemplate.getSpec().setCommand(step.getCommand());
+      task.getSpec().setCommand(step.getCommand());
     }
     if (step.getArgs() != null && !step.getArgs().isEmpty()) {
-      taskTemplate.getSpec().setArguments(step.getArgs());
+      task.getSpec().setArguments(step.getArgs());
     }
 
     if (spec.getParams() != null && !spec.getParams().isEmpty()) {
-      List<ParamSpec> paramSpecs = new LinkedList<>();
-      for (Param param : spec.getParams()) {
-        ParamSpec paramSpec = new ParamSpec();
-        paramSpec.setName(param.getName());
-        paramSpec.setDescription(param.getDescription());
-        paramSpec.setDefaultValue(param.getDefaultValue());
-        paramSpec.setType(param.getType());
-        paramSpecs.add(paramSpec);
-        Optional<AbstractParam> aParam =
-            annotationParams.stream().filter(c -> c.getKey().equals(param.getName())).findFirst();
-        if (aParam.isPresent()) {
-          aParam.get().setDefaultValue(null);
-          aParam.get().setDescription(null);
-          // Legacy - might not be needed with model deserialisation
+      List<AbstractParam> params = new LinkedList<>();
+      for (ParamSpec tektonParam : spec.getParams()) {
+        AbstractParam param = new AbstractParam();
+        BeanUtils.copyProperties(tektonParam, param, "type");
+        // TODO: check if types still are valid between the Tekton Model and the AbstractParam in
+        // the
+        // Annotation
+        Optional<AbstractParam> optionalAbstractParam =
+            annotationParams.stream()
+                .filter(ap -> ap.getName().equals(tektonParam.getName()))
+                .findFirst();
+        if (optionalAbstractParam.isPresent()) {
+          // TODO: does it get stored as default or defaultValue in the annotation
+          BeanUtils.copyProperties(
+              optionalAbstractParam.get(), param, "defaultValue", "description", "name");
+          // Legacy - might not be needed with model deserialisation of TextArea and CodeEditor
           // if (defaultStr instanceof ArrayList<?>){
           // ArrayList<String> values = (ArrayList<String>) defaultStr;
           // StringBuilder sb = new StringBuilder();
@@ -178,20 +182,18 @@ public class TektonConverter {
           // newConfig.setDefaultValue(sb.toString());
           // }
           // }
-          // TODO ensure type matches
-          taskTemplate.getConfig().add(aParam.get());
         } else {
-          AbstractParam newAbstractParam = new AbstractParam();
-          newAbstractParam.setKey(param.getName());
-          newAbstractParam.setLabel(param.getName());
-          newAbstractParam.setType("text");
-          newAbstractParam.setReadOnly(false);
-          newAbstractParam.setPlaceholder("");
-          // TODO ensure type matches
-          taskTemplate.getConfig().add(newAbstractParam);
+          param.setLabel(tektonParam.getName());
+          param.setReadOnly(false);
+          switch (tektonParam.getType()) {
+            case array -> param.setType(ConfigType.MULTISELECT.getLabel());
+            case object -> param.setType(ConfigType.JSON.getLabel());
+            default -> param.setType(ConfigType.TEXT.getLabel());
+          }
         }
+        params.add(param);
       }
-      taskTemplate.getSpec().setParams(paramSpecs);
+      task.getSpec().setParams(params);
     }
 
     if (spec.getResults() != null && !spec.getResults().isEmpty()) {
@@ -200,7 +202,7 @@ public class TektonConverter {
 
     ChangeLog changelog = new ChangeLog();
     changelog.setDate(new Date());
-    taskTemplate.setChangelog(changelog);
-    return taskTemplate;
+    task.setChangelog(changelog);
+    return task;
   }
 }

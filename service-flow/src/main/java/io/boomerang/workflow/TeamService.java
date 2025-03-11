@@ -481,10 +481,12 @@ public class TeamService {
       List<AbstractParam> parameters, List<AbstractParam> request) {
     if (!request.isEmpty()) {
       LOGGER.debug("Starting Parameters: " + parameters.toString());
-      List<String> keys = request.stream().map(AbstractParam::getKey).toList();
+      List<String> names = request.stream().map(AbstractParam::getName).toList();
       // Check if parameter exists and remove
       parameters =
-          parameters.stream().filter(p -> !keys.contains(p.getKey())).collect(Collectors.toList());
+          parameters.stream()
+              .filter(p -> !names.contains(p.getName()))
+              .collect(Collectors.toList());
 
       // Add all new / updated params
       parameters.addAll(request);
@@ -496,7 +498,7 @@ public class TeamService {
   /*
    * Delete parameters by key
    */
-  public void deleteParameters(String team, List<String> request) {
+  public void deleteParameter(String team, String name) {
     if (team == null || team.isBlank()) {
       throw new BoomerangException(BoomerangError.TEAM_INVALID_REF);
     }
@@ -512,18 +514,16 @@ public class TeamService {
 
     if (teamEntity.getParameters() != null) {
       List<AbstractParam> parameters = teamEntity.getParameters();
-      for (String r : request) {
-        AbstractParam parameter =
-            parameters.stream().filter(p -> p.getKey().equals(r)).findAny().orElse(null);
-
-        if (parameter != null) {
-          parameters.remove(parameter);
-        }
+      Optional<AbstractParam> optionalParameter =
+          parameters.stream().filter(p -> p.getName().equals(name)).findAny();
+      if (optionalParameter.isPresent()) {
+        parameters.remove(optionalParameter.get());
+        teamEntity.setParameters(parameters);
+        teamRepository.save(teamEntity);
+      } else {
+        throw new BoomerangException(BoomerangError.PARAMS_INVALID_REFERENCE);
       }
-      teamEntity.setParameters(parameters);
-      teamRepository.save(teamEntity);
     }
-    throw new BoomerangException(BoomerangError.PARAMS_INVALID_REFERENCE);
   }
 
   /*

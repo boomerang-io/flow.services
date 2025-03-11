@@ -6,7 +6,6 @@ import io.boomerang.common.enums.TaskStatus;
 import io.boomerang.common.enums.TaskType;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
@@ -29,7 +28,6 @@ public class Task {
   private ChangeLog changelog;
   private String category;
   private TaskSpec spec = new TaskSpec();
-  private List<AbstractParam> config;
   private String icon;
 
   @Override
@@ -68,8 +66,6 @@ public class Task {
         + '\''
         + ", spec="
         + spec
-        + ", config="
-        + config
         + ", icon='"
         + icon
         + '\''
