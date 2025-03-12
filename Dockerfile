@@ -1,4 +1,8 @@
 FROM eclipse-temurin:17-jdk-alpine
+
+RUN apk update && \
+    apk upgrade --no-cache binutils
+    
 ARG BMRG_TAG
 ENV JAVA_OPTS=""
 ENV BMRG_HOME=/opt/boomerang
