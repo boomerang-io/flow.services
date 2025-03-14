@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import io.boomerang.common.model.AbstractParam;
 import io.boomerang.common.model.ChangeLog;
-import io.boomerang.common.model.ParamSpec;
 import io.boomerang.common.model.WorkflowTask;
 import io.boomerang.common.model.WorkflowWorkspace;
 import java.util.Date;
@@ -37,9 +36,8 @@ public class WorkflowTemplateEntity {
   private Map<String, Object> annotations = new HashMap<>();
   private List<WorkflowTask> tasks = new LinkedList<>();
   private ChangeLog changelog;
-  private List<ParamSpec> params;
+  private List<AbstractParam> params;
   private List<WorkflowWorkspace> workspaces;
-  private List<AbstractParam> config;
   private Long timeout;
   private Long retries;
 }

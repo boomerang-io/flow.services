@@ -285,7 +285,8 @@ public class WorkflowService {
           ws.setOptional(false);
           WorkflowWorkspaceSpec workflowWorkspaceSpec = new WorkflowWorkspaceSpec();
           if (ws.getSpec() != null) {
-            workflowWorkspaceSpec = (WorkflowWorkspaceSpec) ws.getSpec();
+            //            workflowWorkspaceSpec = (WorkflowWorkspaceSpec) ws.getSpec();
+            BeanUtils.copyProperties(ws.getSpec(), workflowWorkspaceSpec);
           }
           if (workflowWorkspaceSpec.getSize() == null) {
             workflowWorkspaceSpec.setSize(maxStorageSizeQuota);
@@ -309,7 +310,8 @@ public class WorkflowService {
           ws.setOptional(false);
           WorkflowWorkspaceSpec workflowWorkspaceSpec = new WorkflowWorkspaceSpec();
           if (ws.getSpec() != null) {
-            workflowWorkspaceSpec = (WorkflowWorkspaceSpec) ws.getSpec();
+            BeanUtils.copyProperties(ws.getSpec(), workflowWorkspaceSpec);
+            //            workflowWorkspaceSpec = (WorkflowWorkspaceSpec) ws.getSpec();
           }
           if (workflowWorkspaceSpec.getSize() == null) {
             workflowWorkspaceSpec.setSize(maxStorageSizeQuota);

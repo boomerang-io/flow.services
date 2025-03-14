@@ -194,7 +194,6 @@ public class WorkflowTemplateService {
     wfTemplateEntity.setParams(request.getParams());
     wfTemplateEntity.setWorkspaces(request.getWorkspaces());
     wfTemplateEntity.setTasks(request.getTasks());
-    wfTemplateEntity.setConfig(request.getConfig());
     wfTemplateEntity.setTimeout(request.getTimeout());
     wfTemplateEntity.setRetries(request.getRetries());
 
