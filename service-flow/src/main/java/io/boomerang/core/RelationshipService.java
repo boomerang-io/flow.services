@@ -330,6 +330,12 @@ public class RelationshipService {
     if (toType.equals(RelationshipType.TASK)) {
       fromType = RelationshipType.ROOT;
       from = "root";
+    } else if (toType.equals(RelationshipType.TEAM)
+        && identity.getPermissions().contains("**/**/**")) {
+      // TODO allow for now. need to update permissions to have assignedScope and correct permission
+      // strings
+      fromType = RelationshipType.ROOT;
+      from = "root";
     } else {
       switch (identity.getType()) {
         case session:
