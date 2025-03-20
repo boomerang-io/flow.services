@@ -53,11 +53,11 @@
 				<artifactId>maven-core</artifactId>
 				<version>3.9.9</version>
 			</dependency>
-			<dependency>
+			<!-- <dependency>
 				<groupId>org.apache.thrift</groupId>
 				<artifactId>libthrift</artifactId>
 				<version>0.21.0</version>
-			</dependency>
+			</dependency> -->
 			<dependency>
 				<groupId>org.clojure</groupId>
 				<artifactId>clojure</artifactId>
