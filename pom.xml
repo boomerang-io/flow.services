@@ -63,6 +63,12 @@
 				<artifactId>clojure</artifactId>
 				<version>1.12.0</version>
 			</dependency>
+			<dependency>
+				<groupId>org.springframework.security</groupId>
+				<artifactId>spring-security-crypto</artifactId>
+				<version>6.3.8</version>
+			</dependency>
+
 		</dependencies>
 	</dependencyManagement>
 	<dependencies>
@@ -180,7 +186,6 @@
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
-			<version>6.3.8</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
