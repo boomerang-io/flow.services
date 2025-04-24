@@ -120,52 +120,26 @@ public class RestConfig {
   }
   
   public CloseableHttpClient httpClient() {
-  	
   	ConnectionConfig connectionConfig = ConnectionConfig.custom()
       .setConnectTimeout(Timeout.ofMinutes(180L))
       .build();
-
   	SocketConfig socketConfig = SocketConfig.custom()
       .setSoTimeout(Timeout.ofMinutes(180L))
       .build();
-
   	RequestConfig requestConfig = RequestConfig.custom()
       .setConnectionRequestTimeout(Timeout.ofMinutes(180L))
       .build();
-
   	PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
   	connectionManager.setDefaultSocketConfig(socketConfig);
   	connectionManager.setDefaultConnectionConfig(connectionConfig);
   	connectionManager.setMaxTotal(MAX_TOTAL_CONNECTIONS);
   	connectionManager.setDefaultMaxPerRoute(MAX_ROUTE_CONNECTIONS);
-
   	return HttpClientBuilder.create()
       .setConnectionManager(connectionManager)
       .setDefaultRequestConfig(requestConfig)
       .setKeepAliveStrategy(connectionKeepAliveStrategy())
       .build();
   }
-  
-//  public CloseableHttpClient httpClient() {
-//  
-//    RequestConfig requestConfig = RequestConfig.custom().
-//        setConnectionRequestTimeout(Timeout.ofMinutes(CONNECTION_TIMEOUT)).build();
-//    return HttpClients.custom().setDefaultRequestConfig(requestConfig)
-//        .setConnectionManager(poolingConnectionManager())
-//        .setKeepAliveStrategy(connectionKeepAliveStrategy()).build();
-//  }
-//
-//  public PoolingHttpClientConnectionManager poolingConnectionManager() {
-//    PoolingHttpClientConnectionManager poolingConnectionManager =
-//        new PoolingHttpClientConnectionManager();
-//    poolingConnectionManager.setMaxTotal(MAX_TOTAL_CONNECTIONS);
-//    poolingConnectionManager.setDefaultMaxPerRoute(MAX_ROUTE_CONNECTIONS);
-//    poolingConnectionManager.setDefaultConnectionConfig(ConnectionConfig.custom()
-//    .setSocketTimeout(Timeout.ofMinutes(1))
-//    .setConnectTimeout(Timeout.ofMinutes(1))
-//    .build());
-//    return poolingConnectionManager;
-//  }
 
   public ConnectionKeepAliveStrategy connectionKeepAliveStrategy() {
     return (httpResponse, httpContext) -> {
