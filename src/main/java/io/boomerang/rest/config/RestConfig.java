@@ -4,6 +4,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -88,7 +89,7 @@ public class RestConfig {
   @Bean
   @Qualifier("internalRestTemplate")
   public RestTemplate internalRestTemplate() {
-    return new RestTemplateBuilder().requestFactory(this::clientHttpRequestFactory).build();
+    return new RestTemplateBuilder().requestFactory(this::clientHttpRequestFactory).setConnectTimeout(Duration.ofMinutes(1L)).setReadTimeout(Duration.ofMinutes(180)).build();
   }
 
   @Bean
