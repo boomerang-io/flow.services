@@ -46,10 +46,9 @@ public class RestConfig {
 
   private static final int MAX_ROUTE_CONNECTIONS = 200;
   private static final int MAX_TOTAL_CONNECTIONS = 200;
-  private static final int DEFAULT_KEEP_ALIVE_TIME = Integer.MAX_VALUE;
-  private static final int CONNECTION_TIMEOUT = Integer.MAX_VALUE;
-  private static final int REQUEST_TIMEOUT = Integer.MAX_VALUE;
-  private static final int SOCKET_TIMEOUT = Integer.MAX_VALUE;
+  private static final long CONNECTION_TIMEOUT = Long.MAX_VALUE;
+  private static final long REQUEST_TIMEOUT = Long.MAX_VALUE;
+  private static final long SOCKET_TIMEOUT = Long.MAX_VALUE;
 
   @Bean
   @Qualifier("externalRestTemplate")
@@ -121,13 +120,13 @@ public class RestConfig {
   
   public CloseableHttpClient httpClient() {
   	ConnectionConfig connectionConfig = ConnectionConfig.custom()
-      .setConnectTimeout(Timeout.ofMinutes(180L))
+      .setConnectTimeout(Timeout.ofMinutes(CONNECTION_TIMEOUT))
       .build();
   	SocketConfig socketConfig = SocketConfig.custom()
-      .setSoTimeout(Timeout.ofMinutes(180L))
+      .setSoTimeout(Timeout.ofMinutes(SOCKET_TIMEOUT))
       .build();
   	RequestConfig requestConfig = RequestConfig.custom()
-      .setConnectionRequestTimeout(Timeout.ofMinutes(180L))
+      .setConnectionRequestTimeout(Timeout.ofMinutes(REQUEST_TIMEOUT))
       .build();
   	PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
   	connectionManager.setDefaultSocketConfig(socketConfig);
