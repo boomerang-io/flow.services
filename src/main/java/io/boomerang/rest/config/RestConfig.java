@@ -7,6 +7,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 import javax.net.ssl.SSLContext;
 
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
@@ -19,6 +20,7 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.apache.hc.core5.ssl.TrustStrategy;
 import org.apache.hc.core5.util.TimeValue;
@@ -44,10 +46,9 @@ public class RestConfig {
 
   private static final int MAX_ROUTE_CONNECTIONS = 200;
   private static final int MAX_TOTAL_CONNECTIONS = 200;
-  private static final int DEFAULT_KEEP_ALIVE_TIME = Integer.MAX_VALUE;
-  private static final int CONNECTION_TIMEOUT = Integer.MAX_VALUE;
-  private static final int REQUEST_TIMEOUT = Integer.MAX_VALUE;
-  private static final int SOCKET_TIMEOUT = Integer.MAX_VALUE;
+  private static final long CONNECTION_TIMEOUT = Long.MAX_VALUE;
+  private static final long REQUEST_TIMEOUT = Long.MAX_VALUE;
+  private static final long SOCKET_TIMEOUT = Long.MAX_VALUE;
 
   @Bean
   @Qualifier("externalRestTemplate")
@@ -116,26 +117,27 @@ public class RestConfig {
     clientHttpRequestFactory.setHttpClient(httpClient());
     return clientHttpRequestFactory;
   }
-
-  public CloseableHttpClient httpClient() {
   
-    RequestConfig requestConfig = RequestConfig.custom().
-        setConnectionRequestTimeout(Timeout.ofMinutes(CONNECTION_TIMEOUT)).build();
-    return HttpClients.custom().setDefaultRequestConfig(requestConfig)
-        .setConnectionManager(poolingConnectionManager())
-        .setKeepAliveStrategy(connectionKeepAliveStrategy()).build();
-  }
-
-  public PoolingHttpClientConnectionManager poolingConnectionManager() {
-    PoolingHttpClientConnectionManager poolingConnectionManager =
-        new PoolingHttpClientConnectionManager();
-    poolingConnectionManager.setMaxTotal(MAX_TOTAL_CONNECTIONS);
-    poolingConnectionManager.setDefaultMaxPerRoute(MAX_ROUTE_CONNECTIONS);
-    poolingConnectionManager.setDefaultConnectionConfig(ConnectionConfig.custom()
-    .setSocketTimeout(Timeout.ofMinutes(1))
-    .setConnectTimeout(Timeout.ofMinutes(1))
-    .build());
-    return poolingConnectionManager;
+  public CloseableHttpClient httpClient() {
+  	ConnectionConfig connectionConfig = ConnectionConfig.custom()
+      .setConnectTimeout(Timeout.ofMinutes(CONNECTION_TIMEOUT))
+      .build();
+  	SocketConfig socketConfig = SocketConfig.custom()
+      .setSoTimeout(Timeout.ofMinutes(SOCKET_TIMEOUT))
+      .build();
+  	RequestConfig requestConfig = RequestConfig.custom()
+      .setConnectionRequestTimeout(Timeout.ofMinutes(REQUEST_TIMEOUT))
+      .build();
+  	PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+  	connectionManager.setDefaultSocketConfig(socketConfig);
+  	connectionManager.setDefaultConnectionConfig(connectionConfig);
+  	connectionManager.setMaxTotal(MAX_TOTAL_CONNECTIONS);
+  	connectionManager.setDefaultMaxPerRoute(MAX_ROUTE_CONNECTIONS);
+  	return HttpClientBuilder.create()
+      .setConnectionManager(connectionManager)
+      .setDefaultRequestConfig(requestConfig)
+      .setKeepAliveStrategy(connectionKeepAliveStrategy())
+      .build();
   }
 
   public ConnectionKeepAliveStrategy connectionKeepAliveStrategy() {
