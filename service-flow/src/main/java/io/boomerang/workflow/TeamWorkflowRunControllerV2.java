@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
@@ -29,9 +30,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v2/team/{team}/workflowrun")
 @Tag(
-    name = "WorkflowRun Management",
+    name = "WorkflowRuns",
     description =
         "Submit requests to execute Workflows and provide the ability to search and retrieve Workflow activities.")
+@SecurityRequirement(name = "BearerAuth")
+@SecurityRequirement(name = "x-access-token")
 public class TeamWorkflowRunControllerV2 {
 
   private final WorkflowRunService workflowRunService;

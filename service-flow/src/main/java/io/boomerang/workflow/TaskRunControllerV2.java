@@ -21,9 +21,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 @RestController
 @RequestMapping("/api/v2/taskrun")
-@Tag(
-    name = "TaskRun Management",
-    description = "View, Start, Stop, and Update Status of your Task Runs.")
+@Tag(name = "TaskRuns", description = "View, Start, Stop, and Update Status of your Task Runs.")
 public class TaskRunControllerV2 {
 
   private final TaskRunService taskRunService;

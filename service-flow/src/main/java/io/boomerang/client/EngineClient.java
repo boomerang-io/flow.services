@@ -1,6 +1,5 @@
 package io.boomerang.client;
 
-import io.boomerang.error.BoomerangException;
 import io.boomerang.common.model.ChangeLogVersion;
 import io.boomerang.common.model.Task;
 import io.boomerang.common.model.TaskRun;
@@ -9,11 +8,12 @@ import io.boomerang.common.model.Workflow;
 import io.boomerang.common.model.WorkflowCount;
 import io.boomerang.common.model.WorkflowRun;
 import io.boomerang.common.model.WorkflowRunCount;
-import io.boomerang.workflow.model.WorkflowRunEventRequest;
 import io.boomerang.common.model.WorkflowRunInsight;
 import io.boomerang.common.model.WorkflowRunRequest;
 import io.boomerang.common.model.WorkflowSubmitRequest;
 import io.boomerang.common.model.WorkflowTemplate;
+import io.boomerang.error.BoomerangException;
+import io.boomerang.workflow.model.WorkflowRunEventRequest;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -1174,7 +1174,7 @@ public class EngineClient {
       LOGGER.info("URL: " + createWorkflowTemplateURL);
 
       ResponseEntity<WorkflowTemplate> response =
-          restTemplate.postForEntity(createWorkflowURL, workflow, WorkflowTemplate.class);
+          restTemplate.postForEntity(createWorkflowTemplateURL, workflow, WorkflowTemplate.class);
 
       LOGGER.info("Status Response: " + response.getStatusCode());
       LOGGER.info("Content Response: " + response.getBody().toString());

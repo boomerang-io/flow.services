@@ -171,7 +171,7 @@ public class TeamControllerV2 {
   }
 
   @DeleteMapping(value = "/{team}")
-  @Operation(summary = "Delete a team")
+  @Operation(summary = "Delete Team")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "204", description = "OK"),
@@ -188,6 +188,12 @@ public class TeamControllerV2 {
       action = PermissionAction.DELETE,
       scope = PermissionScope.TEAM,
       types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+  @Operation(summary = "Remove Team Members")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(responseCode = "400", description = "Bad Request")
+      })
   public void removeMembers(
       @Parameter(
               name = "team",
@@ -205,6 +211,12 @@ public class TeamControllerV2 {
       action = PermissionAction.ACTION,
       scope = PermissionScope.TEAM,
       types = {AuthType.user, AuthType.session})
+  @Operation(summary = "Leave Team")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(responseCode = "400", description = "Bad Request")
+      })
   public void leave(
       @Parameter(name = "team", description = "Team as owner reference.", required = true)
           @PathVariable
@@ -217,6 +229,12 @@ public class TeamControllerV2 {
       action = PermissionAction.DELETE,
       scope = PermissionScope.TEAM,
       types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+  @Operation(summary = "Delete Team Parameter")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(responseCode = "400", description = "Bad Request")
+      })
   public void deleteParameters(
       @Parameter(name = "team", description = "Team as owner reference.", required = true)
           @PathVariable
@@ -230,6 +248,12 @@ public class TeamControllerV2 {
       action = PermissionAction.DELETE,
       scope = PermissionScope.TEAM,
       types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+  @Operation(summary = "Delete Approver Groups")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(responseCode = "400", description = "Bad Request")
+      })
   public void deleteApproverGroup(
       @Parameter(name = "team", description = "Team as owner reference.", required = true)
           @PathVariable
@@ -243,6 +267,12 @@ public class TeamControllerV2 {
       action = PermissionAction.DELETE,
       scope = PermissionScope.TEAM,
       types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+  @Operation(summary = "Reset Team Quota")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(responseCode = "400", description = "Bad Request")
+      })
   public void resetQuotas(
       @Parameter(name = "team", description = "Team as owner reference.", required = true)
           @PathVariable
@@ -255,6 +285,12 @@ public class TeamControllerV2 {
       action = PermissionAction.READ,
       scope = PermissionScope.TEAM,
       types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+  @Operation(summary = "Retrieve Default Team Quota")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(responseCode = "400", description = "Bad Request")
+      })
   public ResponseEntity<Quotas> getDefaultQuotas() {
     return teamService.getDefaultQuotas();
   }
@@ -264,6 +300,12 @@ public class TeamControllerV2 {
       action = PermissionAction.READ,
       scope = PermissionScope.TEAM,
       types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+  @Operation(summary = "Retrieve Team Roles")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(responseCode = "400", description = "Bad Request")
+      })
   public ResponseEntity<List<Role>> getRoles() {
     return teamService.getRoles();
   }

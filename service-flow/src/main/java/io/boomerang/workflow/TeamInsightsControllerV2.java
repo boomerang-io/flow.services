@@ -1,10 +1,10 @@
 package io.boomerang.workflow;
 
+import io.boomerang.common.model.WorkflowRunInsight;
 import io.boomerang.security.AuthScope;
 import io.boomerang.security.enums.AuthType;
 import io.boomerang.security.enums.PermissionAction;
 import io.boomerang.security.enums.PermissionScope;
-import io.boomerang.common.model.WorkflowRunInsight;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -21,10 +21,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v2/team/{team}")
-@Tag(
-    name = "Insights Management",
-    description = "Provide the ability to search and retrieve Insights.")
+@RequestMapping("/api/v2/team/{team}/insights")
+@Tag(name = "Insights", description = "Provide the ability to search and retrieve Insights.")
 public class TeamInsightsControllerV2 {
 
   private final InsightsService insightsService;
@@ -33,12 +31,14 @@ public class TeamInsightsControllerV2 {
     this.insightsService = insightsService;
   }
 
-  @GetMapping(value = "/insights")
+  @GetMapping(value = "")
   @AuthScope(
       action = PermissionAction.READ,
       scope = PermissionScope.INSIGHTS,
       types = {AuthType.team, AuthType.user, AuthType.session})
-  @Operation(summary = "Retrieve insights for a team.")
+  @Operation(
+      summary = "Retrieve insights for a team",
+      description = "The insights are based on the workflow runs and their statuses.")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "OK"),

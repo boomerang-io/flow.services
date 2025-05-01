@@ -51,7 +51,7 @@ public class ParameterControllerV2 {
       action = PermissionAction.WRITE,
       scope = PermissionScope.SYSTEM,
       types = {AuthType.session, AuthType.user, AuthType.global})
-  @Operation(summary = "Create new global Param")
+  @Operation(summary = "Create a global Param")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "OK"),
@@ -66,6 +66,12 @@ public class ParameterControllerV2 {
       action = PermissionAction.WRITE,
       scope = PermissionScope.SYSTEM,
       types = {AuthType.session, AuthType.user, AuthType.global})
+  @Operation(summary = "Update global Params")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(responseCode = "400", description = "Bad Request")
+      })
   public AbstractParam update(@RequestBody AbstractParam request) {
     return paramService.update(request);
   }
@@ -75,7 +81,7 @@ public class ParameterControllerV2 {
       action = PermissionAction.DELETE,
       scope = PermissionScope.SYSTEM,
       types = {AuthType.session, AuthType.user, AuthType.global})
-  @Operation(summary = "Delete specific global Param")
+  @Operation(summary = "Delete a global Param")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "OK"),

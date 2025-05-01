@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v2/team/{team}/task")
-@Tag(name = "Task Management", description = "Create and manage the team based Task definitions.")
+@Tag(name = "Team Tasks", description = "Create and manage the team based Task definitions.")
 public class TeamTaskControllerV2 {
 
   private final TaskService taskService;
@@ -301,6 +301,14 @@ public class TeamTaskControllerV2 {
       action = PermissionAction.READ,
       scope = PermissionScope.TASK,
       types = {AuthType.global, AuthType.team, AuthType.session, AuthType.user})
+  @Operation(
+      summary = "Validate Tekton Task YAML",
+      description = "Validates the Task YAML as a Tekton Task")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(responseCode = "400", description = "Bad Request")
+      })
   public void validateYaml(@RequestBody TektonTask tektonTask) {
     taskService.validateAsTekton(tektonTask);
   }

@@ -37,7 +37,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
-public class TriggersService {
+public class WebhookEventService {
 
   private static final Logger LOGGER = LogManager.getLogger();
 
@@ -49,7 +49,7 @@ public class TriggersService {
   private final IntegrationService integrationService;
   private final RelationshipService relationshipService;
 
-  public TriggersService(
+  public WebhookEventService(
       WorkflowService workflowService,
       EngineClient engineClient,
       IntegrationService integrationService,

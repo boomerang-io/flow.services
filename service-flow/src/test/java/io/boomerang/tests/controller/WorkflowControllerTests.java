@@ -21,7 +21,7 @@ import io.boomerang.v3.mongo.model.Triggers;
 import io.boomerang.v3.mongo.model.WorkflowConfiguration;
 import io.boomerang.v3.mongo.model.WorkflowScope;
 import io.boomerang.v3.mongo.model.WorkflowStatus;
-import io.boomerang.workflow.TriggerControllerV2;
+import io.boomerang.workflow.WebhookEventControllerV2;
 import io.boomerang.workflow.WorkflowController;
 import io.boomerang.workflow.model.FlowWorkflowRevision;
 import io.boomerang.workflow.model.GenerateTokenResponse;
@@ -61,7 +61,7 @@ public class WorkflowControllerTests extends FlowTests {
 
   @Autowired private WorkflowController controller;
 
-  @Autowired private TriggerControllerV2 internalController;
+  @Autowired private WebhookEventControllerV2 internalController;
 
   @Test
   public void testInternalWorkflowListing() {

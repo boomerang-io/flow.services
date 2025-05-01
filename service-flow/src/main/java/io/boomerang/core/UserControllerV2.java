@@ -1,8 +1,18 @@
 package io.boomerang.core;
 
+import io.boomerang.core.model.User;
+import io.boomerang.core.model.UserRequest;
+import io.boomerang.security.AuthScope;
+import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.enums.PermissionAction;
+import io.boomerang.security.enums.PermissionScope;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -16,21 +26,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import io.boomerang.core.model.User;
-import io.boomerang.core.model.UserRequest;
-import io.boomerang.security.AuthScope;
-import io.boomerang.security.enums.PermissionAction;
-import io.boomerang.security.enums.PermissionScope;
-import io.boomerang.security.enums.AuthType;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/v2/user")
-@Tag(name = "User Management", description = "List, Create, update and delete Users.")
+@Tag(name = "Users", description = "List, Create, update and delete Users.")
 public class UserControllerV2 {
 
   @Value("${flow.externalUrl.user}")

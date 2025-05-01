@@ -6,6 +6,7 @@ import io.boomerang.security.AuthScope;
 import io.boomerang.security.enums.AuthType;
 import io.boomerang.security.enums.PermissionAction;
 import io.boomerang.security.enums.PermissionScope;
+import io.boomerang.workflow.model.CronValidationResponse;
 import io.boomerang.workflow.model.WorkflowScheduleCalendar;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,15 +31,30 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v2/team/{team}/schedule")
-@Tag(
-    name = "Schedule Management",
-    description = "Provide the ability to create and update Schedules.")
+@Tag(name = "Schedules", description = "Create, list and manage your Schedules.")
 public class TeamScheduleControllerV2 {
 
   private final ScheduleService workflowScheduleService;
 
-  public TeamScheduleControllerV2(ScheduleService workflowScheduleService) {
+  private final CronService cronService;
+
+  public TeamScheduleControllerV2(
+      ScheduleService workflowScheduleService, CronService cronService) {
     this.workflowScheduleService = workflowScheduleService;
+    this.cronService = cronService;
+  }
+
+  @GetMapping(value = "/validate-cron")
+  @AuthScope(
+      action = PermissionAction.READ,
+      scope = PermissionScope.SCHEDULE,
+      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.workflow, AuthType.session})
+  @Operation(summary = "Validate a Schedules CRON.")
+  public CronValidationResponse validateCron(
+      @Parameter(name = "cron", description = "A CRON expression to validate", required = true)
+          @RequestParam
+          String cron) {
+    return cronService.validateCron(cron);
   }
 
   @GetMapping(value = "/{scheduleId}")

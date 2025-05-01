@@ -1,12 +1,12 @@
 package io.boomerang.workflow;
 
 import io.boomerang.client.TaskResponsePage;
+import io.boomerang.common.model.ChangeLogVersion;
+import io.boomerang.common.model.Task;
 import io.boomerang.security.AuthScope;
 import io.boomerang.security.enums.AuthType;
 import io.boomerang.security.enums.PermissionAction;
 import io.boomerang.security.enums.PermissionScope;
-import io.boomerang.common.model.ChangeLogVersion;
-import io.boomerang.common.model.Task;
 import io.boomerang.workflow.tekton.TektonTask;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v2/task")
-@Tag(name = "Task Management", description = "Create and Manage the global Task definitions.")
+@Tag(name = "Tasks", description = "Create and Manage the global Task definitions.")
 public class TaskControllerV2 {
 
   private final TaskService taskTemplateService;
@@ -242,6 +242,14 @@ public class TaskControllerV2 {
       action = PermissionAction.READ,
       scope = PermissionScope.TASK,
       types = {AuthType.global, AuthType.user, AuthType.session})
+  @Operation(
+      summary = "Validate Tekton Task YAML",
+      description = "Validates the Task YAML as a Tekton Task")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(responseCode = "400", description = "Bad Request")
+      })
   public void validateYaml(@RequestBody TektonTask tektonTask) {
     taskTemplateService.validateAsTekton(tektonTask);
   }

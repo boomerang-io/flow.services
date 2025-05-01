@@ -1,6 +1,5 @@
 package io.boomerang.core;
 
-import io.boomerang.common.model.AbstractParam;
 import io.boomerang.core.model.Features;
 import io.boomerang.core.model.HeaderNavigationResponse;
 import io.boomerang.core.model.Navigation;
@@ -22,10 +21,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -143,59 +139,5 @@ public class SystemControllerV2 {
     CacheControl cacheControl = CacheControl.maxAge(1, TimeUnit.HOURS);
 
     return ResponseEntity.ok().cacheControl(cacheControl).body(response);
-  }
-
-  @GetMapping(value = "/global-params")
-  @AuthScope(
-      action = PermissionAction.READ,
-      scope = PermissionScope.SYSTEM,
-      types = {AuthType.session, AuthType.user, AuthType.global})
-  @Operation(summary = "Get all global Params")
-  @ApiResponses(
-      value = {
-        @ApiResponse(responseCode = "200", description = "OK"),
-        @ApiResponse(responseCode = "400", description = "Bad Request")
-      })
-  public List<AbstractParam> getAll() {
-    return paramService.getAll();
-  }
-
-  @PostMapping(value = "/global-params")
-  @AuthScope(
-      action = PermissionAction.WRITE,
-      scope = PermissionScope.SYSTEM,
-      types = {AuthType.session, AuthType.user, AuthType.global})
-  @Operation(summary = "Create new global Param")
-  @ApiResponses(
-      value = {
-        @ApiResponse(responseCode = "200", description = "OK"),
-        @ApiResponse(responseCode = "400", description = "Bad Request")
-      })
-  public AbstractParam create(@RequestBody AbstractParam request) {
-    return paramService.create(request);
-  }
-
-  @PutMapping(value = "/global-params")
-  @AuthScope(
-      action = PermissionAction.WRITE,
-      scope = PermissionScope.SYSTEM,
-      types = {AuthType.session, AuthType.user, AuthType.global})
-  public AbstractParam update(@RequestBody AbstractParam request) {
-    return paramService.update(request);
-  }
-
-  @DeleteMapping(value = "/global-params/{key}")
-  @AuthScope(
-      action = PermissionAction.DELETE,
-      scope = PermissionScope.SYSTEM,
-      types = {AuthType.session, AuthType.user, AuthType.global})
-  @Operation(summary = "Delete specific global Param")
-  @ApiResponses(
-      value = {
-        @ApiResponse(responseCode = "200", description = "OK"),
-        @ApiResponse(responseCode = "400", description = "Bad Request")
-      })
-  public void delete(@PathVariable String key) {
-    paramService.delete(key);
   }
 }

@@ -1,19 +1,20 @@
 package io.boomerang.workflow;
 
 import io.boomerang.client.WorkflowResponsePage;
+import io.boomerang.common.model.ChangeLogVersion;
+import io.boomerang.common.model.Workflow;
+import io.boomerang.common.model.WorkflowRun;
+import io.boomerang.common.model.WorkflowSubmitRequest;
 import io.boomerang.security.AuthScope;
 import io.boomerang.security.enums.AuthType;
 import io.boomerang.security.enums.PermissionAction;
 import io.boomerang.security.enums.PermissionScope;
 import io.boomerang.workflow.model.WorkflowCanvas;
-import io.boomerang.common.model.ChangeLogVersion;
-import io.boomerang.common.model.Workflow;
-import io.boomerang.common.model.WorkflowRun;
-import io.boomerang.common.model.WorkflowSubmitRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
@@ -32,7 +33,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v2/team/{team}/workflow")
-@Tag(name = "Workflow Management", description = "Create, list, and manage your Workflows.")
+@Tag(name = "Workflows", description = "Create, list, and manage your Workflows.")
+@SecurityRequirement(name = "BearerAuth")
+@SecurityRequirement(name = "x-access-token")
 public class TeamWorkflowControllerV2 {
 
   private final WorkflowService workflowService;
@@ -80,7 +83,7 @@ public class TeamWorkflowControllerV2 {
       action = PermissionAction.READ,
       scope = PermissionScope.WORKFLOW,
       types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
-  @Operation(summary = "Search for Workflows")
+  @Operation(summary = "Search for Workflows", description = "")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "OK"),

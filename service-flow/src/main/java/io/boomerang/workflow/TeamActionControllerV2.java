@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v2/team/{team}/action")
-@Tag(name = "Actions Management", description = "Create and manage Manual and Approval Actions.")
+@Tag(name = "Actions", description = "Create and manage Manual and Approval Actions.")
 public class TeamActionControllerV2 {
 
   private final ActionService actionService;

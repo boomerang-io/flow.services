@@ -2,11 +2,11 @@ package io.boomerang.workflow;
 
 import io.boomerang.client.EngineClient;
 import io.boomerang.client.WorkflowTemplateResponsePage;
+import io.boomerang.common.model.WorkflowTemplate;
 import io.boomerang.security.AuthScope;
 import io.boomerang.security.enums.AuthType;
 import io.boomerang.security.enums.PermissionAction;
 import io.boomerang.security.enums.PermissionScope;
-import io.boomerang.common.model.WorkflowTemplate;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -28,9 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v2/workflowtemplate")
-@Tag(
-    name = "Workflow Template Management",
-    description = "Create, List, and Manage your Workflows.")
+@Tag(name = "Workflow Templates", description = "Create, List, and Manage your Workflows.")
 public class WorkflowTemplateControllerV2 {
 
   EngineClient engineClient;

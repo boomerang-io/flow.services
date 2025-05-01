@@ -24,17 +24,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v2")
 @Tag(
-    name = "Triggers for Events, Topics, and Webhooks",
+    name = "Webhooks and Events",
     description =
         "Listen for Events or Webhook requests to trigger Workflows and provide the ability to resolve Wait For Event TaskRuns.")
-public class TriggerControllerV2 {
+public class WebhookEventControllerV2 {
 
   private static final Logger LOGGER = LogManager.getLogger();
 
-  private TriggersService triggerService;
+  private WebhookEventService webhookEventService;
 
-  public TriggerControllerV2(TriggersService triggerService) {
-    this.triggerService = triggerService;
+  public WebhookEventControllerV2(WebhookEventService webhookEventService) {
+    this.webhookEventService = webhookEventService;
   }
 
   /**
@@ -93,7 +93,7 @@ public class TriggerControllerV2 {
             && ("shortcut".equals(slackType) || "event_callback".equals(slackType))) {
           // Handle Slack Events
           // TODO change this to processSlackWebhook
-          return ResponseEntity.ok(triggerService.processWebhook(workflow.get(), payload));
+          return ResponseEntity.ok(webhookEventService.processWebhook(workflow.get(), payload));
         } else {
           return ResponseEntity.badRequest().build();
         }
@@ -103,12 +103,12 @@ public class TriggerControllerV2 {
     } else if (request.getHeader("x-github-event") != null) {
       String ghEventType = request.getHeader("x-github-event");
       if (ghEventType != null) {
-        triggerService.processGitHubWebhook("github", ghEventType, payload);
+        webhookEventService.processGitHubWebhook("github", ghEventType, payload);
         return ResponseEntity.ok().build();
       }
       return ResponseEntity.badRequest().build();
     }
-    return ResponseEntity.ok(triggerService.processWebhook(workflow.get(), payload));
+    return ResponseEntity.ok(webhookEventService.processWebhook(workflow.get(), payload));
   }
 
   /**
@@ -120,6 +120,7 @@ public class TriggerControllerV2 {
    * </code>
    */
   @PostMapping(value = "/callback", consumes = "application/json; charset=utf-8")
+  @Operation(summary = "Accept Wait for Event with JSON Payload")
   public void acceptWaitForEvent(
       @Parameter(
               name = "workflowrun",
@@ -137,7 +138,7 @@ public class TriggerControllerV2 {
           @RequestParam(defaultValue = "succeeded")
           String status,
       @RequestBody JsonNode payload) {
-    triggerService.processWFE(workflowrun, topic, status, Optional.of(payload));
+    webhookEventService.processWFE(workflowrun, topic, status, Optional.of(payload));
   }
 
   /**
@@ -152,6 +153,7 @@ public class TriggerControllerV2 {
    * </code>
    */
   @GetMapping(value = "/callback")
+  @Operation(summary = "Accept Wait for Event")
   public void acceptWaitForEvent(
       @Parameter(
               name = "workflowrun",
@@ -168,7 +170,7 @@ public class TriggerControllerV2 {
               required = false)
           @RequestParam(defaultValue = "succeeded")
           String status) {
-    triggerService.processWFE(workflowrun, topic, status, Optional.empty());
+    webhookEventService.processWFE(workflowrun, topic, status, Optional.empty());
   }
 
   /**
@@ -181,6 +183,7 @@ public class TriggerControllerV2 {
    * @see https://github.com/cloudevents/spec/blob/v1.0/http-protocol-binding.md
    */
   @PostMapping(value = "/event", consumes = "application/cloudevents+json; charset=utf-8")
+  @Operation(summary = "Accept CloudEvent")
   public ResponseEntity<?> accept(
       @Parameter(
               name = "workflow",
@@ -189,11 +192,12 @@ public class TriggerControllerV2 {
           @RequestParam(required = false)
           Optional<String> workflow,
       @RequestBody CloudEvent event) {
-    return ResponseEntity.ok(triggerService.processEvent(event, workflow));
+    return ResponseEntity.ok(webhookEventService.processEvent(event, workflow));
   }
 
   /** Accepts a Cloud Event with ce attributes are in the header */
   @PostMapping("/event")
+  @Operation(summary = "Accept CloudEvent")
   public ResponseEntity<?> acceptEvent(
       @Parameter(
               name = "workflow",
@@ -204,6 +208,6 @@ public class TriggerControllerV2 {
       @RequestHeader HttpHeaders headers,
       @RequestBody String data) {
     CloudEvent event = CloudEventHttpUtils.toReader(headers, () -> data.getBytes()).toEvent();
-    return ResponseEntity.ok(triggerService.processEvent(event, workflow));
+    return ResponseEntity.ok(webhookEventService.processEvent(event, workflow));
   }
 }
