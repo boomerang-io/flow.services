@@ -1,6 +1,6 @@
 package io.boomerang.core.model;
 
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.enums.AuthScope;
 import lombok.Data;
 
 import java.util.Date;
@@ -10,7 +10,7 @@ public class TokenCreateResponse {
 
   //  @JsonIgnore
   private String id;
-  private AuthType type;
+  private AuthScope type;
   private String token;
   private Date expirationDate;
 }

@@ -4,11 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum PermissionAction {
-  CREATE("Create"),
-  READ("Read"),
-  WRITE("Write"),
-  DELETE("Delete"),
-  ACTION("Action");
+  CREATE("create"),
+  READ("read"),
+  WRITE("write"),
+  DELETE("delete"),
+  ACTION("action");
 
   private String label;
 
@@ -29,6 +29,6 @@ public enum PermissionAction {
   }
 
   public static PermissionAction valueOfLabel(String label) {
-    return BY_LABEL.get(label);
+    return BY_LABEL.get(label.toLowerCase());
   }
 }

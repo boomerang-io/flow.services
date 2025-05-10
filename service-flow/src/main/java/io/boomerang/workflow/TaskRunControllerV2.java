@@ -1,9 +1,9 @@
 package io.boomerang.workflow;
 
-import io.boomerang.security.AuthScope;
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.AuthCriteria;
+import io.boomerang.security.enums.AuthScope;
 import io.boomerang.security.enums.PermissionAction;
-import io.boomerang.security.enums.PermissionScope;
+import io.boomerang.security.enums.PermissionResource;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -31,10 +31,10 @@ public class TaskRunControllerV2 {
   }
 
   @GetMapping(value = "/{taskRunId}/log")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.TASKRUN,
-      types = {AuthType.team})
+      resource = PermissionResource.TASKRUN,
+      assignableScopes = {AuthScope.team})
   @Operation(summary = "Retrieve a TaskRuns log from a specific WorkflowRun.")
   @ApiResponses(
       value = {

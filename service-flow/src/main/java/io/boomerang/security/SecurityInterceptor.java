@@ -1,16 +1,16 @@
 package io.boomerang.security;
 
-import java.util.Arrays;
+import io.boomerang.core.model.Token;
+import io.boomerang.security.enums.AuthScope;
+import io.boomerang.security.enums.PermissionAction;
+import io.boomerang.security.enums.PermissionResource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Arrays;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
-import io.boomerang.core.model.Token;
-import io.boomerang.security.enums.PermissionAction;
-import io.boomerang.security.enums.PermissionScope;
-import io.boomerang.security.enums.AuthType;
 
 /*
  * Interceptor for AuthScope protected controller methods
@@ -33,10 +33,10 @@ public class SecurityInterceptor implements HandlerInterceptor {
     if (handler instanceof HandlerMethod) {
       LOGGER.debug("In SecurityInterceptor()");
       HandlerMethod handlerMethod = (HandlerMethod) handler;
-      AuthScope authScope = handlerMethod.getMethod().getAnnotation(AuthScope.class);
-      if (authScope == null) {
+      AuthCriteria authCriteria = handlerMethod.getMethod().getAnnotation(AuthCriteria.class);
+      if (authCriteria == null) {
         // No annotation found - route does not need authZ
-        LOGGER.info("SecurityInterceptor - No Auth annotation found. Skipping Authorization.");
+        LOGGER.warn("SecurityInterceptor - No AuthCriteria provided. Skipping Authorization.");
         return true;
       }
 
@@ -51,43 +51,37 @@ public class SecurityInterceptor implements HandlerInterceptor {
         return false;
       }
 
-      AuthType[] requiredTypes = authScope.types();
+      // Check the required token scope is assigned
+      // TODO should this check the assignedScope in the permission rather than the token type
+      AuthScope[] assignableScopes = authCriteria.assignableScopes();
       Token accessToken = this.identityService.getCurrentIdentity();
-      // Check the required level of token is present
-      if (!Arrays.asList(requiredTypes).contains(accessToken.getType())) {
+      if (!Arrays.asList(assignableScopes).contains(accessToken.getType())) {
         LOGGER.error(
-            "SecurityInterceptor - Unauthorized Type / Level. Needed: {}, Provided: {}",
-            Arrays.toString(requiredTypes),
+            "SecurityInterceptor - Unauthorized Assigned Scope. Needed: {}, Provided: {}",
+            Arrays.toString(assignableScopes),
             accessToken.getType().toString());
-        // TODO set this to return false
-        //      response.getWriter().write("");
-        //      response.setStatus(401);
-        return true;
+        response.getWriter().write("");
+        response.setStatus(401);
+        return false;
       }
-      PermissionScope requiredScope = authScope.scope();
-      PermissionAction requiredAccess = authScope.action();
+
+      // Check the required access for the permission action
+      // TOOD check the assignedScope
+      PermissionResource requiredScope = authCriteria.resource();
+      PermissionAction requiredAccess = authCriteria.action();
       String requiredRegex =
-          "(\\*{2}|"
-              + requiredScope.getLabel()
-              + ")\\/(\\*{2}|.*)\\/(\\*{2}|"
-              + requiredAccess.getLabel()
-              + ")";
+          "(\\*{2}|" + requiredScope.getLabel() + ")\\/(\\*{2}|" + requiredAccess.getLabel() + ")";
       LOGGER.info(
           "SecurityInterceptor - Permission needed: {}, Provided: {}",
-          requiredScope.getLabel() + "/**/" + requiredAccess.getLabel(),
+          requiredScope.getLabel() + "/" + requiredAccess.getLabel(),
           accessToken.getPermissions().toString());
-      if (!accessToken.getPermissions().stream().anyMatch(p -> (p.matches(requiredRegex)))) {
+      if (!accessToken.getPermissions().stream()
+          .anyMatch(p -> (p.getActions().stream().anyMatch(a -> (a.matches(requiredRegex)))))) {
         LOGGER.error("SecurityInterceptor - Unauthorized Permission.");
         // TODO set this to return false
         //      response.getWriter().write("");
         //      response.setStatus(401);
         return true;
-        //      }
-        //      for (TokenPermission p : accessToken.getPermissions()) {
-        //        if (p.access() == requiredAccess && p.Object() == requiredObject) {
-        //          validRequest = true;
-        //          break;
-        //        }
       }
       return true;
     } else {

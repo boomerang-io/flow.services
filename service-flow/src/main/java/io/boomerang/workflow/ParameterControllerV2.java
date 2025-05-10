@@ -1,11 +1,10 @@
 package io.boomerang.workflow;
 
 import io.boomerang.common.model.AbstractParam;
-import io.boomerang.core.*;
-import io.boomerang.security.AuthScope;
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.AuthCriteria;
+import io.boomerang.security.enums.AuthScope;
 import io.boomerang.security.enums.PermissionAction;
-import io.boomerang.security.enums.PermissionScope;
+import io.boomerang.security.enums.PermissionResource;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -32,10 +31,10 @@ public class ParameterControllerV2 {
   @Autowired private ParameterService paramService;
 
   @GetMapping(value = "")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.SYSTEM,
-      types = {AuthType.session, AuthType.user, AuthType.global})
+      resource = PermissionResource.SYSTEM,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.global})
   @Operation(summary = "Get all global Params")
   @ApiResponses(
       value = {
@@ -47,10 +46,10 @@ public class ParameterControllerV2 {
   }
 
   @PostMapping(value = "")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.WRITE,
-      scope = PermissionScope.SYSTEM,
-      types = {AuthType.session, AuthType.user, AuthType.global})
+      resource = PermissionResource.SYSTEM,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.global})
   @Operation(summary = "Create a global Param")
   @ApiResponses(
       value = {
@@ -62,10 +61,10 @@ public class ParameterControllerV2 {
   }
 
   @PutMapping(value = "")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.WRITE,
-      scope = PermissionScope.SYSTEM,
-      types = {AuthType.session, AuthType.user, AuthType.global})
+      resource = PermissionResource.SYSTEM,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.global})
   @Operation(summary = "Update global Params")
   @ApiResponses(
       value = {
@@ -77,10 +76,10 @@ public class ParameterControllerV2 {
   }
 
   @DeleteMapping(value = "/{name}")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.DELETE,
-      scope = PermissionScope.SYSTEM,
-      types = {AuthType.session, AuthType.user, AuthType.global})
+      resource = PermissionResource.SYSTEM,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.global})
   @Operation(summary = "Delete a global Param")
   @ApiResponses(
       value = {

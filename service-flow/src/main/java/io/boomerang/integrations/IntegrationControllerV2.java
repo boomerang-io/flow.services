@@ -29,10 +29,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.boomerang.integrations.model.GHLinkRequest;
 import io.boomerang.integrations.model.Integration;
-import io.boomerang.security.AuthScope;
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.AuthCriteria;
+import io.boomerang.security.enums.AuthScope;
 import io.boomerang.security.enums.PermissionAction;
-import io.boomerang.security.enums.PermissionScope;
+import io.boomerang.security.enums.PermissionResource;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -58,10 +58,10 @@ public class IntegrationControllerV2 {
   @Autowired private GitHubService githubService;
 
   @GetMapping(value = "")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.INTEGRATION,
-      types = {AuthType.team})
+      resource = PermissionResource.INTEGRATION,
+      assignableScopes = {AuthScope.team})
   @Operation(summary = "Retrieve the integrations and their status within a Team")
   @ApiResponses(
       value = {

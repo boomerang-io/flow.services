@@ -1,10 +1,10 @@
 package io.boomerang.workflow;
 
 import io.boomerang.core.model.Role;
-import io.boomerang.security.AuthScope;
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.AuthCriteria;
+import io.boomerang.security.enums.AuthScope;
 import io.boomerang.security.enums.PermissionAction;
-import io.boomerang.security.enums.PermissionScope;
+import io.boomerang.security.enums.PermissionResource;
 import io.boomerang.workflow.model.Quotas;
 import io.boomerang.workflow.model.Team;
 import io.boomerang.workflow.model.TeamMember;
@@ -44,10 +44,10 @@ public class TeamControllerV2 {
   }
 
   @PostMapping(value = "/validate-name")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.TEAM,
-      types = {AuthType.session, AuthType.user, AuthType.global})
+      resource = PermissionResource.TEAM,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.global})
   @Operation(summary = "Validate team name and check uniqueness.")
   @ApiResponses(
       value = {
@@ -60,10 +60,10 @@ public class TeamControllerV2 {
   }
 
   @GetMapping(value = "/{team}")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.TEAM,
-      types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+      resource = PermissionResource.TEAM,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.team, AuthScope.global})
   @Operation(summary = "Get team")
   @ApiResponses(
       value = {
@@ -82,10 +82,10 @@ public class TeamControllerV2 {
   }
 
   @GetMapping(value = "/query")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.TEAM,
-      types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+      resource = PermissionResource.TEAM,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.team, AuthScope.global})
   @Operation(summary = "Search for Teams")
   @ApiResponses(
       value = {
@@ -138,10 +138,10 @@ public class TeamControllerV2 {
   }
 
   @PostMapping(value = "")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.WRITE,
-      scope = PermissionScope.TEAM,
-      types = {AuthType.session, AuthType.user, AuthType.global})
+      resource = PermissionResource.TEAM,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.global})
   @Operation(summary = "Create new team")
   @ApiResponses(
       value = {
@@ -153,10 +153,10 @@ public class TeamControllerV2 {
   }
 
   @PatchMapping(value = "/{team}")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.WRITE,
-      scope = PermissionScope.TEAM,
-      types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+      resource = PermissionResource.TEAM,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.team, AuthScope.global})
   @Operation(summary = "Patch or update a team")
   @ApiResponses(
       value = {
@@ -184,10 +184,10 @@ public class TeamControllerV2 {
   }
 
   @DeleteMapping(value = "/{team}/members")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.DELETE,
-      scope = PermissionScope.TEAM,
-      types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+      resource = PermissionResource.TEAM,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.team, AuthScope.global})
   @Operation(summary = "Remove Team Members")
   @ApiResponses(
       value = {
@@ -207,10 +207,10 @@ public class TeamControllerV2 {
   }
 
   @DeleteMapping(value = "/{team}/leave")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.ACTION,
-      scope = PermissionScope.TEAM,
-      types = {AuthType.user, AuthType.session})
+      resource = PermissionResource.TEAM,
+      assignableScopes = {AuthScope.user, AuthScope.session})
   @Operation(summary = "Leave Team")
   @ApiResponses(
       value = {
@@ -225,10 +225,10 @@ public class TeamControllerV2 {
   }
 
   @DeleteMapping(value = "/{team}/parameters/{name}")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.DELETE,
-      scope = PermissionScope.TEAM,
-      types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+      resource = PermissionResource.TEAM,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.team, AuthScope.global})
   @Operation(summary = "Delete Team Parameter")
   @ApiResponses(
       value = {
@@ -244,10 +244,10 @@ public class TeamControllerV2 {
   }
 
   @DeleteMapping(value = "/{team}/approvers")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.DELETE,
-      scope = PermissionScope.TEAM,
-      types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+      resource = PermissionResource.TEAM,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.team, AuthScope.global})
   @Operation(summary = "Delete Approver Groups")
   @ApiResponses(
       value = {
@@ -263,10 +263,10 @@ public class TeamControllerV2 {
   }
 
   @DeleteMapping(value = "/{team}/quotas")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.DELETE,
-      scope = PermissionScope.TEAM,
-      types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+      resource = PermissionResource.TEAM,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.team, AuthScope.global})
   @Operation(summary = "Reset Team Quota")
   @ApiResponses(
       value = {
@@ -281,10 +281,10 @@ public class TeamControllerV2 {
   }
 
   @GetMapping(value = "/quotas/default")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.TEAM,
-      types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+      resource = PermissionResource.TEAM,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.team, AuthScope.global})
   @Operation(summary = "Retrieve Default Team Quota")
   @ApiResponses(
       value = {
@@ -296,10 +296,10 @@ public class TeamControllerV2 {
   }
 
   @GetMapping(value = "/roles")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.TEAM,
-      types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+      resource = PermissionResource.TEAM,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.team, AuthScope.global})
   @Operation(summary = "Retrieve Team Roles")
   @ApiResponses(
       value = {

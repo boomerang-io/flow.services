@@ -2,10 +2,10 @@ package io.boomerang.core;
 
 import io.boomerang.core.model.User;
 import io.boomerang.core.model.UserRequest;
-import io.boomerang.security.AuthScope;
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.AuthCriteria;
+import io.boomerang.security.enums.AuthScope;
 import io.boomerang.security.enums.PermissionAction;
-import io.boomerang.security.enums.PermissionScope;
+import io.boomerang.security.enums.PermissionResource;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -38,10 +38,10 @@ public class UserControllerV2 {
   @Autowired private UserService userService;
 
   @GetMapping(value = "/{userId}")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.USER,
-      types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+      resource = PermissionResource.USER,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.team, AuthScope.global})
   @Operation(summary = "Get a Users details")
   @ApiResponses(
       value = {
@@ -58,10 +58,10 @@ public class UserControllerV2 {
   }
 
   @GetMapping(value = "/query")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.USER,
-      types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+      resource = PermissionResource.USER,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.team, AuthScope.global})
   @Operation(summary = "Search for Users")
   @ApiResponses(
       value = {
@@ -126,10 +126,10 @@ public class UserControllerV2 {
   //  }
 
   @PatchMapping(value = "/{userId}")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.WRITE,
-      scope = PermissionScope.USER,
-      types = {AuthType.global})
+      resource = PermissionResource.USER,
+      assignableScopes = {AuthScope.global})
   @Operation(summary = "Update a Boomerang Flow Users details")
   @ApiResponses(
       value = {
@@ -147,10 +147,10 @@ public class UserControllerV2 {
   }
 
   @DeleteMapping(value = "/{userId}")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.DELETE,
-      scope = PermissionScope.USER,
-      types = {AuthType.global})
+      resource = PermissionResource.USER,
+      assignableScopes = {AuthScope.global})
   @Operation(summary = "Delete a Boomerang Flow user")
   @ApiResponses(
       value = {

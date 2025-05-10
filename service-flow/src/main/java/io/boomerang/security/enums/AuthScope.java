@@ -6,7 +6,7 @@ import java.util.Map;
 /*
  * Remains lowercase to match TokenTypePrefix and what a user would enter in json
  */
-public enum AuthType {
+public enum AuthScope {
   session("session"),
   user("user"),
   team("team"),
@@ -15,9 +15,9 @@ public enum AuthType {
 
   private String label;
 
-  private static final Map<String, AuthType> BY_LABEL = new HashMap<>();
+  private static final Map<String, AuthScope> BY_LABEL = new HashMap<>();
 
-  AuthType(String label) {
+  AuthScope(String label) {
     this.label = label;
   }
 
@@ -26,12 +26,12 @@ public enum AuthType {
   }
 
   static {
-    for (AuthType e : values()) {
+    for (AuthScope e : values()) {
       BY_LABEL.put(e.label, e);
     }
   }
 
-  public static AuthType valueOfLabel(String label) {
+  public static AuthScope valueOfLabel(String label) {
     return BY_LABEL.get(label);
   }
 }

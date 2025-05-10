@@ -2,10 +2,10 @@ package io.boomerang.core;
 
 import io.boomerang.core.model.UserProfile;
 import io.boomerang.core.model.UserRequest;
-import io.boomerang.security.AuthScope;
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.AuthCriteria;
+import io.boomerang.security.enums.AuthScope;
 import io.boomerang.security.enums.PermissionAction;
-import io.boomerang.security.enums.PermissionScope;
+import io.boomerang.security.enums.PermissionResource;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -30,10 +30,10 @@ public class ProfileControllerV2 {
    * The authentication handler ensures they are already a registered user
    */
   @GetMapping(value = "")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.USER,
-      types = {AuthType.session, AuthType.user})
+      resource = PermissionResource.USER,
+      assignableScopes = {AuthScope.session, AuthScope.user})
   @Operation(summary = "Get your Profile")
   @ApiResponses(
       value = {
@@ -46,10 +46,10 @@ public class ProfileControllerV2 {
   }
 
   @PatchMapping(value = "")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.WRITE,
-      scope = PermissionScope.USER,
-      types = {AuthType.session, AuthType.user})
+      resource = PermissionResource.USER,
+      assignableScopes = {AuthScope.session, AuthScope.user})
   @Operation(summary = "Patch your Profile")
   @ApiResponses(
       value = {

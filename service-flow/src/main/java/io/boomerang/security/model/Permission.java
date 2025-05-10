@@ -1,31 +1,27 @@
 package io.boomerang.security.model;
 
 import io.boomerang.security.enums.PermissionAction;
-import io.boomerang.security.enums.PermissionScope;
+import io.boomerang.security.enums.PermissionResource;
 import lombok.Data;
 
-// TODO transform to the new type of permission made up of assigned scope and then array of actions
 @Data
 public class Permission {
-  private PermissionScope scope;
-  private String principal;
+  private PermissionResource scope;
   private PermissionAction action;
 
   public Permission() {}
 
   public Permission(String permission) {
     String[] spread = permission.split("/");
-    PermissionScope.valueOf(spread[0]);
+    PermissionResource.valueOf(spread[0]);
   }
 
-  public Permission(PermissionScope scope, String principal, PermissionAction action) {
+  public Permission(PermissionResource scope, PermissionAction action) {
     this.scope = scope;
-    this.principal = principal;
     this.action = action;
   }
 
-  @Override
   public String toString() {
-    return scope + "\\" + principal + "\\" + action;
+    return scope + "\\" + action;
   }
 }

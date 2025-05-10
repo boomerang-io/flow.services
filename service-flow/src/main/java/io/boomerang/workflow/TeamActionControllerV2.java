@@ -2,10 +2,10 @@ package io.boomerang.workflow;
 
 import io.boomerang.common.enums.ActionStatus;
 import io.boomerang.common.enums.ActionType;
-import io.boomerang.security.AuthScope;
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.AuthCriteria;
+import io.boomerang.security.enums.AuthScope;
 import io.boomerang.security.enums.PermissionAction;
-import io.boomerang.security.enums.PermissionScope;
+import io.boomerang.security.enums.PermissionResource;
 import io.boomerang.workflow.model.Action;
 import io.boomerang.workflow.model.ActionRequest;
 import io.boomerang.workflow.model.ActionSummary;
@@ -43,10 +43,10 @@ public class TeamActionControllerV2 {
   }
 
   @GetMapping(value = "/{actionId}")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.ACTION,
-      types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+      resource = PermissionResource.ACTION,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.team, AuthScope.global})
   @Operation(summary = "Retrieve a specific Action by Id")
   @ApiResponses(
       value = {
@@ -79,10 +79,10 @@ public class TeamActionControllerV2 {
   //  }
 
   @PutMapping(value = "")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.ACTION,
-      scope = PermissionScope.ACTION,
-      types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+      resource = PermissionResource.ACTION,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.team, AuthScope.global})
   @Operation(summary = "Provide an update for an Action")
   @ApiResponses(
       value = {
@@ -102,10 +102,10 @@ public class TeamActionControllerV2 {
   }
 
   @GetMapping(value = "/query")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.ACTION,
-      types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+      resource = PermissionResource.ACTION,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.team, AuthScope.global})
   @Operation(summary = "Search for Actions")
   @ApiResponses(
       value = {
@@ -189,10 +189,10 @@ public class TeamActionControllerV2 {
   }
 
   @GetMapping(value = "/summary")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.ACTION,
-      types = {AuthType.session, AuthType.user, AuthType.team, AuthType.global})
+      resource = PermissionResource.ACTION,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.team, AuthScope.global})
   @Operation(summary = "Get Actions Summary")
   @ApiResponses(
       value = {

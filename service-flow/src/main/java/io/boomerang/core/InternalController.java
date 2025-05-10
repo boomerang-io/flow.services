@@ -3,6 +3,8 @@ package io.boomerang.core;
 import io.boomerang.common.entity.WorkflowScheduleEntity;
 import io.boomerang.common.model.WorkflowSchedule;
 import io.boomerang.core.entity.SettingEntity;
+import io.boomerang.core.model.TokenCreateRequest;
+import io.boomerang.core.model.TokenCreateResponse;
 import io.boomerang.workflow.ScheduleService;
 import io.boomerang.workflow.model.SettingConfig;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -31,6 +33,8 @@ public class InternalController {
 
   @Autowired private ScheduleService workflowScheduleService;
 
+  @Autowired private TokenService tokenService;
+
   // Used by Engine for RunScheduledWorkflow task
   // Team will be black and the QuartzSchedulerJob will handle it
   @PostMapping(value = "/workflow/schedule")
@@ -53,5 +57,13 @@ public class InternalController {
     } catch (Exception e) {
       return ResponseEntity.noContent().build();
     }
+  }
+
+  // Used to create debug token
+  // TODO add greater checks and limitations
+  @PostMapping(value = "/token")
+  @Operation(summary = "Create a Debug Token")
+  public TokenCreateResponse createToken(@RequestBody TokenCreateRequest request) {
+    return tokenService.create(request);
   }
 }

@@ -7,9 +7,9 @@ import java.util.Optional;
 import io.boomerang.core.model.Token;
 import io.boomerang.core.model.TokenCreateRequest;
 import io.boomerang.core.model.TokenCreateResponse;
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.enums.AuthScope;
 import io.boomerang.security.enums.PermissionAction;
-import io.boomerang.security.enums.PermissionScope;
+import io.boomerang.security.enums.PermissionResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort.Direction;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import io.boomerang.security.AuthScope;
+import io.boomerang.security.AuthCriteria;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,9 +35,9 @@ public class TokenControllerV2 {
   @Autowired private TokenService tokenService;
 
   @PostMapping("/token")
-  @AuthScope(
-      types = {AuthType.global, AuthType.user, AuthType.team, AuthType.workflow},
-      scope = PermissionScope.TOKEN,
+  @AuthCriteria(
+      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.team, AuthScope.workflow},
+      resource = PermissionResource.TOKEN,
       action = PermissionAction.WRITE)
   @Operation(summary = "Create Token")
   public TokenCreateResponse createToken(@RequestBody TokenCreateRequest request) {
@@ -45,9 +45,9 @@ public class TokenControllerV2 {
   }
 
   @GetMapping("/token/query")
-  @AuthScope(
-      types = {AuthType.global, AuthType.user, AuthType.team, AuthType.workflow},
-      scope = PermissionScope.TOKEN,
+  @AuthCriteria(
+      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.team, AuthScope.workflow},
+      resource = PermissionResource.TOKEN,
       action = PermissionAction.READ)
   @Operation(summary = "Search for Tokens")
   public Page<Token> query(
@@ -56,7 +56,7 @@ public class TokenControllerV2 {
               description = "List of types to filter for. Defaults to all.",
               required = false)
           @RequestParam(required = false)
-          Optional<List<AuthType>> types,
+          Optional<List<AuthScope>> types,
       @Parameter(
               name = "principals",
               description =
@@ -110,9 +110,9 @@ public class TokenControllerV2 {
   }
 
   @DeleteMapping("/token/{id}")
-  @AuthScope(
-      types = {AuthType.global, AuthType.user, AuthType.team, AuthType.workflow},
-      scope = PermissionScope.TOKEN,
+  @AuthCriteria(
+      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.team, AuthScope.workflow},
+      resource = PermissionResource.TOKEN,
       action = PermissionAction.DELETE)
   @Operation(summary = "Delete Token")
   public ResponseEntity<?> deleteToken(

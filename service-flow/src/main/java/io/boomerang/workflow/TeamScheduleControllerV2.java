@@ -2,10 +2,10 @@ package io.boomerang.workflow;
 
 import io.boomerang.common.model.WorkflowSchedule;
 import io.boomerang.error.BoomerangException;
-import io.boomerang.security.AuthScope;
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.AuthCriteria;
+import io.boomerang.security.enums.AuthScope;
 import io.boomerang.security.enums.PermissionAction;
-import io.boomerang.security.enums.PermissionScope;
+import io.boomerang.security.enums.PermissionResource;
 import io.boomerang.workflow.model.CronValidationResponse;
 import io.boomerang.workflow.model.WorkflowScheduleCalendar;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,10 +45,16 @@ public class TeamScheduleControllerV2 {
   }
 
   @GetMapping(value = "/validate-cron")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.SCHEDULE,
-      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.workflow, AuthType.session})
+      resource = PermissionResource.SCHEDULE,
+      assignableScopes = {
+        AuthScope.global,
+        AuthScope.team,
+        AuthScope.user,
+        AuthScope.workflow,
+        AuthScope.session
+      })
   @Operation(summary = "Validate a Schedules CRON.")
   public CronValidationResponse validateCron(
       @Parameter(name = "cron", description = "A CRON expression to validate", required = true)
@@ -58,10 +64,16 @@ public class TeamScheduleControllerV2 {
   }
 
   @GetMapping(value = "/{scheduleId}")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.SCHEDULE,
-      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.workflow, AuthType.session})
+      resource = PermissionResource.SCHEDULE,
+      assignableScopes = {
+        AuthScope.global,
+        AuthScope.team,
+        AuthScope.user,
+        AuthScope.workflow,
+        AuthScope.session
+      })
   @Operation(summary = "Retrieve a Schedule.")
   public WorkflowSchedule get(
       @Parameter(
@@ -76,10 +88,16 @@ public class TeamScheduleControllerV2 {
   }
 
   @GetMapping(value = "/query")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.SCHEDULE,
-      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.workflow, AuthType.session})
+      resource = PermissionResource.SCHEDULE,
+      assignableScopes = {
+        AuthScope.global,
+        AuthScope.team,
+        AuthScope.user,
+        AuthScope.workflow,
+        AuthScope.session
+      })
   @Operation(summary = "Search for Schedules")
   public Page<WorkflowSchedule> query(
       @Parameter(
@@ -120,10 +138,16 @@ public class TeamScheduleControllerV2 {
   }
 
   @GetMapping(value = "/calendars")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.SCHEDULE,
-      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.workflow, AuthType.session})
+      resource = PermissionResource.SCHEDULE,
+      assignableScopes = {
+        AuthScope.global,
+        AuthScope.team,
+        AuthScope.user,
+        AuthScope.workflow,
+        AuthScope.session
+      })
   @Operation(summary = "Retrieve Calendars for Schedules by Dates.")
   public List<WorkflowScheduleCalendar> getCalendarsForSchedules(
       @Parameter(
@@ -146,10 +170,16 @@ public class TeamScheduleControllerV2 {
   }
 
   @PostMapping(value = "")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.WRITE,
-      scope = PermissionScope.SCHEDULE,
-      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.workflow, AuthType.session})
+      resource = PermissionResource.SCHEDULE,
+      assignableScopes = {
+        AuthScope.global,
+        AuthScope.team,
+        AuthScope.user,
+        AuthScope.workflow,
+        AuthScope.session
+      })
   @Operation(summary = "Create a Schedule.")
   public WorkflowSchedule createSchedule(
       @Parameter(
@@ -164,10 +194,16 @@ public class TeamScheduleControllerV2 {
   }
 
   @PutMapping(value = "")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.WRITE,
-      scope = PermissionScope.SCHEDULE,
-      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.workflow, AuthType.session})
+      resource = PermissionResource.SCHEDULE,
+      assignableScopes = {
+        AuthScope.global,
+        AuthScope.team,
+        AuthScope.user,
+        AuthScope.workflow,
+        AuthScope.session
+      })
   @Operation(summary = "Apply a Schedule.")
   public WorkflowSchedule updateSchedule(
       @RequestBody WorkflowSchedule schedule,
@@ -182,10 +218,16 @@ public class TeamScheduleControllerV2 {
   }
 
   @DeleteMapping(value = "/{scheduleId}")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.DELETE,
-      scope = PermissionScope.SCHEDULE,
-      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.workflow, AuthType.session})
+      resource = PermissionResource.SCHEDULE,
+      assignableScopes = {
+        AuthScope.global,
+        AuthScope.team,
+        AuthScope.user,
+        AuthScope.workflow,
+        AuthScope.session
+      })
   @Operation(summary = "Delete a Schedule.")
   public void deleteSchedule(
       @Parameter(

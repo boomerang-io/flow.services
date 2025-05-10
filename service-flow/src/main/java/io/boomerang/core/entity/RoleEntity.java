@@ -3,7 +3,7 @@ package io.boomerang.core.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.enums.AuthScope;
 import java.util.LinkedList;
 import java.util.List;
 import lombok.Data;
@@ -15,9 +15,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "#{@mongoConfiguration.fullCollectionName('roles')}")
 public class RoleEntity {
 
-  //  @JsonIgnore
+  // TODO if we make workflow by unique name this will need to move to be a prefixed string of
+  // /team/team-name/workflow/workflowId or /user/userId etc
   private String id;
-  private AuthType type;
+  private AuthScope type;
   private String name;
   private String description;
   private List<String> permissions = new LinkedList<>();

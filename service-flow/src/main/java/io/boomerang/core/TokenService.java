@@ -13,8 +13,8 @@ import io.boomerang.core.repository.RoleRepository;
 import io.boomerang.core.repository.TokenRepository;
 import io.boomerang.error.BoomerangError;
 import io.boomerang.error.BoomerangException;
-import io.boomerang.security.enums.AuthType;
-import io.boomerang.security.enums.PermissionScope;
+import io.boomerang.security.enums.AuthScope;
+import io.boomerang.security.enums.PermissionResource;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -53,7 +52,7 @@ public class TokenService {
   private static final Logger LOGGER = LogManager.getLogger();
 
   private static final String TOKEN_PERMISSION_REGEX =
-      "(\\*{2}|[0-9a-zA-Z\\-]+)\\/(\\*{2}|[0-9a-zA-Z\\-]+)\\/(\\*{2}|Read|Write|Action|Delete){1}";
+      "(\\*{2}|[0-9a-zA-Z\\-]+)\\/(\\*{2}|read|write|action|delete){1}";
 
   @Value("${flow.token.max-user-session-duration}")
   private Integer MAX_SESSION_TOKEN_DURATION;
@@ -86,7 +85,7 @@ public class TokenService {
    */
   public TokenCreateResponse create(TokenCreateRequest request) {
     // Disallow creation of session tokens except via internal AuthenticationFilter
-    if (AuthType.session.equals(request.getType())) {
+    if (AuthScope.session.equals(request.getType())) {
       throw new BoomerangException(BoomerangError.TOKEN_INVALID_SESSION_REQ);
     }
 
@@ -94,19 +93,18 @@ public class TokenService {
     // - Type and name: required for all tokens
     // - Principal: required if type!=global
     // - Permissions: required for type!=user
-    // - Teams: require for type=user - this is checked later down
     if (request.getType() == null
         || request.getName() == null
         || request.getName().isEmpty()
-        || (!AuthType.global.equals(request.getType())
+        || (!AuthScope.global.equals(request.getType())
             && (request.getPrincipal() == null || request.getPrincipal().isBlank()))
-        || (!AuthType.user.equals(request.getType())
+        || (!AuthScope.user.equals(request.getType())
             && (request.getPermissions() == null || request.getPermissions().isEmpty()))) {
       throw new BoomerangException(BoomerangError.TOKEN_INVALID_REQ);
     }
 
     // Validate permissions matches the REGEX
-    if (!AuthType.user.equals(request.getType())) {
+    if (!AuthScope.user.equals(request.getType())) {
       request
           .getPermissions()
           .forEach(
@@ -115,21 +113,11 @@ public class TokenService {
                   throw new BoomerangException(BoomerangError.TOKEN_INVALID_PERMISSION);
                 }
                 String[] pSplit = p.split("/");
-                LOGGER.debug("Scope: " + PermissionScope.valueOfLabel(pSplit[0]));
-                if (PermissionScope.valueOfLabel(pSplit[0]) == null) {
+                LOGGER.debug("Scope: " + PermissionResource.valueOfLabel(pSplit[0]));
+                if (PermissionResource.valueOfLabel(pSplit[0]) == null) {
                   throw new BoomerangException(BoomerangError.TOKEN_INVALID_PERMISSION);
                 }
-                LOGGER.debug("Principal: " + pSplit[1].toLowerCase());
-                if (pSplit[1] == null) {
-                  throw new BoomerangException(BoomerangError.TOKEN_INVALID_PERMISSION);
-                }
-                if (AuthType.team.equals(request.getType())
-                    || AuthType.workflow.equals(request.getType())) {
-                  if (!request.getPrincipal().equals(pSplit[1])) {
-                    throw new BoomerangException(BoomerangError.TOKEN_INVALID_PERMISSION);
-                  }
-                }
-                LOGGER.debug("Action: " + pSplit[2]);
+                LOGGER.debug("Action: " + pSplit[1]);
                 // ACTION is already checked as part of the regex
               });
     }
@@ -140,36 +128,34 @@ public class TokenService {
     tokenEntity.setName(request.getName());
     tokenEntity.setDescription(request.getDescription());
     tokenEntity.setExpirationDate(request.getExpirationDate());
-    if (!AuthType.global.equals(request.getType())) {
+    if (!AuthScope.global.equals(request.getType())) {
       tokenEntity.setPrincipal(request.getPrincipal());
     }
+
     // Set Permissions
-    // If type=user then retrieve role permissions for each team on User Token
-    // else set to the permissions in the request
-    if (AuthType.user.equals(request.getType())) {
-      Optional<List<String>> teams = Optional.empty();
-      //      if (request.getTeams() != null && !request.getTeams().isEmpty()) {
-      //        teams = Optional.of(request.getTeams());
-      //      }
-      // Validate principal against all the team permissions the user has
+    if (AuthScope.user.equals(request.getType())) {
+      // TODO do i need to check if user is Admin or Operator
       Map<String, String> teamsAndRoles = relationshipService.roles(request.getPrincipal());
       for (Map.Entry<String, String> entry : teamsAndRoles.entrySet()) {
-        // String role = RoleEnum.READER.getLabel();
-        // if (rel.getData() != null && rel.getData().get("role") != null) {
-        // role = rel.getData().get("role").toString();
-        // }
-        List<String> rolePermissions =
-            roleRepository.findByTypeAndName("team", entry.getValue()).getPermissions();
-        List<String> replacedPermissions =
-            rolePermissions.stream()
-                .map(str -> str.replace("{principal}", entry.getKey()))
-                .collect(Collectors.toList());
-        LOGGER.debug(replacedPermissions.toString());
-        tokenEntity.getPermissions().addAll(replacedPermissions);
+        ResolvedPermissions resolvedPermissions =
+            new ResolvedPermissions(
+                AuthScope.team,
+                entry.getKey(),
+                roleRepository.findByTypeAndName("team", entry.getValue()).getPermissions());
+        tokenEntity.getPermissions().add(resolvedPermissions);
       }
     } else {
-      tokenEntity.setPermissions(request.getPermissions());
+      tokenEntity
+          .getPermissions()
+          .add(
+              new ResolvedPermissions(
+                  request.getType(),
+                  request.getPrincipal() != null && !request.getPrincipal().isBlank()
+                      ? request.getPrincipal()
+                      : "**",
+                  request.getPermissions()));
     }
+    LOGGER.debug(tokenEntity.getPermissions().toString());
 
     String prefix = TokenTypePrefix.valueOf(request.getType().toString()).getPrefix();
     String uniqueToken = prefix + "_" + UUID.randomUUID().toString().toLowerCase();
@@ -248,7 +234,7 @@ public class TokenService {
       Optional<Integer> queryPage,
       Optional<Direction> queryOrder,
       Optional<String> querySort,
-      Optional<List<AuthType>> queryTypes,
+      Optional<List<AuthScope>> queryTypes,
       Optional<List<String>> queryPrincipals) {
     Pageable pageable = Pageable.unpaged();
     final Sort sort =
@@ -384,29 +370,34 @@ public class TokenService {
     TokenEntity tokenEntity = new TokenEntity();
     tokenEntity.setCreationDate(new Date());
     tokenEntity.setDescription("Generated User Session Token");
-    tokenEntity.setType(AuthType.session);
+    tokenEntity.setType(AuthScope.session);
     tokenEntity.setExpirationDate(expiryDate);
     tokenEntity.setPrincipal(user.get().getId());
     List<String> permissions = new LinkedList<>();
-    if (UserType.admin.equals(user.get().getType())) {
-      permissions.addAll(
-          roleRepository.findByTypeAndName("global", UserType.admin.toString()).getPermissions());
-    } else if (UserType.operator.equals(user.get().getType())) {
-      permissions.addAll(
-          roleRepository
-              .findByTypeAndName("global", UserType.operator.toString())
-              .getPermissions());
+    if (UserType.admin.equals(user.get().getType())
+        || UserType.operator.equals(user.get().getType())) {
+      tokenEntity
+          .getPermissions()
+          .add(
+              new ResolvedPermissions(
+                  AuthScope.global,
+                  "**",
+                  roleRepository
+                      .findByTypeAndName("global", user.get().getType().toString())
+                      .getPermissions()));
     } else {
       // Collect all team permissions the user has
-      // TODO: fix how this is handled
-      Map<String, String> teamRefs = relationshipService.roles(user.get().getId());
-      teamRefs.forEach(
-          (k, v) -> {
-            roleRepository.findByTypeAndName("team", v).getPermissions().stream()
-                .forEach(p -> permissions.add(p.replace("{principal}", k)));
-          });
+      Map<String, String> teamsAndRoles = relationshipService.roles(user.get().getId());
+      for (Map.Entry<String, String> entry : teamsAndRoles.entrySet()) {
+        tokenEntity
+            .getPermissions()
+            .add(
+                new ResolvedPermissions(
+                    AuthScope.team,
+                    entry.getKey(),
+                    roleRepository.findByTypeAndName("team", entry.getValue()).getPermissions()));
+      }
     }
-    tokenEntity.setPermissions(permissions);
     String prefix = TokenTypePrefix.session.prefix;
     String uniqueToken = prefix + "_" + UUID.randomUUID().toString().toLowerCase();
 
@@ -447,7 +438,7 @@ public class TokenService {
   public Token createWorkflowSessionToken(String workflowRef) {
     TokenCreateRequest tokenRequest = new TokenCreateRequest();
     tokenRequest.setName("scheduled-job-token");
-    tokenRequest.setType(AuthType.workflow);
+    tokenRequest.setType(AuthScope.workflow);
     tokenRequest.setPrincipal(workflowRef);
     tokenRequest.setPermissions(List.of("workflow/" + workflowRef + "/**"));
 

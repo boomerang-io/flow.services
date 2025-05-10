@@ -1,7 +1,7 @@
 package io.boomerang.core.model;
 
 import io.boomerang.core.entity.TokenEntity;
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.enums.AuthScope;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,7 +13,7 @@ public class SessionToken {
 
   //  @JsonIgnore
   private String id;
-  private AuthType type;
+  private AuthScope type;
   private String name;
   private String description;
   private Date creationDate = new Date();
@@ -23,7 +23,7 @@ public class SessionToken {
 
   public SessionToken() {}
 
-  public SessionToken(AuthType type) {
+  public SessionToken(AuthScope type) {
     super();
     this.setType(type);
   }

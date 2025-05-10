@@ -3,10 +3,10 @@ package io.boomerang.workflow;
 import io.boomerang.client.TaskResponsePage;
 import io.boomerang.common.model.ChangeLogVersion;
 import io.boomerang.common.model.Task;
-import io.boomerang.security.AuthScope;
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.AuthCriteria;
+import io.boomerang.security.enums.AuthScope;
 import io.boomerang.security.enums.PermissionAction;
-import io.boomerang.security.enums.PermissionScope;
+import io.boomerang.security.enums.PermissionResource;
 import io.boomerang.workflow.tekton.TektonTask;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -38,10 +38,16 @@ public class TeamTaskControllerV2 {
   }
 
   @GetMapping(value = "/{name}")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.TASK,
-      types = {AuthType.global, AuthType.team, AuthType.workflow, AuthType.session, AuthType.user})
+      resource = PermissionResource.TASK,
+      assignableScopes = {
+        AuthScope.global,
+        AuthScope.team,
+        AuthScope.workflow,
+        AuthScope.session,
+        AuthScope.user
+      })
   @Operation(
       summary =
           "Retrieve a specific task. If no version specified, the latest version is returned.")
@@ -67,10 +73,16 @@ public class TeamTaskControllerV2 {
   }
 
   @GetMapping(value = "{name}", produces = "application/x-yaml")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.TASK,
-      types = {AuthType.global, AuthType.team, AuthType.workflow, AuthType.session, AuthType.user})
+      resource = PermissionResource.TASK,
+      assignableScopes = {
+        AuthScope.global,
+        AuthScope.team,
+        AuthScope.workflow,
+        AuthScope.session,
+        AuthScope.user
+      })
   @Operation(
       summary =
           "Retrieve a specific task as Tekton Task YAML. If no version specified, the latest version is returned.")
@@ -96,10 +108,16 @@ public class TeamTaskControllerV2 {
   }
 
   @GetMapping(value = "/query")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.TASK,
-      types = {AuthType.global, AuthType.team, AuthType.workflow, AuthType.session, AuthType.user})
+      resource = PermissionResource.TASK,
+      assignableScopes = {
+        AuthScope.global,
+        AuthScope.team,
+        AuthScope.workflow,
+        AuthScope.session,
+        AuthScope.user
+      })
   @Operation(
       summary =
           "Search for Tasks. If teams are provided it will query the teams. If no teams are provided it will query Global Task Templates")
@@ -154,10 +172,10 @@ public class TeamTaskControllerV2 {
   }
 
   @PostMapping(value = "")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.WRITE,
-      scope = PermissionScope.TASK,
-      types = {AuthType.global, AuthType.team, AuthType.session, AuthType.user})
+      resource = PermissionResource.TASK,
+      assignableScopes = {AuthScope.global, AuthScope.team, AuthScope.session, AuthScope.user})
   @Operation(
       summary = "Create a new Task",
       description =
@@ -180,10 +198,10 @@ public class TeamTaskControllerV2 {
   }
 
   @PostMapping(value = "", consumes = "application/x-yaml", produces = "application/x-yaml")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.WRITE,
-      scope = PermissionScope.TASK,
-      types = {AuthType.global, AuthType.team, AuthType.session, AuthType.user})
+      resource = PermissionResource.TASK,
+      assignableScopes = {AuthScope.global, AuthScope.team, AuthScope.session, AuthScope.user})
   @Operation(
       summary = "Create a new Task Template using Tekton Task YAML",
       description =
@@ -206,10 +224,10 @@ public class TeamTaskControllerV2 {
   }
 
   @PutMapping(value = "/{name}")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.WRITE,
-      scope = PermissionScope.TASK,
-      types = {AuthType.global, AuthType.team, AuthType.session, AuthType.user})
+      resource = PermissionResource.TASK,
+      assignableScopes = {AuthScope.global, AuthScope.team, AuthScope.session, AuthScope.user})
   @Operation(
       summary = "Update, replace, or create new, Task",
       description =
@@ -237,10 +255,10 @@ public class TeamTaskControllerV2 {
   }
 
   @PutMapping(value = "/{name}", consumes = "application/x-yaml", produces = "application/x-yaml")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.WRITE,
-      scope = PermissionScope.TASK,
-      types = {AuthType.global, AuthType.team, AuthType.session, AuthType.user})
+      resource = PermissionResource.TASK,
+      assignableScopes = {AuthScope.global, AuthScope.team, AuthScope.session, AuthScope.user})
   @Operation(
       summary = "Update, replace, or create new using Tekton Task YAML",
       description =
@@ -268,10 +286,10 @@ public class TeamTaskControllerV2 {
   }
 
   @GetMapping(value = "/{name}/changelog")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.TASK,
-      types = {AuthType.global, AuthType.team, AuthType.session, AuthType.user})
+      resource = PermissionResource.TASK,
+      assignableScopes = {AuthScope.global, AuthScope.team, AuthScope.session, AuthScope.user})
   @Operation(
       summary = "Retrieve the changlog",
       description = "Retrieves each versions changelog and returns them all as a list.")
@@ -297,10 +315,10 @@ public class TeamTaskControllerV2 {
       value = "/validate",
       consumes = "application/x-yaml",
       produces = "application/x-yaml")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.TASK,
-      types = {AuthType.global, AuthType.team, AuthType.session, AuthType.user})
+      resource = PermissionResource.TASK,
+      assignableScopes = {AuthScope.global, AuthScope.team, AuthScope.session, AuthScope.user})
   @Operation(
       summary = "Validate Tekton Task YAML",
       description = "Validates the Task YAML as a Tekton Task")
@@ -314,10 +332,10 @@ public class TeamTaskControllerV2 {
   }
 
   @DeleteMapping(value = "/{name}")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.TASK,
-      types = {AuthType.global, AuthType.team, AuthType.session, AuthType.user})
+      resource = PermissionResource.TASK,
+      assignableScopes = {AuthScope.global, AuthScope.team, AuthScope.session, AuthScope.user})
   @Operation(summary = "Delete a Team Task")
   @ApiResponses(
       value = {

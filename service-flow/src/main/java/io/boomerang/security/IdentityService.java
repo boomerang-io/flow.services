@@ -1,6 +1,6 @@
 package io.boomerang.security;
 
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.enums.AuthScope;
 import io.boomerang.core.model.Token;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,7 +18,7 @@ public class IdentityService {
     return token.getPrincipal();
   }
 
-  public AuthType getCurrentScope() {
+  public AuthScope getCurrentScope() {
     Token token = this.getCurrentIdentity();
     return token.getType();
   }

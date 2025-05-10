@@ -3,10 +3,10 @@ package io.boomerang.workflow;
 import io.boomerang.client.EngineClient;
 import io.boomerang.client.WorkflowTemplateResponsePage;
 import io.boomerang.common.model.WorkflowTemplate;
-import io.boomerang.security.AuthScope;
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.AuthCriteria;
+import io.boomerang.security.enums.AuthScope;
 import io.boomerang.security.enums.PermissionAction;
-import io.boomerang.security.enums.PermissionScope;
+import io.boomerang.security.enums.PermissionResource;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -38,10 +38,10 @@ public class WorkflowTemplateControllerV2 {
   }
 
   @GetMapping(value = "/{name}")
-  @AuthScope(
-      types = {AuthType.global, AuthType.user, AuthType.session},
+  @AuthCriteria(
+      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.session},
       action = PermissionAction.READ,
-      scope = PermissionScope.WORKFLOWTEMPLATE)
+      resource = PermissionResource.WORKFLOWTEMPLATE)
   @Operation(
       summary = "Retrieve a Workflow Template",
       description =
@@ -65,10 +65,10 @@ public class WorkflowTemplateControllerV2 {
   }
 
   @GetMapping(value = "/query")
-  @AuthScope(
-      types = {AuthType.global, AuthType.user, AuthType.session},
+  @AuthCriteria(
+      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.session},
       action = PermissionAction.READ,
-      scope = PermissionScope.WORKFLOWTEMPLATE)
+      resource = PermissionResource.WORKFLOWTEMPLATE)
   @Operation(summary = "Search for Workflow Templates")
   @ApiResponses(
       value = {
@@ -107,10 +107,10 @@ public class WorkflowTemplateControllerV2 {
   }
 
   @PostMapping(value = "")
-  @AuthScope(
-      types = {AuthType.global, AuthType.user, AuthType.session},
+  @AuthCriteria(
+      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.session},
       action = PermissionAction.WRITE,
-      scope = PermissionScope.WORKFLOWTEMPLATE)
+      resource = PermissionResource.WORKFLOWTEMPLATE)
   @Operation(summary = "Create a new Workflow Template")
   @ApiResponses(
       value = {
@@ -122,10 +122,10 @@ public class WorkflowTemplateControllerV2 {
   }
 
   @PutMapping(value = "")
-  @AuthScope(
-      types = {AuthType.global, AuthType.user, AuthType.session},
+  @AuthCriteria(
+      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.session},
       action = PermissionAction.WRITE,
-      scope = PermissionScope.WORKFLOWTEMPLATE)
+      resource = PermissionResource.WORKFLOWTEMPLATE)
   @Operation(summary = "Update, replace, or create new, Workflow Template")
   @ApiResponses(
       value = {
@@ -141,10 +141,10 @@ public class WorkflowTemplateControllerV2 {
   }
 
   @DeleteMapping(value = "/{name}")
-  @AuthScope(
-      types = {AuthType.global, AuthType.user, AuthType.session},
+  @AuthCriteria(
+      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.session},
       action = PermissionAction.DELETE,
-      scope = PermissionScope.WORKFLOWTEMPLATE)
+      resource = PermissionResource.WORKFLOWTEMPLATE)
   @Operation(summary = "Delete a Workflow Template")
   @ApiResponses(
       value = {

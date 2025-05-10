@@ -3,10 +3,10 @@ package io.boomerang.workflow;
 import io.boomerang.common.model.WorkflowRun;
 import io.boomerang.common.model.WorkflowRunCount;
 import io.boomerang.common.model.WorkflowRunRequest;
-import io.boomerang.security.AuthScope;
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.AuthCriteria;
+import io.boomerang.security.enums.AuthScope;
 import io.boomerang.security.enums.PermissionAction;
-import io.boomerang.security.enums.PermissionScope;
+import io.boomerang.security.enums.PermissionResource;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -44,10 +44,16 @@ public class TeamWorkflowRunControllerV2 {
   }
 
   @GetMapping(value = "/query")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.WORKFLOWRUN,
-      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
+      resource = PermissionResource.WORKFLOWRUN,
+      assignableScopes = {
+        AuthScope.global,
+        AuthScope.team,
+        AuthScope.user,
+        AuthScope.session,
+        AuthScope.workflow
+      })
   @Operation(summary = "Search for WorkflowRuns")
   @ApiResponses(
       value = {
@@ -144,10 +150,16 @@ public class TeamWorkflowRunControllerV2 {
   }
 
   @GetMapping(value = "/count")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.WORKFLOWRUN,
-      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
+      resource = PermissionResource.WORKFLOWRUN,
+      assignableScopes = {
+        AuthScope.global,
+        AuthScope.team,
+        AuthScope.user,
+        AuthScope.session,
+        AuthScope.workflow
+      })
   @Operation(summary = "Retrieve a summary of WorkflowRuns by Status.")
   @ApiResponses(
       value = {
@@ -195,10 +207,16 @@ public class TeamWorkflowRunControllerV2 {
   }
 
   @GetMapping(value = "/{workflowRunId}")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.WORKFLOWRUN,
-      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
+      resource = PermissionResource.WORKFLOWRUN,
+      assignableScopes = {
+        AuthScope.global,
+        AuthScope.team,
+        AuthScope.user,
+        AuthScope.session,
+        AuthScope.workflow
+      })
   @Operation(summary = "Retrieve a specific WorkflowRun.")
   @ApiResponses(
       value = {
@@ -226,10 +244,16 @@ public class TeamWorkflowRunControllerV2 {
   }
 
   @PutMapping(value = "/{workflowRunId}/start")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.ACTION,
-      scope = PermissionScope.WORKFLOWRUN,
-      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
+      resource = PermissionResource.WORKFLOWRUN,
+      assignableScopes = {
+        AuthScope.global,
+        AuthScope.team,
+        AuthScope.user,
+        AuthScope.session,
+        AuthScope.workflow
+      })
   @Operation(
       summary = "Start WorkflowRun execution. The WorkflowRun has to already have been queued.")
   @ApiResponses(
@@ -256,10 +280,16 @@ public class TeamWorkflowRunControllerV2 {
   }
 
   @PutMapping(value = "/{workflowRunId}/finalize")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.ACTION,
-      scope = PermissionScope.WORKFLOWRUN,
-      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
+      resource = PermissionResource.WORKFLOWRUN,
+      assignableScopes = {
+        AuthScope.global,
+        AuthScope.team,
+        AuthScope.user,
+        AuthScope.session,
+        AuthScope.workflow
+      })
   @Operation(summary = "End a WorkflowRun")
   @ApiResponses(
       value = {
@@ -284,10 +314,16 @@ public class TeamWorkflowRunControllerV2 {
   }
 
   @DeleteMapping(value = "/{workflowRunId}/cancel")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.ACTION,
-      scope = PermissionScope.WORKFLOWRUN,
-      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
+      resource = PermissionResource.WORKFLOWRUN,
+      assignableScopes = {
+        AuthScope.global,
+        AuthScope.team,
+        AuthScope.user,
+        AuthScope.session,
+        AuthScope.workflow
+      })
   @Operation(summary = "Cancel a WorkflowRun")
   @ApiResponses(
       value = {
@@ -312,10 +348,16 @@ public class TeamWorkflowRunControllerV2 {
   }
 
   @PutMapping(value = "/{workflowRunId}/retry")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.ACTION,
-      scope = PermissionScope.WORKFLOWRUN,
-      types = {AuthType.global, AuthType.team, AuthType.user, AuthType.session, AuthType.workflow})
+      resource = PermissionResource.WORKFLOWRUN,
+      assignableScopes = {
+        AuthScope.global,
+        AuthScope.team,
+        AuthScope.user,
+        AuthScope.session,
+        AuthScope.workflow
+      })
   @Operation(summary = "Retry WorkflowRun execution.")
   @ApiResponses(
       value = {

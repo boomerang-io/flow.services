@@ -8,7 +8,7 @@ import io.boomerang.core.entity.TokenEntity;
 import io.boomerang.core.repository.TokenRepository;
 import io.boomerang.error.BoomerangError;
 import io.boomerang.error.BoomerangException;
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.enums.AuthScope;
 import io.boomerang.workflow.entity.TeamEntity;
 import io.boomerang.workflow.repository.TeamRepository;
 import java.util.List;
@@ -139,7 +139,7 @@ public class ParameterManager {
     contextParams.put("event-url", this.settingsService.getEventURL());
 
     Optional<List<TokenEntity>> tokens =
-        tokenRepository.findByPrincipalAndType(workflow.getId(), AuthType.workflow);
+        tokenRepository.findByPrincipalAndType(workflow.getId(), AuthScope.workflow);
     // Add Tokens
     if (tokens.isPresent() && !tokens.isEmpty()) {
       for (TokenEntity t : tokens.get()) {

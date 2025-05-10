@@ -1,31 +1,30 @@
 package io.boomerang.core.model;
 
+import io.boomerang.core.entity.TokenEntity;
+import io.boomerang.security.enums.AuthScope;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-
-import io.boomerang.security.enums.AuthType;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
-import io.boomerang.core.entity.TokenEntity;
 
 @Data
 public class Token {
 
   //  @JsonIgnore
   private String id;
-  private AuthType type;
+  private AuthScope type;
   private String name;
   private String description;
   private Date creationDate = new Date();
   private Date expirationDate;
   private boolean valid;
   private String principal;
-  private List<String> permissions = new LinkedList<>();
+  private List<ResolvedPermissions> permissions = new LinkedList<>();
 
   public Token() {}
 
-  public Token(AuthType type) {
+  public Token(AuthScope type) {
     super();
     this.setType(type);
   }

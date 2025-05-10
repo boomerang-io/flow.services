@@ -5,10 +5,10 @@ import io.boomerang.core.model.HeaderNavigationResponse;
 import io.boomerang.core.model.Navigation;
 import io.boomerang.core.model.OneTimeCode;
 import io.boomerang.core.model.Setting;
-import io.boomerang.security.AuthScope;
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.AuthCriteria;
+import io.boomerang.security.enums.AuthScope;
 import io.boomerang.security.enums.PermissionAction;
-import io.boomerang.security.enums.PermissionScope;
+import io.boomerang.security.enums.PermissionResource;
 import io.boomerang.workflow.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -49,10 +49,10 @@ public class SystemControllerV2 {
   @Autowired private FeatureService featureService;
 
   @GetMapping(value = "/settings")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.SYSTEM,
-      types = {AuthType.session, AuthType.user, AuthType.global})
+      resource = PermissionResource.SYSTEM,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.global})
   @Operation(summary = "Retrieve Boomerang Flow Settings")
   @ApiResponses(
       value = {
@@ -64,10 +64,10 @@ public class SystemControllerV2 {
   }
 
   @PutMapping(value = "/settings")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.WRITE,
-      scope = PermissionScope.SYSTEM,
-      types = {AuthType.session, AuthType.user, AuthType.global})
+      resource = PermissionResource.SYSTEM,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.global})
   @Operation(summary = "Update Boomerang Flow Settings")
   @ApiResponses(
       value = {
@@ -79,10 +79,10 @@ public class SystemControllerV2 {
   }
 
   @PutMapping(value = "/activate")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.ACTION,
-      scope = PermissionScope.SYSTEM,
-      types = {AuthType.session, AuthType.user})
+      resource = PermissionResource.SYSTEM,
+      assignableScopes = {AuthScope.session, AuthScope.user})
   @Operation(summary = "Register and activate an installation of Flow")
   @ApiResponses(
       value = {
@@ -94,20 +94,20 @@ public class SystemControllerV2 {
   }
 
   @GetMapping(value = "/context")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.SYSTEM,
-      types = {AuthType.session, AuthType.user, AuthType.global})
+      resource = PermissionResource.SYSTEM,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.global})
   @Operation(summary = "Retrieve this instances context, features, and navigation.")
   public HeaderNavigationResponse getHeaderNavigation() {
     return this.contextService.getHeaderNavigation(userService.isCurrentUserAdmin());
   }
 
   @GetMapping(value = "/features")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.SYSTEM,
-      types = {AuthType.session, AuthType.user, AuthType.global})
+      resource = PermissionResource.SYSTEM,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.global})
   @Operation(summary = "Retrieve feature flags.")
   @ApiResponses(
       value = {
@@ -120,10 +120,10 @@ public class SystemControllerV2 {
   }
 
   @GetMapping(value = "/navigation")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.SYSTEM,
-      types = {AuthType.session, AuthType.user, AuthType.global})
+      resource = PermissionResource.SYSTEM,
+      assignableScopes = {AuthScope.session, AuthScope.user, AuthScope.global})
   @Operation(summary = "Retrieve navigation.")
   public ResponseEntity<List<Navigation>> getNavigation(
       @Parameter(

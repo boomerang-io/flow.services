@@ -1,10 +1,10 @@
 package io.boomerang.workflow;
 
 import io.boomerang.common.model.WorkflowRunInsight;
-import io.boomerang.security.AuthScope;
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.AuthCriteria;
+import io.boomerang.security.enums.AuthScope;
 import io.boomerang.security.enums.PermissionAction;
-import io.boomerang.security.enums.PermissionScope;
+import io.boomerang.security.enums.PermissionResource;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -32,10 +32,10 @@ public class TeamInsightsControllerV2 {
   }
 
   @GetMapping(value = "")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.INSIGHTS,
-      types = {AuthType.team, AuthType.user, AuthType.session})
+      resource = PermissionResource.INSIGHTS,
+      assignableScopes = {AuthScope.team, AuthScope.user, AuthScope.session})
   @Operation(
       summary = "Retrieve insights for a team",
       description = "The insights are based on the workflow runs and their statuses.")

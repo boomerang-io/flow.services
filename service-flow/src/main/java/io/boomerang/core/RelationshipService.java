@@ -5,11 +5,12 @@ import io.boomerang.core.entity.RelationshipNodeEntity;
 import io.boomerang.core.enums.RelationshipLabel;
 import io.boomerang.core.enums.RelationshipType;
 import io.boomerang.core.model.RelationshipGraphEdge;
+import io.boomerang.core.model.ResolvedPermissions;
 import io.boomerang.core.model.Token;
 import io.boomerang.core.repository.RelationshipEdgeRepository;
 import io.boomerang.core.repository.RelationshipNodeRepository;
 import io.boomerang.security.IdentityService;
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.enums.AuthScope;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
@@ -79,7 +80,7 @@ public class RelationshipService {
     Token identity = identityService.getCurrentIdentity();
     LOGGER.debug("Creating edge for: {}", identity.getPrincipal());
     RelationshipType fromType = null;
-    if (AuthType.session.equals(identity.getType())) {
+    if (AuthScope.session.equals(identity.getType())) {
       fromType = RelationshipType.USER;
     } else {
       fromType = RelationshipType.valueOfLabel(identity.getType().getLabel());
@@ -273,21 +274,23 @@ public class RelationshipService {
   }
 
   private static boolean checkPermissions(
-      List<String> permissions, RelationshipType type, List<String> toList) {
+      List<ResolvedPermissions> permissions, RelationshipType type, List<String> toList) {
+    List<String> flattenedPermissionActions =
+        permissions.stream()
+            .flatMap(permission -> permission.getActions().stream())
+            .collect(Collectors.toList());
     // Full access or full access for object
-    if (permissions.contains("**/**/**") || permissions.contains(type.getLabel() + "/**/**")) {
+    if (flattenedPermissionActions.contains("**/**")
+        || flattenedPermissionActions.contains(type.getLabel() + "/**")) {
       return true;
     }
 
     // Check all specific resources are valid
-    Set<String> resourceList = new LinkedHashSet<>();
-    permissions.stream()
-        .forEach(
-            p -> {
-              String[] parts = p.split("/");
-              resourceList.add(parts[1]);
-            });
-    if (resourceList.containsAll(toList)) {
+    List<String> flattenedPermissionPrincipals =
+        permissions.stream()
+            .map(permission -> permission.getPrincipal())
+            .collect(Collectors.toList());
+    if (flattenedPermissionPrincipals.containsAll(toList)) {
       return true;
     }
     return false;
@@ -330,12 +333,13 @@ public class RelationshipService {
     if (toType.equals(RelationshipType.TASK)) {
       fromType = RelationshipType.ROOT;
       from = "root";
-    } else if (toType.equals(RelationshipType.TEAM)
-        && identity.getPermissions().contains("**/**/**")) {
-      // TODO allow for now. need to update permissions to have assignedScope and correct permission
-      // strings
-      fromType = RelationshipType.ROOT;
-      from = "root";
+      //    } else if (toType.equals(RelationshipType.TEAM)
+      //        && identity.getPermissions().contains("**/**")) {
+      //      // TODO allow for now. need to update permissions to have assignedScope and correct
+      // permission
+      //      // strings
+      //      fromType = RelationshipType.ROOT;
+      //      from = "root";
     } else {
       switch (identity.getType()) {
         case session:

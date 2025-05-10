@@ -3,10 +3,10 @@ package io.boomerang.workflow;
 import io.boomerang.client.TaskResponsePage;
 import io.boomerang.common.model.ChangeLogVersion;
 import io.boomerang.common.model.Task;
-import io.boomerang.security.AuthScope;
-import io.boomerang.security.enums.AuthType;
+import io.boomerang.security.AuthCriteria;
+import io.boomerang.security.enums.AuthScope;
 import io.boomerang.security.enums.PermissionAction;
-import io.boomerang.security.enums.PermissionScope;
+import io.boomerang.security.enums.PermissionResource;
 import io.boomerang.workflow.tekton.TektonTask;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -37,10 +37,10 @@ public class TaskControllerV2 {
   }
 
   @GetMapping(value = "/{name}")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.TASK,
-      types = {AuthType.global, AuthType.user, AuthType.session})
+      resource = PermissionResource.TASK,
+      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.session})
   @Operation(
       summary =
           "Retrieve a specific task. If no version specified, the latest version is returned.")
@@ -59,10 +59,10 @@ public class TaskControllerV2 {
   }
 
   @GetMapping(value = "/{name}", produces = "application/x-yaml")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.TASK,
-      types = {AuthType.global, AuthType.user, AuthType.session})
+      resource = PermissionResource.TASK,
+      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.session})
   @Operation(
       summary =
           "Retrieve a specific task as Tekton Task YAML. If no version specified, the latest version is returned.")
@@ -81,10 +81,10 @@ public class TaskControllerV2 {
   }
 
   @GetMapping(value = "/query")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.TASK,
-      types = {AuthType.global, AuthType.user, AuthType.session})
+      resource = PermissionResource.TASK,
+      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.session})
   @Operation(
       summary =
           "Search for Task. If teams are provided it will query the teams. If no teams are provided it will query Global Task Templates")
@@ -132,10 +132,10 @@ public class TaskControllerV2 {
   }
 
   @PostMapping(value = "")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.WRITE,
-      scope = PermissionScope.TASK,
-      types = {AuthType.global, AuthType.user, AuthType.session})
+      resource = PermissionResource.TASK,
+      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.session})
   @Operation(
       summary = "Create a new Task",
       description =
@@ -150,10 +150,10 @@ public class TaskControllerV2 {
   }
 
   @PostMapping(value = "", consumes = "application/x-yaml", produces = "application/x-yaml")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.WRITE,
-      scope = PermissionScope.TASK,
-      types = {AuthType.global, AuthType.user, AuthType.session})
+      resource = PermissionResource.TASK,
+      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.session})
   @Operation(
       summary = "Create a new Task using Tekton Task YAML",
       description =
@@ -168,10 +168,10 @@ public class TaskControllerV2 {
   }
 
   @PutMapping(value = "/{name}")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.WRITE,
-      scope = PermissionScope.TASK,
-      types = {AuthType.global, AuthType.user, AuthType.session})
+      resource = PermissionResource.TASK,
+      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.session})
   @Operation(
       summary = "Update, replace, or create new, Task",
       description =
@@ -192,10 +192,10 @@ public class TaskControllerV2 {
   }
 
   @PutMapping(value = "/{name}", consumes = "application/x-yaml", produces = "application/x-yaml")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.WRITE,
-      scope = PermissionScope.TASK,
-      types = {AuthType.global, AuthType.user, AuthType.session})
+      resource = PermissionResource.TASK,
+      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.session})
   @Operation(
       summary = "Update, replace, or create new using Tekton Task YAML",
       description =
@@ -216,10 +216,10 @@ public class TaskControllerV2 {
   }
 
   @GetMapping(value = "/{name}/changelog")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.TASK,
-      types = {AuthType.global, AuthType.user, AuthType.session})
+      resource = PermissionResource.TASK,
+      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.session})
   @Operation(
       summary = "Retrieve the changlog",
       description = "Retrieves each versions changelog and returns them all as a list.")
@@ -238,10 +238,10 @@ public class TaskControllerV2 {
       value = "/validate",
       consumes = "application/x-yaml",
       produces = "application/x-yaml")
-  @AuthScope(
+  @AuthCriteria(
       action = PermissionAction.READ,
-      scope = PermissionScope.TASK,
-      types = {AuthType.global, AuthType.user, AuthType.session})
+      resource = PermissionResource.TASK,
+      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.session})
   @Operation(
       summary = "Validate Tekton Task YAML",
       description = "Validates the Task YAML as a Tekton Task")

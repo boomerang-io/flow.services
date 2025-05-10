@@ -3,7 +3,7 @@ package io.boomerang.security.enums;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum PermissionScope {
+public enum PermissionResource {
   SYSTEM("system"),
   WORKFLOW("workflow"),
   WORKFLOWRUN("workflowrun"),
@@ -22,9 +22,9 @@ public enum PermissionScope {
 
   private String label;
 
-  private static final Map<String, PermissionScope> BY_LABEL = new HashMap<>();
+  private static final Map<String, PermissionResource> BY_LABEL = new HashMap<>();
 
-  PermissionScope(String label) {
+  PermissionResource(String label) {
     this.label = label;
   }
 
@@ -33,12 +33,12 @@ public enum PermissionScope {
   }
 
   static {
-    for (PermissionScope e : values()) {
+    for (PermissionResource e : values()) {
       BY_LABEL.put(e.label, e);
     }
   }
 
-  public static PermissionScope valueOfLabel(String label) {
+  public static PermissionResource valueOfLabel(String label) {
     return BY_LABEL.get(label);
   }
 }
