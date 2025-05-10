@@ -1,15 +1,18 @@
 package io.boomerang.core;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-
 import io.boomerang.core.model.Token;
 import io.boomerang.core.model.TokenCreateRequest;
 import io.boomerang.core.model.TokenCreateResponse;
+import io.boomerang.security.AuthCriteria;
 import io.boomerang.security.enums.AuthScope;
 import io.boomerang.security.enums.PermissionAction;
 import io.boomerang.security.enums.PermissionResource;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort.Direction;
@@ -22,10 +25,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import io.boomerang.security.AuthCriteria;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/v2")
@@ -36,7 +35,13 @@ public class TokenControllerV2 {
 
   @PostMapping("/token")
   @AuthCriteria(
-      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.team, AuthScope.workflow},
+      assignableScopes = {
+        AuthScope.global,
+        AuthScope.user,
+        AuthScope.team,
+        AuthScope.workflow,
+        AuthScope.session
+      },
       resource = PermissionResource.TOKEN,
       action = PermissionAction.WRITE)
   @Operation(summary = "Create Token")
@@ -46,7 +51,13 @@ public class TokenControllerV2 {
 
   @GetMapping("/token/query")
   @AuthCriteria(
-      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.team, AuthScope.workflow},
+      assignableScopes = {
+        AuthScope.global,
+        AuthScope.user,
+        AuthScope.team,
+        AuthScope.workflow,
+        AuthScope.session
+      },
       resource = PermissionResource.TOKEN,
       action = PermissionAction.READ)
   @Operation(summary = "Search for Tokens")
@@ -111,7 +122,13 @@ public class TokenControllerV2 {
 
   @DeleteMapping("/token/{id}")
   @AuthCriteria(
-      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.team, AuthScope.workflow},
+      assignableScopes = {
+        AuthScope.global,
+        AuthScope.user,
+        AuthScope.team,
+        AuthScope.workflow,
+        AuthScope.session
+      },
       resource = PermissionResource.TOKEN,
       action = PermissionAction.DELETE)
   @Operation(summary = "Delete Token")
