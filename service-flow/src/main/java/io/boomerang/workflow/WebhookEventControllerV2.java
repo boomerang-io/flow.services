@@ -1,6 +1,10 @@
 package io.boomerang.workflow;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.boomerang.security.AuthCriteria;
+import io.boomerang.security.enums.AuthScope;
+import io.boomerang.security.enums.PermissionAction;
+import io.boomerang.security.enums.PermissionResource;
 import io.boomerang.workflow.model.SlackEventPayload;
 import io.cloudevents.CloudEvent;
 import io.cloudevents.spring.http.CloudEventHttpUtils;
@@ -59,17 +63,27 @@ public class WebhookEventControllerV2 {
    *
    * <h4>Sample</h4>
    *
-   * <code>/webhook?workflow={workflow}&access_token={access_token}</code>
+   * <code>/webhook?ref={workflow}&access_token={access_token}</code>
    */
   @PostMapping(value = "/webhook", consumes = "application/json; charset=utf-8")
+  @AuthCriteria(
+      action = PermissionAction.ACTION,
+      resource = PermissionResource.WORKFLOWRUN,
+      assignableScopes = {
+        AuthScope.session,
+        AuthScope.user,
+        AuthScope.global,
+        AuthScope.workflow,
+        AuthScope.team
+      })
   @Operation(summary = "Trigger WorkflowRun via Webhook.")
   public ResponseEntity<?> acceptWebhookEvent(
       @Parameter(
-              name = "workflow",
+              name = "ref",
               description = "Workflow reference the request relates to",
               required = false)
           @RequestParam(required = false)
-          Optional<String> workflow,
+          Optional<String> ref,
       @RequestBody JsonNode payload,
       HttpServletRequest request) {
     request
@@ -93,7 +107,7 @@ public class WebhookEventControllerV2 {
             && ("shortcut".equals(slackType) || "event_callback".equals(slackType))) {
           // Handle Slack Events
           // TODO change this to processSlackWebhook
-          return ResponseEntity.ok(webhookEventService.processWebhook(workflow.get(), payload));
+          return ResponseEntity.ok(webhookEventService.processWebhook(ref.get(), payload));
         } else {
           return ResponseEntity.badRequest().build();
         }
@@ -108,7 +122,7 @@ public class WebhookEventControllerV2 {
       }
       return ResponseEntity.badRequest().build();
     }
-    return ResponseEntity.ok(webhookEventService.processWebhook(workflow.get(), payload));
+    return ResponseEntity.ok(webhookEventService.processWebhook(ref.get(), payload));
   }
 
   /**
@@ -116,18 +130,28 @@ public class WebhookEventControllerV2 {
    *
    * <h4>Sample</h4>
    *
-   * <code>/callback?id={workflowrun}&topic={topic}&status={status}&access_token={access_token}
+   * <code>/callback?ref={workflowrun}&topic={topic}&status={status}&access_token={access_token}
    * </code>
    */
   @PostMapping(value = "/callback", consumes = "application/json; charset=utf-8")
-  @Operation(summary = "Accept Wait for Event with JSON Payload")
+  @AuthCriteria(
+      action = PermissionAction.ACTION,
+      resource = PermissionResource.WORKFLOWRUN,
+      assignableScopes = {
+        AuthScope.session,
+        AuthScope.user,
+        AuthScope.global,
+        AuthScope.workflow,
+        AuthScope.team
+      })
+  @Operation(summary = "Accept Wait for Event Callback with JSON Payload")
   public void acceptWaitForEvent(
       @Parameter(
-              name = "workflowrun",
-              description = "The WorkflowRun the request relates to",
+              name = "ref",
+              description = "The WorkflowRun reference the request relates to",
               required = true)
           @RequestParam(required = true)
-          String workflowrun,
+          String ref,
       @Parameter(name = "topic", description = "The topic to publish to", required = true)
           @RequestParam(required = true)
           String topic,
@@ -138,7 +162,7 @@ public class WebhookEventControllerV2 {
           @RequestParam(defaultValue = "succeeded")
           String status,
       @RequestBody JsonNode payload) {
-    webhookEventService.processWFE(workflowrun, topic, status, Optional.of(payload));
+    webhookEventService.processWFE(ref, topic, status, Optional.of(payload));
   }
 
   /**
@@ -149,18 +173,28 @@ public class WebhookEventControllerV2 {
    *
    * <h4>Sample</h4>
    *
-   * <code>/callback?id={workflowrun}&topic={topic}&status={status}&access_token={access_token}
+   * <code>/callback?ref={workflowrun}&topic={topic}&status={status}&access_token={access_token}
    * </code>
    */
   @GetMapping(value = "/callback")
-  @Operation(summary = "Accept Wait for Event")
+  @AuthCriteria(
+      action = PermissionAction.ACTION,
+      resource = PermissionResource.WORKFLOWRUN,
+      assignableScopes = {
+        AuthScope.session,
+        AuthScope.user,
+        AuthScope.global,
+        AuthScope.workflow,
+        AuthScope.team
+      })
+  @Operation(summary = "Accept Wait for Event Callbcak")
   public void acceptWaitForEvent(
       @Parameter(
-              name = "workflowrun",
-              description = "The WorkflowRun the request relates to",
+              name = "ref",
+              description = "The WorkflowRun reference the request relates to",
               required = true)
           @RequestParam(required = true)
-          String workflowrun,
+          String ref,
       @Parameter(name = "topic", description = "The topic to publish to", required = true)
           @RequestParam(required = true)
           String topic,
@@ -170,7 +204,7 @@ public class WebhookEventControllerV2 {
               required = false)
           @RequestParam(defaultValue = "succeeded")
           String status) {
-    webhookEventService.processWFE(workflowrun, topic, status, Optional.empty());
+    webhookEventService.processWFE(ref, topic, status, Optional.empty());
   }
 
   /**
@@ -183,31 +217,51 @@ public class WebhookEventControllerV2 {
    * @see https://github.com/cloudevents/spec/blob/v1.0/http-protocol-binding.md
    */
   @PostMapping(value = "/event", consumes = "application/cloudevents+json; charset=utf-8")
+  @AuthCriteria(
+      action = PermissionAction.ACTION,
+      resource = PermissionResource.WORKFLOWRUN,
+      assignableScopes = {
+        AuthScope.session,
+        AuthScope.user,
+        AuthScope.global,
+        AuthScope.workflow,
+        AuthScope.team
+      })
   @Operation(summary = "Accept CloudEvent")
   public ResponseEntity<?> accept(
       @Parameter(
-              name = "workflow",
-              description = "The Workflow the request relates to",
+              name = "ref",
+              description = "The Workflow reference the request relates to",
               required = false)
           @RequestParam(required = false)
-          Optional<String> workflow,
+          Optional<String> ref,
       @RequestBody CloudEvent event) {
-    return ResponseEntity.ok(webhookEventService.processEvent(event, workflow));
+    return ResponseEntity.ok(webhookEventService.processEvent(event, ref));
   }
 
   /** Accepts a Cloud Event with ce attributes are in the header */
   @PostMapping("/event")
+  @AuthCriteria(
+      action = PermissionAction.ACTION,
+      resource = PermissionResource.WORKFLOWRUN,
+      assignableScopes = {
+        AuthScope.session,
+        AuthScope.user,
+        AuthScope.global,
+        AuthScope.workflow,
+        AuthScope.team
+      })
   @Operation(summary = "Accept CloudEvent")
   public ResponseEntity<?> acceptEvent(
       @Parameter(
-              name = "workflow",
-              description = "The Workflow the request relates to",
+              name = "ref",
+              description = "The Workflow reference the request relates to",
               required = false)
           @RequestParam(required = false)
-          Optional<String> workflow,
+          Optional<String> ref,
       @RequestHeader HttpHeaders headers,
       @RequestBody String data) {
     CloudEvent event = CloudEventHttpUtils.toReader(headers, () -> data.getBytes()).toEvent();
-    return ResponseEntity.ok(webhookEventService.processEvent(event, workflow));
+    return ResponseEntity.ok(webhookEventService.processEvent(event, ref));
   }
 }
