@@ -82,7 +82,7 @@ public class QuartzSchedulerJob extends QuartzJobBean {
 
       // Hoist token to ThreadLocal SecurityContext - this AuthN/AuthZ allows the WorkflowRun to be
       // triggered
-      Token token = tokenService.createWorkflowSessionToken(jobDetail.getKey().getGroup());
+      Token token = tokenService.createWorkflowSchedulerToken(jobDetail.getKey().getGroup());
       final List<GrantedAuthority> authorities = new ArrayList<>();
       final UsernamePasswordAuthenticationToken authToken =
           new UsernamePasswordAuthenticationToken(jobDetail.getKey().getGroup(), null, authorities);

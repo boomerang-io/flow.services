@@ -435,12 +435,12 @@ public class TokenService {
   /*
    * Creates a Workflow / System token for use by the scheduled task
    */
-  public Token createWorkflowSessionToken(String workflowRef) {
+  public Token createWorkflowSchedulerToken(String workflowRef) {
     TokenCreateRequest tokenRequest = new TokenCreateRequest();
     tokenRequest.setName("scheduled-job-token");
     tokenRequest.setType(AuthScope.workflow);
     tokenRequest.setPrincipal(workflowRef);
-    tokenRequest.setPermissions(List.of("workflow/" + workflowRef + "/**"));
+    tokenRequest.setPermissions(List.of("workflow/**"));
 
     Calendar cal = Calendar.getInstance();
     cal.setTime(new Date());
