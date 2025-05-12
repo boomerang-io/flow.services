@@ -34,7 +34,13 @@ public class TaskRunControllerV2 {
   @AuthCriteria(
       action = PermissionAction.READ,
       resource = PermissionResource.TASKRUN,
-      assignableScopes = {AuthScope.team})
+      assignableScopes = {
+        AuthScope.team,
+        AuthScope.session,
+        AuthScope.user,
+        AuthScope.workflow,
+        AuthScope.global
+      })
   @Operation(summary = "Retrieve a TaskRuns log from a specific WorkflowRun.")
   @ApiResponses(
       value = {

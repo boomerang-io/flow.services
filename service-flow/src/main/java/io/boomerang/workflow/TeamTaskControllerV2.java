@@ -296,7 +296,8 @@ public class TeamTaskControllerV2 {
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "OK"),
-        @ApiResponse(responseCode = "400", description = "Bad Request")
+        @ApiResponse(responseCode = "400", description = "Bad Request"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
       })
   public List<ChangeLogVersion> getChangelog(
       @Parameter(
