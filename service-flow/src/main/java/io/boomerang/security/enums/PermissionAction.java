@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum PermissionAction {
-  CREATE("create"),
   READ("read"),
   WRITE("write"),
   DELETE("delete"),

@@ -18,6 +18,7 @@ public enum PermissionResource {
   SCHEDULE("schedule"),
   INSIGHTS("insights"),
   INTEGRATION("integration"),
+  WEBHOOK("webhook"),
   ANY("**");
 
   private String label;

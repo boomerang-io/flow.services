@@ -1,28 +1,5 @@
 package io.boomerang.integrations;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-import jakarta.servlet.http.HttpServletRequest;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -37,6 +14,29 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 /*
  * The extensions management controller
@@ -61,7 +61,7 @@ public class IntegrationControllerV2 {
   @AuthCriteria(
       action = PermissionAction.READ,
       resource = PermissionResource.INTEGRATION,
-      assignableScopes = {AuthScope.team})
+      assignableScopes = {AuthScope.team, AuthScope.user, AuthScope.session, AuthScope.global})
   @Operation(summary = "Retrieve the integrations and their status within a Team")
   @ApiResponses(
       value = {
@@ -221,6 +221,10 @@ public class IntegrationControllerV2 {
    */
   @GetMapping(value = "/github/installation")
   @Operation(summary = "Retrieve the installation ID and store against a team")
+  @AuthCriteria(
+      action = PermissionAction.READ,
+      resource = PermissionResource.INTEGRATION,
+      assignableScopes = {AuthScope.team, AuthScope.user, AuthScope.session, AuthScope.global})
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "OK"),
@@ -238,6 +242,10 @@ public class IntegrationControllerV2 {
 
   @PostMapping(value = "/github/link")
   @Operation(summary = "Links the GitHub Installation ID with a Team")
+  @AuthCriteria(
+      action = PermissionAction.WRITE,
+      resource = PermissionResource.INTEGRATION,
+      assignableScopes = {AuthScope.team, AuthScope.user, AuthScope.session, AuthScope.global})
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "OK"),

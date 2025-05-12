@@ -68,7 +68,7 @@ public class WebhookEventControllerV2 {
   @PostMapping(value = "/webhook", consumes = "application/json; charset=utf-8")
   @AuthCriteria(
       action = PermissionAction.ACTION,
-      resource = PermissionResource.WORKFLOWRUN,
+      resource = PermissionResource.WEBHOOK,
       assignableScopes = {
         AuthScope.session,
         AuthScope.user,
@@ -136,7 +136,7 @@ public class WebhookEventControllerV2 {
   @PostMapping(value = "/callback", consumes = "application/json; charset=utf-8")
   @AuthCriteria(
       action = PermissionAction.ACTION,
-      resource = PermissionResource.WORKFLOWRUN,
+      resource = PermissionResource.WEBHOOK,
       assignableScopes = {
         AuthScope.session,
         AuthScope.user,
@@ -179,7 +179,7 @@ public class WebhookEventControllerV2 {
   @GetMapping(value = "/callback")
   @AuthCriteria(
       action = PermissionAction.ACTION,
-      resource = PermissionResource.WORKFLOWRUN,
+      resource = PermissionResource.WEBHOOK,
       assignableScopes = {
         AuthScope.session,
         AuthScope.user,
@@ -219,7 +219,7 @@ public class WebhookEventControllerV2 {
   @PostMapping(value = "/event", consumes = "application/cloudevents+json; charset=utf-8")
   @AuthCriteria(
       action = PermissionAction.ACTION,
-      resource = PermissionResource.WORKFLOWRUN,
+      resource = PermissionResource.WEBHOOK,
       assignableScopes = {
         AuthScope.session,
         AuthScope.user,
@@ -243,7 +243,7 @@ public class WebhookEventControllerV2 {
   @PostMapping("/event")
   @AuthCriteria(
       action = PermissionAction.ACTION,
-      resource = PermissionResource.WORKFLOWRUN,
+      resource = PermissionResource.WEBHOOK,
       assignableScopes = {
         AuthScope.session,
         AuthScope.user,
