@@ -42,7 +42,8 @@ public class IntegrationService {
   }
 
   public List<Integration> get(String team) {
-    List<IntegrationTemplateEntity> templates = integrationTemplateRepository.findAll();
+    List<IntegrationTemplateEntity> templates =
+        integrationTemplateRepository.findAllByStatus("active");
     List<Integration> integrations = new LinkedList<>();
     templates.forEach(
         t -> {

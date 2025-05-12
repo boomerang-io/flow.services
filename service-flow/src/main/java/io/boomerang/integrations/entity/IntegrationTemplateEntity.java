@@ -20,4 +20,5 @@ public class IntegrationTemplateEntity {
   private String icon;
   private String description;
   private String instructions;
+  private String status;
 }
