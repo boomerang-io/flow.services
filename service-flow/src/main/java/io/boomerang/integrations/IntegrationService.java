@@ -7,8 +7,8 @@ import io.boomerang.core.enums.RelationshipLabel;
 import io.boomerang.core.enums.RelationshipType;
 import io.boomerang.integrations.entity.IntegrationTemplateEntity;
 import io.boomerang.integrations.entity.IntegrationsEntity;
-import io.boomerang.integrations.model.Integration;
 import io.boomerang.integrations.enums.IntegrationStatus;
+import io.boomerang.integrations.model.Integration;
 import io.boomerang.integrations.repository.IntegrationTemplateRepository;
 import io.boomerang.integrations.repository.IntegrationsRepository;
 import java.util.LinkedList;
@@ -54,7 +54,8 @@ public class IntegrationService {
                   RelationshipType.INTEGRATION,
                   Optional.empty(),
                   Optional.of(RelationshipType.TEAM),
-                  Optional.of(List.of(team)));
+                  Optional.of(List.of(team)),
+                  false);
           LOGGER.debug("Refs: " + refs.toString());
           if (!refs.isEmpty()) {
             i.setRef(refs.get(0));

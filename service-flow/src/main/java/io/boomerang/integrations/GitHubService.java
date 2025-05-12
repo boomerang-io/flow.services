@@ -119,13 +119,21 @@ public class GitHubService {
         integrationsRepository.findByRef(String.valueOf(installations.get(0).id()));
     if (optEntity.isPresent()) {
       IntegrationsEntity entity = optEntity.get();
-      relationshipService.createEdge(
-          RelationshipType.TEAM,
-          request.getTeam(),
-          RelationshipLabel.HAS_INTEGRATION,
-          RelationshipType.INTEGRATION,
-          entity.getId(),
-          Optional.empty());
+      if (relationshipService
+          .filter(
+              RelationshipType.INTEGRATION,
+              Optional.of(List.of(entity.getId())),
+              Optional.of(RelationshipType.TEAM),
+              Optional.of(List.of(request.getTeam())))
+          .isEmpty()) {
+        relationshipService.createEdge(
+            RelationshipType.TEAM,
+            request.getTeam(),
+            RelationshipLabel.HAS_INTEGRATION,
+            RelationshipType.INTEGRATION,
+            entity.getId(),
+            Optional.empty());
+      }
       return ResponseEntity.ok().build();
     }
     return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
