@@ -7,7 +7,7 @@ on:
     branches:
       - '**'
     tags:
-      - 'engine/**'
+      - 'engine@**'
     paths:
       - 'service-engine/**'
       - 'lib-common/**'
@@ -84,7 +84,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Get the version
         id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/*\//}
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/*@/}
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v6

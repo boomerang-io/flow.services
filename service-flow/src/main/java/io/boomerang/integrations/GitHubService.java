@@ -146,7 +146,6 @@ public class GitHubService {
       IntegrationsEntity entity = optEntity.get();
       relationshipService.removeNodeAndEdgeByRefOrSlug(
           RelationshipType.INTEGRATION, entity.getId());
-      integrationsRepository.delete(optEntity.get());
     }
   }
 }

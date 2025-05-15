@@ -76,14 +76,18 @@ public class WebhookEventControllerV2 {
         AuthScope.workflow,
         AuthScope.team
       })
-  @Operation(summary = "Trigger WorkflowRun via Webhook.")
-  public ResponseEntity<?> acceptWebhookEvent(
+  @Operation(summary = "Accept Webhook payloads from various sources.")
+  public ResponseEntity<?> acceptWebhook(
       @Parameter(
               name = "ref",
               description = "Workflow reference the request relates to",
               required = false)
           @RequestParam(required = false)
           Optional<String> ref,
+      @RequestHeader(value = "X-GitHub-Event", required = false) Optional<String> githubEvent,
+      @RequestHeader(value = "X-GitHub-Hook-Installation-Target-ID", required = false)
+          Optional<String> githubInstallationId,
+      @RequestHeader(value = "x-slack-signature", required = false) Optional<String> slackSignature,
       @RequestBody JsonNode payload,
       HttpServletRequest request) {
     request
@@ -91,11 +95,11 @@ public class WebhookEventControllerV2 {
         .asIterator()
         .forEachRemaining(
             headerName ->
-                LOGGER.debug("HEADER::" + headerName + ": " + request.getHeader(headerName)));
-    if (request.getHeader("x-slack-signature") != null) {
+                LOGGER.debug(
+                    "Webhook Header::" + headerName + ": " + request.getHeader(headerName)));
+    if (slackSignature.isPresent()) {
       if (payload != null) {
         final String slackType = payload.get("type").asText();
-
         if ("url_verification".equals(slackType)) {
           SlackEventPayload response = new SlackEventPayload();
           final String slackChallenge = payload.get("challenge").asText();
@@ -114,15 +118,14 @@ public class WebhookEventControllerV2 {
       } else {
         return ResponseEntity.badRequest().build();
       }
-    } else if (request.getHeader("x-github-event") != null) {
-      String ghEventType = request.getHeader("x-github-event");
-      if (ghEventType != null) {
-        webhookEventService.processGitHubWebhook("github", ghEventType, payload);
-        return ResponseEntity.ok().build();
-      }
+    } else if (githubEvent.isPresent()) {
+      webhookEventService.processGitHubWebhook(githubEvent.get(), payload);
+    } else if (ref.isPresent()) {
+      webhookEventService.processWebhook(ref.get(), payload);
+    } else {
       return ResponseEntity.badRequest().build();
     }
-    return ResponseEntity.ok(webhookEventService.processWebhook(ref.get(), payload));
+    return ResponseEntity.ok().build();
   }
 
   /**

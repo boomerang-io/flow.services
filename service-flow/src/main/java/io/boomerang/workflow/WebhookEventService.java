@@ -120,10 +120,11 @@ public class WebhookEventService {
     return workflowService.submit(teamRef, workflowRef, request, autoStart);
   }
 
-  public ResponseEntity<?> processGitHubWebhook(
-      String trigger, String eventType, JsonNode payload) {
-    LOGGER.debug("GitHub Webhook Request[" + eventType + "]: " + payload.toString());
+  /*
 
+  */
+  public ResponseEntity<?> processGitHubWebhook(String eventType, JsonNode payload) {
+    LOGGER.debug("GitHub webhook received - {}: {}", eventType, payload.toString());
     switch (eventType) {
       case "installation" -> {
         if (payload.get("action") != null) {
