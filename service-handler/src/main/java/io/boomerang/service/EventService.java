@@ -2,6 +2,7 @@ package io.boomerang.service;
 
 import static io.cloudevents.core.CloudEventUtils.mapData;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.boomerang.client.EngineClient;
 import io.boomerang.common.enums.RunPhase;
@@ -61,6 +62,8 @@ public class EventService {
           String eventType = event.getType().substring(TYPE_PREFIX.length());
           logger.info("Event Type: " + eventType);
           ObjectMapper mapper = new ObjectMapper();
+          // Disable error on unknown properties. This is in case the WorkflowRun models drift.
+          mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
           switch (eventType.toLowerCase()) {
             case "workflowrun" -> {
               try {
