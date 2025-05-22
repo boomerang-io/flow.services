@@ -632,7 +632,7 @@ public class TaskExecutionService {
     LOGGER.debug("RunWorkflow TaskExecution Request: {}", taskExecution.toString());
     List<RunParam> params = taskExecution.getParams();
     if (ParameterUtil.containsName(params, "workflowRef")) {
-      LOGGER.debug("WorkflowRef: {}", param.get().getValue());
+      LOGGER.debug("WorkflowRef: {}", ParameterUtil.getValue(params, "workflowRef").toString());
       //      key = ParameterUtil.getValue(params, "key").toString();
     }
     if (taskExecution.getParams() != null) {
