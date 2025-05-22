@@ -645,9 +645,14 @@ public class TaskExecutionService {
           RunResult runResult = new RunResult();
           runResult.setName("workflowRunRef");
           runResult.setValue(wfRunResponse.getId());
+          wfRunResultResponse.add(runResult);
           taskExecution.setResults(wfRunResultResponse);
           taskExecution.setStatus(RunStatus.succeeded);
         } catch (Exception ex) {
+          LOGGER.error(
+              "[{}] Unable to execute RunWorkflow task. Error: {}",
+              taskExecution.getId(),
+              ex.getMessage());
           taskExecution.setStatusMessage(ex.getMessage());
           taskExecution.setStatus(RunStatus.failed);
         }
