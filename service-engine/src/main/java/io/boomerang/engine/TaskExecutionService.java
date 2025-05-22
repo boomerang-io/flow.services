@@ -629,10 +629,10 @@ public class TaskExecutionService {
   }
 
   private void runWorkflow(TaskRunEntity taskExecution, WorkflowRunEntity wfRunEntity) {
-    LOGGER.debug("RunWorkflow TaskExecution Request: {}", taskExecution.toString());
+    LOGGER.info("RunWorkflow TaskExecution Request: {}", taskExecution.toString());
     List<RunParam> params = taskExecution.getParams();
     if (ParameterUtil.containsName(params, "workflowRef")) {
-      LOGGER.debug("WorkflowRef: {}", ParameterUtil.getValue(params, "workflowRef").toString());
+      LOGGER.info("WorkflowRef: {}", ParameterUtil.getValue(params, "workflowRef").toString());
       //      key = ParameterUtil.getValue(params, "key").toString();
     }
     if (taskExecution.getParams() != null) {
@@ -640,7 +640,7 @@ public class TaskExecutionService {
       if (workflowRefObject != null) {
         try {
           String workflowRef = workflowRefObject.toString();
-          LOGGER.debug("[{}] RunWorkflow for ref: {}", taskExecution.getId(), workflowRef);
+          LOGGER.info("[{}] RunWorkflow for ref: {}", taskExecution.getId(), workflowRef);
           List<RunParam> wfRunParamsRequest =
               ParameterUtil.removeEntry(taskExecution.getParams(), "workflowRef");
           WorkflowSubmitRequest request = new WorkflowSubmitRequest();
