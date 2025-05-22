@@ -17,6 +17,7 @@ public class WorkflowSummary {
 
   private String id;
   private String name;
+  private String displayName;
   private WorkflowStatus status = WorkflowStatus.active;
   private Integer version = 1;
   private Date creationDate = new Date();

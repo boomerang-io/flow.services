@@ -47,6 +47,7 @@ public class WorkflowRun {
   private boolean isAwaitingApproval;
   private String workflowRef;
   private String workflowName;
+  private String workflowDisplayName;
   private Integer workflowVersion;
   private String workflowRevisionRef;
   private String trigger;

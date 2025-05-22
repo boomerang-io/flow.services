@@ -55,7 +55,8 @@ public class InsightsService {
     // Check the queryWorkflows
     List<String> wfRefs = new ArrayList<>();
 
-    // If user, return Insights including for deleted Workflows
+    // If WorkflowRefs are provided, we can assume that the Workflow is currently active.
+    // Otherwise we turn to the audit table.
     if (workflowRefs.isEmpty()) {
       Optional<AuditEntity> teamAE =
           auditRepository.findFirstByScopeAndSelfName(AuditScope.TEAM, team);
@@ -71,7 +72,8 @@ public class InsightsService {
               RelationshipType.WORKFLOW,
               workflowRefs,
               Optional.of(RelationshipType.TEAM),
-              Optional.of(List.of(team)));
+              Optional.of(List.of(team)),
+              false);
     }
     LOGGER.debug("Workflow Refs: {}", wfRefs.toString());
     if (!wfRefs.isEmpty()) {

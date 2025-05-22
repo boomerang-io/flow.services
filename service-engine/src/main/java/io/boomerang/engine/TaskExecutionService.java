@@ -630,16 +630,16 @@ public class TaskExecutionService {
 
   private void runWorkflow(TaskRunEntity taskExecution, WorkflowRunEntity wfRunEntity) {
     if (taskExecution.getParams() != null) {
-      String workflowId =
-          ParameterUtil.getValue(taskExecution.getParams(), "workflowId").toString();
+      String workflowRef =
+          ParameterUtil.getValue(taskExecution.getParams(), "workflowRef").toString();
       List<RunParam> wfRunParamsRequest =
-          ParameterUtil.removeEntry(taskExecution.getParams(), "workflowId");
-      if (workflowId != null) {
+          ParameterUtil.removeEntry(taskExecution.getParams(), "workflowRef");
+      if (workflowRef != null) {
         WorkflowSubmitRequest request = new WorkflowSubmitRequest();
         request.setTrigger(TriggerEnum.task);
         request.setParams(wfRunParamsRequest);
         try {
-          WorkflowRun wfRunResponse = workflowService.submit(workflowId, request, false);
+          WorkflowRun wfRunResponse = workflowService.submit(workflowRef, request, false);
           List<RunResult> wfRunResultResponse = new LinkedList<>();
           RunResult runResult = new RunResult();
           runResult.setName("workflowRunRef");
@@ -658,7 +658,7 @@ public class TaskExecutionService {
   private void runScheduledWorkflow(TaskRunEntity taskExecution, WorkflowRunEntity wfRunEntity) {
     if (taskExecution.getParams() != null) {
       String workflowId =
-          ParameterUtil.getValue(taskExecution.getParams(), "workflowId").toString();
+          ParameterUtil.getValue(taskExecution.getParams(), "workflowRef").toString();
       Integer futureIn =
           Integer.valueOf(ParameterUtil.getValue(taskExecution.getParams(), "futureIn").toString());
       String futurePeriod =

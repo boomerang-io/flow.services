@@ -13,6 +13,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
+import org.springframework.data.annotation.Id;
 
 /*
  * Workflow Model joining Workflow Entity and Workflow Revision Entity
@@ -25,6 +26,7 @@ import lombok.Data;
 @JsonPropertyOrder({
   "id",
   "name",
+  "displayName",
   "status",
   "version",
   "creationDate",
@@ -37,9 +39,9 @@ import lombok.Data;
   "tasks"
 })
 public class Workflow {
-
-  private String id;
+  @Id private String id;
   private String name;
+  private String displayName;
   private WorkflowStatus status = WorkflowStatus.active;
   private Integer version = 1;
   private Date creationDate = new Date();
@@ -62,8 +64,10 @@ public class Workflow {
   public String toString() {
     return "Workflow [id="
         + id
-        + ", name="
+        + "name="
         + name
+        + ", displayName="
+        + displayName
         + ", status="
         + status
         + ", version="

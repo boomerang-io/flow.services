@@ -513,6 +513,7 @@ public class WorkflowRunService {
         workflowRepository.findById(wfRunEntity.getWorkflowRef());
     if (optWorkflow.isPresent()) {
       wfRun.setWorkflowName(optWorkflow.get().getName());
+      wfRun.setWorkflowDisplayName(optWorkflow.get().getDisplayName());
     }
     // Set WorkflowVersion
     final Optional<WorkflowRevisionEntity> optWorkflowRevision =

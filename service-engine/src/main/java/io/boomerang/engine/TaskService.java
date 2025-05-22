@@ -330,9 +330,11 @@ public class TaskService {
         v -> {
           ChangeLogVersion cl = new ChangeLogVersion();
           cl.setVersion(v.getVersion());
-          cl.setAuthor(v.getChangelog().getAuthor());
-          cl.setReason(v.getChangelog().getReason());
-          cl.setDate(v.getChangelog().getDate());
+          if (v.getChangelog() != null) {
+            cl.setAuthor(v.getChangelog().getAuthor());
+            cl.setReason(v.getChangelog().getReason());
+            cl.setDate(v.getChangelog().getDate());
+          }
           changelogs.add(cl);
         });
     return changelogs;
