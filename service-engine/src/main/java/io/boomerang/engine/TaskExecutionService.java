@@ -640,9 +640,10 @@ public class TaskExecutionService {
       if (workflowRefObject != null) {
         try {
           String workflowRef = workflowRefObject.toString();
-          LOGGER.info("[{}] RunWorkflow for ref: {}", taskExecution.getId(), workflowRef);
+          LOGGER.info("[{}] Step 1 - RunWorkflow for ref: {}", taskExecution.getId(), workflowRef);
           List<RunParam> wfRunParamsRequest =
               ParameterUtil.removeEntry(taskExecution.getParams(), "workflowRef");
+          LOGGER.info("[{}] Step 2 - RunWorkflow for ref: {}", taskExecution.getId(), workflowRef);
           WorkflowSubmitRequest request = new WorkflowSubmitRequest();
           request.setTrigger(TriggerEnum.task);
           request.setParams(wfRunParamsRequest);
