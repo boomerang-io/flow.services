@@ -62,7 +62,7 @@ public class WorkflowExecutionService {
   TaskExecutor asyncWorkflowExecutor;
 
   public void queue(WorkflowRunEntity wfRunEntity) {
-    LOGGER.debug("[{}] Recieved queue WorkflowRun request.", wfRunEntity.getId());
+    LOGGER.debug("[{}] Received queue WorkflowRun request.", wfRunEntity.getId());
     // Resolve Parameter Substitutions
     // TODO: check if we need this
     paramManager.resolveParamLayers(wfRunEntity, Optional.empty());
@@ -93,7 +93,7 @@ public class WorkflowExecutionService {
   }
 
   public CompletableFuture<Boolean> start(WorkflowRunEntity wfRunEntity) {
-    LOGGER.debug("[{}] Recieved start WorkflowRun request.", wfRunEntity.getId());
+    LOGGER.debug("[{}] Received start WorkflowRun request.", wfRunEntity.getId());
     // Check the WorkflowRun has been queued, throw if not
     // Don't update the WorkflowRun status as this may cause a running WorkflowRun to be incorrectly
     // changed.
