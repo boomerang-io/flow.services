@@ -21,4 +21,7 @@ public interface RelationshipNodeRepository
 
   @Query(value = "{'type': ?0, '$or': [{'slug': ?1},{'ref': ?1}]}", delete = true)
   RelationshipNodeEntity deleteByRefOrSlug(String type, String refOrSlug);
+
+  @Query(value = "{'type': ?0, 'ref': ?1}", delete = true)
+  RelationshipNodeEntity deleteByTypeAndRef(String type, String ref);
 }

@@ -12,6 +12,7 @@ import io.boomerang.common.enums.RunStatus;
 import io.boomerang.common.enums.TaskType;
 import io.boomerang.common.enums.WorkflowStatus;
 import io.boomerang.common.model.*;
+import io.boomerang.common.util.StringUtil;
 import io.boomerang.engine.repository.ActionRepository;
 import io.boomerang.engine.repository.TaskRevisionRepository;
 import io.boomerang.engine.repository.TaskRunRepository;
@@ -287,7 +288,17 @@ public class WorkflowService {
     if (useId) {
       wfEntity.setId(request.getId());
     }
+    if (request.getName() != null && !request.getName().isBlank()) {
+      request.setName(StringUtil.kebabCase(request.getName()));
+    } else {
+      throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
+    }
     wfEntity.setName(request.getName());
+    if (request.getDisplayName() == null || request.getDisplayName().isEmpty()) {
+      wfEntity.setDisplayName(request.getName());
+    } else {
+      wfEntity.setDisplayName(request.getDisplayName());
+    }
     wfEntity.setIcon(request.getIcon());
     wfEntity.setDescription(request.getDescription());
     wfEntity.setLabels(request.getLabels());

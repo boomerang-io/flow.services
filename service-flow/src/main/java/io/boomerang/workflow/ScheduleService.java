@@ -118,7 +118,8 @@ public class ScheduleService {
             RelationshipType.WORKFLOW,
             queryWorkflows,
             Optional.of(RelationshipType.TEAM),
-            Optional.of(List.of(queryTeam)));
+            Optional.of(List.of(queryTeam)),
+            false);
     if (!refs.isEmpty()) {
       List<Criteria> criteriaList = new ArrayList<>();
       Criteria criteria = Criteria.where("workflowRef").in(refs);
@@ -173,17 +174,20 @@ public class ScheduleService {
    * @return echos the created schedule
    */
   public WorkflowSchedule create(String team, final WorkflowSchedule schedule) {
-    if (schedule != null
-        && schedule.getWorkflowRef() != null
-        && relationshipService.hasNodes(
-            RelationshipType.TEAM,
-            team,
-            RelationshipType.WORKFLOW,
-            Optional.of(List.of(schedule.getWorkflowRef())),
-            Optional.empty(),
-            Optional.empty())) {
-      WorkflowScheduleEntity scheduleEntity = internalCreate(team, schedule);
-      return convertScheduleEntityToModel(scheduleEntity);
+    if (schedule != null && schedule.getWorkflowRef() != null) {
+      List<String> refs =
+          relationshipService.filter(
+              RelationshipType.WORKFLOW,
+              Optional.of(List.of(schedule.getWorkflowRef())),
+              Optional.of(RelationshipType.TEAM),
+              Optional.of(List.of(team)),
+              false);
+      if (!refs.isEmpty()) {
+        schedule.setWorkflowRef(refs.get(0));
+        WorkflowScheduleEntity scheduleEntity = internalCreate(team, schedule);
+        WorkflowSchedule response = convertScheduleEntityToModel(scheduleEntity);
+        return response;
+      }
     }
     throw new BoomerangException(BoomerangError.SCHEDULE_INVALID_REF);
   }
@@ -225,11 +229,22 @@ public class ScheduleService {
    */
   private WorkflowSchedule convertScheduleEntityToModel(WorkflowScheduleEntity entity) {
     try {
-      return new WorkflowSchedule(entity, this.taskScheduler.getNextTriggerDate(entity));
+      WorkflowSchedule schedule =
+          new WorkflowSchedule(entity, this.taskScheduler.getNextTriggerDate(entity));
+      relationshipService.getSlugByRefForType(RelationshipType.WORKFLOW, schedule.getWorkflowRef());
+      schedule.setWorkflowRef(
+          relationshipService.getSlugByRefForType(
+              RelationshipType.WORKFLOW, schedule.getWorkflowRef()));
+      return schedule;
     } catch (Exception e) {
       // Trap exception as we still want to return the dates that we can
-      LOGGER.debug("Unable to retrieve next schedule date for {}, skipping.", entity.getId());
-      return new WorkflowSchedule(entity);
+      LOGGER.warn("Unable to retrieve next schedule date for {}, skipping.", entity.getId());
+      WorkflowSchedule schedule = new WorkflowSchedule(entity);
+      relationshipService.getSlugByRefForType(RelationshipType.WORKFLOW, schedule.getWorkflowRef());
+      schedule.setWorkflowRef(
+          relationshipService.getSlugByRefForType(
+              RelationshipType.WORKFLOW, schedule.getWorkflowRef()));
+      return schedule;
     }
   }
 
@@ -329,10 +344,10 @@ public class ScheduleService {
       if (optScheduleEntity.isPresent()) {
         WorkflowScheduleEntity scheduleEntity = optScheduleEntity.get();
         /*
-         * The copy ignores ID and creationDate to ensure data integrity
+         * The copy ignores ID, workflowRef and creationDate to ensure data integrity
          */
         WorkflowScheduleStatus previousStatus = scheduleEntity.getStatus();
-        BeanUtils.copyProperties(request, scheduleEntity, "id", "creationDate");
+        BeanUtils.copyProperties(request, scheduleEntity, "id", "creationDate", "workflowRef");
 
         /*
          * Complex Status checking to determine what can and can't be enabled
@@ -340,7 +355,7 @@ public class ScheduleService {
         // Check if job is trying to be enabled with date in the past
         WorkflowScheduleStatus newStatus = scheduleEntity.getStatus();
         Workflow workflow =
-            workflowService.get(team, scheduleEntity.getWorkflowRef(), Optional.empty(), false);
+            workflowService.get(team, request.getWorkflowRef(), Optional.empty(), false);
         Boolean enableJob = true;
         if (!previousStatus.equals(newStatus)) {
           if (WorkflowScheduleStatus.active.equals(previousStatus)
@@ -367,7 +382,8 @@ public class ScheduleService {
                 } catch (SchedulerException e) {
                   e.printStackTrace();
                 }
-                return new WorkflowSchedule(scheduleEntity);
+                throw new BoomerangException(
+                    BoomerangError.SCHEDULE_INVALID_RUNONCE, scheduleEntity.getId());
               }
             }
           }

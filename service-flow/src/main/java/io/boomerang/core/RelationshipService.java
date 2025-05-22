@@ -183,6 +183,16 @@ public class RelationshipService {
   }
 
   /*
+   * Removes the Relationship Node By Ref and all Edges linked to it
+   */
+  @Transactional
+  public void removeNodeAndEdgeByRef(RelationshipType type, String ref) {
+    RelationshipNodeEntity node = nodeRepository.deleteByTypeAndRef(type.getLabel(), ref);
+    edgeRepository.deleteByFromOrTo(node.getId());
+    this.graphCache.buildGraph(nodeRepository.findAll(), edgeRepository.findAll());
+  }
+
+  /*
    * Removes the Relationship Node and all Edges linked to it
    */
   @Transactional
@@ -206,14 +216,18 @@ public class RelationshipService {
 
   /*
    * Retrieves the ref for the Node by type and slug or ref
+   *
+   * This should only be used from unique ID to return slug. Otherwise multiples for the wrong team could be returned.
+   *
+   * TODO: make this better
    */
-  public String getRefBySlugOrRefForType(RelationshipType type, String refOrSlug) {
+  public String getSlugByRefForType(RelationshipType type, String refOrSlug) {
     LOGGER.debug("Retrieving ref for {}:{}", type.getLabel(), refOrSlug);
     RelationshipNodeEntity node = this.getNodeFromGraph(type, refOrSlug, graphCache.getGraph());
     if (Objects.isNull(node)) {
       throw new IllegalArgumentException("Node does not exist");
     }
-    return node.getRef();
+    return node.getSlug();
   }
 
   /*

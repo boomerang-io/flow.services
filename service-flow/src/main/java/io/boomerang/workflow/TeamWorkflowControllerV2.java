@@ -44,7 +44,7 @@ public class TeamWorkflowControllerV2 {
     this.workflowService = workflowService;
   }
 
-  @GetMapping(value = "/{workflow}")
+  @GetMapping(value = "/{name}")
   @AuthCriteria(
       action = PermissionAction.READ,
       resource = PermissionResource.WORKFLOW,
@@ -65,9 +65,13 @@ public class TeamWorkflowControllerV2 {
         @ApiResponse(responseCode = "400", description = "Bad Request")
       })
   public Workflow getWorkflow(
-      @Parameter(name = "workflow", description = "Workflow reference", required = true)
+      @Parameter(
+              name = "name",
+              description = "Workflow name",
+              example = "my-amazing-workflow",
+              required = true)
           @PathVariable
-          String workflow,
+          String name,
       @Parameter(
               name = "team",
               description = "Owning team name.",
@@ -75,13 +79,16 @@ public class TeamWorkflowControllerV2 {
               required = true)
           @PathVariable
           String team,
-      @Parameter(name = "version", description = "Workflow Version", required = false)
+      @Parameter(name = "version", description = "Workflow version", required = false)
           @RequestParam(required = false)
           Optional<Integer> version,
-      @Parameter(name = "withTasks", description = "Include Workflow Tasks", required = false)
+      @Parameter(
+              name = "withTasks",
+              description = "Include Workflow tasks in response",
+              required = false)
           @RequestParam(defaultValue = "true")
           boolean withTasks) {
-    return workflowService.get(team, workflow, version, withTasks);
+    return workflowService.get(team, name, version, withTasks);
   }
 
   @GetMapping(value = "/query")
@@ -206,7 +213,7 @@ public class TeamWorkflowControllerV2 {
     return workflowService.apply(team, workflow, replace);
   }
 
-  @GetMapping(value = "/{workflow}/changelog")
+  @GetMapping(value = "/{name}/changelog")
   @AuthCriteria(
       action = PermissionAction.READ,
       resource = PermissionResource.WORKFLOW,
@@ -233,13 +240,17 @@ public class TeamWorkflowControllerV2 {
               required = true)
           @PathVariable
           String team,
-      @Parameter(name = "workflow", description = "Workflow reference", required = true)
+      @Parameter(
+              name = "name",
+              description = "Workflow name",
+              example = "my-amazing-workflow",
+              required = true)
           @PathVariable
-          String workflow) {
-    return workflowService.changelog(team, workflow);
+          String name) {
+    return workflowService.changelog(team, name);
   }
 
-  @DeleteMapping(value = "/{workflow}")
+  @DeleteMapping(value = "/{name}")
   @AuthCriteria(
       action = PermissionAction.DELETE,
       resource = PermissionResource.WORKFLOW,
@@ -264,13 +275,17 @@ public class TeamWorkflowControllerV2 {
               required = true)
           @PathVariable
           String team,
-      @Parameter(name = "workflow", description = "Workflow reference", required = true)
+      @Parameter(
+              name = "name",
+              description = "Workflow name",
+              example = "my-amazing-workflow",
+              required = true)
           @PathVariable
-          String workflow) {
-    workflowService.delete(team, workflow);
+          String name) {
+    workflowService.delete(team, name);
   }
 
-  @PostMapping(value = "/{workflow}/submit")
+  @PostMapping(value = "/{name}/submit")
   @AuthCriteria(
       action = PermissionAction.ACTION,
       resource = PermissionResource.WORKFLOW,
@@ -296,9 +311,13 @@ public class TeamWorkflowControllerV2 {
               required = true)
           @PathVariable
           String team,
-      @Parameter(name = "workflow", description = "Workflow reference", required = true)
+      @Parameter(
+              name = "name",
+              description = "Workflow name",
+              example = "my-amazing-workflow",
+              required = true)
           @PathVariable
-          String workflow,
+          String name,
       @Parameter(
               name = "start",
               description = "Start the WorkflowRun immediately after submission",
@@ -306,10 +325,10 @@ public class TeamWorkflowControllerV2 {
           @RequestParam(required = false, defaultValue = "false")
           boolean start,
       @RequestBody WorkflowSubmitRequest request) {
-    return workflowService.submit(team, workflow, request, start);
+    return workflowService.submit(team, name, request, start);
   }
 
-  @GetMapping(value = "/{workflow}/export", produces = "application/json")
+  @GetMapping(value = "/{name}/export", produces = "application/json")
   @AuthCriteria(
       action = PermissionAction.READ,
       resource = PermissionResource.WORKFLOW,
@@ -329,13 +348,17 @@ public class TeamWorkflowControllerV2 {
               required = true)
           @PathVariable
           String team,
-      @Parameter(name = "workflow", description = "Workflow reference", required = true)
+      @Parameter(
+              name = "name",
+              description = "Workflow name",
+              example = "my-amazing-workflow",
+              required = true)
           @PathVariable
-          String workflow) {
-    return workflowService.export(team, workflow);
+          String name) {
+    return workflowService.export(team, name);
   }
 
-  @GetMapping(value = "/{workflow}/compose")
+  @GetMapping(value = "/{name}/compose")
   @AuthCriteria(
       action = PermissionAction.READ,
       resource = PermissionResource.WORKFLOW,
@@ -361,16 +384,20 @@ public class TeamWorkflowControllerV2 {
               required = true)
           @PathVariable
           String team,
-      @Parameter(name = "workflow", description = "Workflow reference", required = true)
+      @Parameter(
+              name = "name",
+              description = "Workflow name",
+              example = "my-amazing-workflow",
+              required = true)
           @PathVariable
-          String workflow,
+          String name,
       @Parameter(name = "version", description = "Workflow Version", required = false)
           @RequestParam(required = false)
           Optional<Integer> version) {
-    return workflowService.composeGet(team, workflow, version);
+    return workflowService.composeGet(team, name, version);
   }
 
-  @PutMapping(value = "/{workflow}/compose")
+  @PutMapping(value = "/{name}/compose")
   @AuthCriteria(
       action = PermissionAction.WRITE,
       resource = PermissionResource.WORKFLOW,
@@ -402,7 +429,7 @@ public class TeamWorkflowControllerV2 {
     return workflowService.composeApply(team, canvas, replace);
   }
 
-  @PostMapping(value = "/{workflow}/duplicate")
+  @PostMapping(value = "/{name}/duplicate")
   @AuthCriteria(
       action = PermissionAction.WRITE,
       resource = PermissionResource.WORKFLOW,
@@ -422,31 +449,17 @@ public class TeamWorkflowControllerV2 {
               required = true)
           @PathVariable
           String team,
-      @Parameter(name = "workflow", description = "Workflow reference", required = true)
+      @Parameter(
+              name = "name",
+              description = "Workflow name",
+              example = "my-amazing-workflow",
+              required = true)
           @PathVariable
-          String workflow) {
-    return workflowService.duplicate(team, workflow);
+          String name) {
+    return workflowService.duplicate(team, name);
   }
 
-  //  @PostMapping(value = "{id}/token")
-  //  public GenerateTokenResponse createToken(@PathVariable String id, @RequestParam String label)
-  // {
-  //    return workflowService.generateTriggerToken(id, label);
-  //  }
-  //
-  //  @DeleteMapping(value = "{id}/token")
-  //  public void deleteToken(@PathVariable String id, @RequestParam String label) {
-  //    workflowService.deleteToken(id, label);
-  //  }
-
-  //  @PostMapping(value = "/workflow/{id}/validateToken", consumes = "application/json;
-  // charset=utf-8")
-  //  public ResponseEntity<HttpStatus> validateToken(@PathVariable String id,
-  //      @RequestBody GenerateTokenResponse tokenPayload) {
-  //    return workflowService.validateWorkflowToken(id, tokenPayload);
-  //  }
-
-  @GetMapping(value = "/{workflow}/available-parameters")
+  @GetMapping(value = "/{name}/available-parameters")
   @AuthCriteria(
       action = PermissionAction.READ,
       resource = PermissionResource.WORKFLOW,
@@ -466,26 +479,13 @@ public class TeamWorkflowControllerV2 {
               required = true)
           @PathVariable
           String team,
-      @Parameter(name = "workflow", description = "Workflow reference", required = true)
+      @Parameter(
+              name = "name",
+              description = "Workflow name",
+              example = "my-amazing-workflow",
+              required = true)
           @PathVariable
-          String workflow) {
-    return workflowService.getAvailableParameters(team, workflow);
+          String name) {
+    return workflowService.getAvailableParameters(team, name);
   }
-
-  //  @GetMapping(value = "/{workflowId}/schedules")
-  //  public List<WorkflowSchedule> getSchedulesForWorkflow(@PathVariable String workflowId) {
-  //    return workflowScheduleService.getSchedulesForWorkflow(workflowId);
-  //  }
-  //
-  //  @GetMapping(value = "/{workflowId}/schedules/calendar")
-  //  public List<WorkflowScheduleCalendar> getCalendarsForWorkflow(@PathVariable String workflowId,
-  //      @RequestParam Long fromDate, @RequestParam Long toDate) {
-  //    if (workflowId != null && fromDate != null && toDate != null) {
-  //      Date from = new Date(fromDate * 1000);
-  //      Date to = new Date(toDate * 1000);
-  //      return workflowScheduleService.getCalendarsForWorkflow(workflowId, from, to);
-  //    } else {
-  //      throw new BoomerangException(0, "Invalid fromDate or toDate", HttpStatus.BAD_REQUEST);
-  //    }
-  //  }
 }
