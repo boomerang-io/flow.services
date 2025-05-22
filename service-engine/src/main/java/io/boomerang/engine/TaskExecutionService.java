@@ -639,7 +639,7 @@ public class TaskExecutionService {
         request.setTrigger(TriggerEnum.task);
         request.setParams(wfRunParamsRequest);
         try {
-          WorkflowRun wfRunResponse = workflowService.submit(workflowRef, request, false);
+          WorkflowRun wfRunResponse = workflowService.submit(workflowRef, request, true);
           List<RunResult> wfRunResultResponse = new LinkedList<>();
           RunResult runResult = new RunResult();
           runResult.setName("workflowRunRef");
