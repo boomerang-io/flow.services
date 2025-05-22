@@ -629,6 +629,14 @@ public class TaskExecutionService {
   }
 
   private void runWorkflow(TaskRunEntity taskExecution, WorkflowRunEntity wfRunEntity) {
+    LOGGER.debug(taskExecution.toString());
+    Optional<RunParam> param =
+        taskExecution.getParams().stream()
+            .filter(p -> p.getName().equals("workflowRef"))
+            .findFirst();
+    if (param.isPresent()) {
+      LOGGER.debug("WorkflowRef: {}", param.get().getValue());
+    }
     if (taskExecution.getParams() != null) {
       Object workflowRefObject = ParameterUtil.getValue(taskExecution.getParams(), "workflowRef");
       if (workflowRefObject != null) {
