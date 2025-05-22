@@ -630,15 +630,16 @@ public class TaskExecutionService {
 
   private void runWorkflow(TaskRunEntity taskExecution, WorkflowRunEntity wfRunEntity) {
     if (taskExecution.getParams() != null) {
-      String workflowRef =
-          ParameterUtil.getValue(taskExecution.getParams(), "workflowRef").toString();
-      List<RunParam> wfRunParamsRequest =
-          ParameterUtil.removeEntry(taskExecution.getParams(), "workflowRef");
-      if (workflowRef != null) {
-        WorkflowSubmitRequest request = new WorkflowSubmitRequest();
-        request.setTrigger(TriggerEnum.task);
-        request.setParams(wfRunParamsRequest);
+      Object workflowRefObject = ParameterUtil.getValue(taskExecution.getParams(), "workflowRef");
+      if (workflowRefObject != null) {
         try {
+          String workflowRef = workflowRefObject.toString();
+          LOGGER.debug("[{}] RunWorkflow for ref: {}", taskExecution.getId(), workflowRef);
+          List<RunParam> wfRunParamsRequest =
+              ParameterUtil.removeEntry(taskExecution.getParams(), "workflowRef");
+          WorkflowSubmitRequest request = new WorkflowSubmitRequest();
+          request.setTrigger(TriggerEnum.task);
+          request.setParams(wfRunParamsRequest);
           WorkflowRun wfRunResponse = workflowService.submit(workflowRef, request, true);
           List<RunResult> wfRunResultResponse = new LinkedList<>();
           RunResult runResult = new RunResult();
