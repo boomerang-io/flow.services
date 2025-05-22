@@ -630,41 +630,42 @@ public class TaskExecutionService {
 
   private void runWorkflow(TaskRunEntity taskExecution, WorkflowRunEntity wfRunEntity) {
     LOGGER.info("RunWorkflow TaskExecution Request: {}", taskExecution.toString());
-    List<RunParam> params = taskExecution.getParams();
-    if (ParameterUtil.containsName(params, "workflowRef")) {
-      LOGGER.info("WorkflowRef: {}", ParameterUtil.getValue(params, "workflowRef").toString());
-      //      key = ParameterUtil.getValue(params, "key").toString();
-    }
-    if (taskExecution.getParams() != null) {
-      Object workflowRefObject = ParameterUtil.getValue(taskExecution.getParams(), "workflowRef");
-      if (workflowRefObject != null) {
-        try {
-          String workflowRef = workflowRefObject.toString();
-          LOGGER.info("[{}] Step 1 - RunWorkflow for ref: {}", taskExecution.getId(), workflowRef);
-          List<RunParam> wfRunParamsRequest =
-              ParameterUtil.removeEntry(taskExecution.getParams(), "workflowRef");
-          LOGGER.info("[{}] Step 2 - RunWorkflow for ref: {}", taskExecution.getId(), workflowRef);
-          WorkflowSubmitRequest request = new WorkflowSubmitRequest();
-          request.setTrigger(TriggerEnum.task);
-          request.setParams(wfRunParamsRequest);
-          LOGGER.info("[{}] Step 3 - RunWorkflow for ref: {}", taskExecution.getId(), workflowRef);
-          WorkflowRun wfRunResponse = workflowService.submit(workflowRef, request, true);
-          LOGGER.info("[{}] Step 4 - RunWorkflow for ref: {}", taskExecution.getId(), workflowRef);
-          List<RunResult> wfRunResultResponse = new LinkedList<>();
-          RunResult runResult = new RunResult();
-          runResult.setName("workflowRunRef");
-          runResult.setValue(wfRunResponse.getId());
-          wfRunResultResponse.add(runResult);
-          taskExecution.setResults(wfRunResultResponse);
-          taskExecution.setStatus(RunStatus.succeeded);
-        } catch (Exception ex) {
-          LOGGER.error(
-              "[{}] Unable to execute RunWorkflow task. Error: {}",
-              taskExecution.getId(),
-              ex.getMessage());
-          taskExecution.setStatusMessage(ex.getMessage());
-          taskExecution.setStatus(RunStatus.failed);
-        }
+    if (taskExecution.getParams() != null
+        && ParameterUtil.containsName(taskExecution.getParams(), "workflowRef")) {
+      try {
+        String workflowRef =
+            ParameterUtil.getValue(taskExecution.getParams(), "workflowRef").toString();
+        LOGGER.info("WorkflowRef: {}", workflowRef);
+        LOGGER.info("[{}] Step 1 - RunWorkflow for ref: {}", taskExecution.getId(), workflowRef);
+        LOGGER.info("[{}] Step 2 - RunWorkflow for ref: {}", taskExecution.getId(), workflowRef);
+        WorkflowSubmitRequest request = new WorkflowSubmitRequest();
+        request.setTrigger(TriggerEnum.task);
+        request.setParams(wfRunEntity.getParams());
+        request.setAnnotations(wfRunEntity.getAnnotations());
+        request.setWorkspaces(wfRunEntity.getWorkspaces());
+        request.setTimeout(wfRunEntity.getTimeout());
+        request.setRetries(wfRunEntity.getRetries());
+        request.setLabels(wfRunEntity.getLabels());
+        request.setDebug(wfRunEntity.getDebug());
+        // TODO figure out how to set version
+        //        request.setWorkflowVersion();
+        LOGGER.info("[{}] Step 3 - RunWorkflow for ref: {}", taskExecution.getId(), workflowRef);
+        WorkflowRun wfRunResponse = workflowService.submit(workflowRef, request, false);
+        LOGGER.info("[{}] Step 4 - RunWorkflow for ref: {}", taskExecution.getId(), workflowRef);
+        List<RunResult> wfRunResultResponse = new LinkedList<>();
+        RunResult runResult = new RunResult();
+        runResult.setName("workflowRunRef");
+        runResult.setValue(wfRunResponse.getId());
+        wfRunResultResponse.add(runResult);
+        taskExecution.setResults(wfRunResultResponse);
+        taskExecution.setStatus(RunStatus.succeeded);
+      } catch (Exception ex) {
+        LOGGER.error(
+            "[{}] Unable to execute RunWorkflow task. Error: {}",
+            taskExecution.getId(),
+            ex.getMessage());
+        taskExecution.setStatusMessage(ex.getMessage());
+        taskExecution.setStatus(RunStatus.failed);
       }
     }
     taskRunRepository.save(taskExecution);
