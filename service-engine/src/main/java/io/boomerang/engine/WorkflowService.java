@@ -469,12 +469,11 @@ public class WorkflowService {
    * Trigger will be set to 'Engine' if empty
    */
   public WorkflowRun submit(String workflowId, WorkflowSubmitRequest request, boolean start) {
-    LOGGER.info("Submit Workflow Step 1");
-    logPayload(request);
-    LOGGER.info("Submit Workflow Step 2");
     if (workflowId == null || workflowId.isBlank()) {
       throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
     }
+    LOGGER.debug("[{}] Workflow Submit Request Received.", workflowId);
+    logPayload(request);
     final Optional<WorkflowEntity> optWorkflow = workflowRepository.findById(workflowId);
     if (optWorkflow.isEmpty()) {
       throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
@@ -499,11 +498,8 @@ public class WorkflowService {
     if (!optWorkflowRevisionEntity.isPresent()) {
       throw new BoomerangException(BoomerangError.WORKFLOW_REVISION_NOT_FOUND);
     }
-
-    LOGGER.debug("Workflow Revision: " + optWorkflowRevisionEntity.get().toString());
     WorkflowRevisionEntity wfRevision = optWorkflowRevisionEntity.get();
 
-    LOGGER.info("Submit Workflow Step 3");
     final WorkflowRunEntity wfRunEntity = new WorkflowRunEntity();
     wfRunEntity.setWorkflowRevisionRef(wfRevision.getId());
     wfRunEntity.setWorkflowRef(wfRevision.getWorkflowRef());
@@ -512,7 +508,6 @@ public class WorkflowService {
     wfRunEntity.getLabels().putAll(workflow.getLabels());
     wfRunEntity.setParams(ParameterUtil.paramSpecToRunParam(wfRevision.getParams()));
 
-    LOGGER.info("Submit Workflow Step 4");
     wfRunEntity.setWorkspaces(wfRevision.getWorkspaces());
     if (!Objects.isNull(wfRevision.getTimeout()) && wfRevision.getTimeout() != 0) {
       wfRunEntity.setTimeout(wfRevision.getTimeout());
@@ -528,13 +523,10 @@ public class WorkflowService {
     if (request.getAnnotations() != null && !request.getAnnotations().isEmpty()) {
       wfRunEntity.getAnnotations().putAll(request.getAnnotations());
     }
-    LOGGER.info("Submit Workflow Step 5");
     if (request.getParams() != null && !request.getParams().isEmpty()) {
       wfRunEntity.setParams(
           ParameterUtil.addUniqueParams(wfRunEntity.getParams(), request.getParams()));
     }
-
-    LOGGER.info("Submit Workflow Step 6");
     if (request.getWorkspaces() != null && !request.getWorkspaces().isEmpty()) {
       wfRunEntity.getWorkspaces().addAll(request.getWorkspaces());
     }
@@ -562,7 +554,6 @@ public class WorkflowService {
       wfRunEntity.getAnnotations().put("boomerang.io/submit-with-start", "true");
     }
     wfRunEntity.getAnnotations().putAll(annotations);
-    LOGGER.info("Submit Workflow Step 7");
     return workflowRunService.run(wfRunEntity, start);
   }
 
@@ -628,8 +619,7 @@ public class WorkflowService {
     try {
       ObjectMapper objectMapper = new ObjectMapper();
       String payload = objectMapper.writeValueAsString(request);
-      LOGGER.info("Received Request Payload: ");
-      LOGGER.info(payload);
+      LOGGER.debug("Payload: {}", payload);
     } catch (JsonProcessingException e) {
       LOGGER.error(e.getStackTrace());
     }
