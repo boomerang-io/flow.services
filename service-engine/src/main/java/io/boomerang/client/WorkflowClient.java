@@ -31,6 +31,9 @@ public class WorkflowClient {
   @Value("${flow.workflow.submit.url}")
   private String workflowSubmitURL;
 
+  @Value("${flow.workflow.relationship.url}")
+  private String workflowRelationshipURL;
+
   @Autowired
   @Qualifier("insecureRestTemplate")
   public RestTemplate restTemplate;
@@ -76,6 +79,26 @@ public class WorkflowClient {
       LOGGER.info("Content Response: " + response.getBody().toString());
 
       return response.getBody();
+    } catch (RestClientException ex) {
+      LOGGER.error(ex.toString());
+      throw new BoomerangException(
+          ex,
+          HttpStatus.INTERNAL_SERVER_ERROR.value(),
+          ex.getClass().getSimpleName(),
+          "Exception in communicating with internal services.",
+          HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  public void createWorkflowRunRelationship(String workflow, String run) {
+    try {
+      String url = workflowRelationshipURL.replace("{workflow}", workflow).replace("{run}", run);
+      LOGGER.info("URL: " + url);
+
+      ResponseEntity<Void> response = restTemplate.postForEntity(url, "", Void.class);
+
+      LOGGER.info("Status Response: " + response.getStatusCode());
+      LOGGER.info("Content Response: " + response.getBody().toString());
     } catch (RestClientException ex) {
       LOGGER.error(ex.toString());
       throw new BoomerangException(

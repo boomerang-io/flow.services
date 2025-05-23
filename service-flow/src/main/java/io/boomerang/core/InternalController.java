@@ -16,7 +16,10 @@ import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/internal")
 @Hidden
 public class InternalController {
+  private static final Logger LOGGER = LogManager.getLogger(TaskExecutionService.class);
 
   @Autowired private SettingsService settingsService;
 
@@ -70,6 +74,37 @@ public class InternalController {
         relationshipService.getParentByLabel(
             RelationshipLabel.HAS_WORKFLOW, RelationshipType.WORKFLOW, ref);
     return workflowService.internalSubmit(team, ref, request, start);
+  }
+
+  // Used by Engine for RunWorkflow tasks
+  // Team will be blank
+  @PostMapping(value = "/workflow/{workflow}/run/{run}/relationship")
+  @Operation(summary = "Creation the relationship for a WorkflowRun")
+  public ResponseEntity<Void> createRelationship(
+      @Parameter(name = "run", description = "WorkflowRun Id", required = true) @PathVariable
+          String run,
+      @Parameter(name = "workflow", description = "Workflow Reference", required = true)
+          @PathVariable
+          String workflow) {
+    try {
+      String team =
+          relationshipService.getParentByLabel(
+              RelationshipLabel.HAS_WORKFLOW, RelationshipType.WORKFLOW, workflow);
+      relationshipService.createNodeAndEdge(
+          RelationshipType.TEAM,
+          team,
+          RelationshipLabel.HAS_WORKFLOWRUN,
+          RelationshipType.WORKFLOWRUN,
+          run,
+          run,
+          Optional.empty(),
+          Optional.empty());
+      LOGGER.info("Created relationship for team({}) and workflowrun({})", team, run);
+    } catch (Exception e) {
+      LOGGER.error("Error creating relationship for workflow run: {}", e.getMessage());
+      return ResponseEntity.internalServerError().build();
+    }
+    return ResponseEntity.ok().build();
   }
 
   // Used by Handler to get the feature flags and real time value for settings
