@@ -648,7 +648,9 @@ public class TaskExecutionService {
         //        request.setWorkflowVersion();
         LOGGER.debug(
             "[{}] Submitting RunWorkflow Request for ref: {}.", taskExecution.getId(), workflowRef);
-        WorkflowRun wfRunResponse = workflowService.submit(workflowRef, request, false);
+        //        WorkflowRun wfRunResponse = workflowService.submit(workflowRef, request, false);
+        WorkflowRun wfRunResponse =
+            workflowClient.submitWorkflow(workflowRef, request, Optional.of(false));
         List<RunResult> wfRunResultResponse = new LinkedList<>();
         RunResult runResult = new RunResult();
         runResult.setName("workflowRunRef");
