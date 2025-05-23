@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/internal")
 @Hidden
 public class InternalController {
-  private static final Logger LOGGER = LogManager.getLogger(TaskExecutionService.class);
+  private static final Logger LOGGER = LogManager.getLogger(InternalController.class);
 
   @Autowired private SettingsService settingsService;
 
