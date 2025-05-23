@@ -93,12 +93,11 @@ public class WorkflowClient {
   public void createWorkflowRunRelationship(String workflow, String run) {
     try {
       String url = workflowRelationshipURL.replace("{workflow}", workflow).replace("{run}", run);
-      LOGGER.info("URL: " + url);
+      LOGGER.debug("URL: " + url);
 
       ResponseEntity<Void> response = restTemplate.postForEntity(url, "", Void.class);
 
-      LOGGER.info("Status Response: " + response.getStatusCode());
-      LOGGER.info("Content Response: " + response.getBody().toString());
+      LOGGER.debug("Status Response: " + response.getStatusCode());
     } catch (RestClientException ex) {
       LOGGER.error(ex.toString());
       throw new BoomerangException(
