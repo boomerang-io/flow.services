@@ -213,23 +213,16 @@ public class ActionService {
       Optional<List<String>> queryWorkflows) {
 
     // Get Refs that request has access to
-    List<String> refs =
+    List<String> workflowRefs =
         relationshipService.filter(
             RelationshipType.WORKFLOW,
             queryWorkflows,
             Optional.of(RelationshipType.TEAM),
             Optional.of(List.of(team)),
             false);
-    if (refs == null || refs.size() == 0) {
+    if (workflowRefs == null || workflowRefs.size() == 0) {
       return Page.empty();
     }
-
-    List<String> workflowRefs =
-        relationshipService.filter(
-            RelationshipType.WORKFLOW,
-            queryWorkflows,
-            Optional.of(RelationshipType.TEAM),
-            Optional.of(List.of(team)));
 
     Criteria criteria =
         buildCriteriaList(from, to, Optional.of(workflowRefs), queryTypes, queryStatus);
