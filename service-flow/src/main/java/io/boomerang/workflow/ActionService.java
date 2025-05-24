@@ -208,17 +208,31 @@ public class ActionService {
       Optional<Date> from,
       Optional<Date> to,
       Pageable pageable,
-      Optional<List<ActionType>> types,
-      Optional<List<ActionStatus>> status,
-      Optional<List<String>> workflowIds) {
+      Optional<List<ActionType>> queryTypes,
+      Optional<List<ActionStatus>> queryStatus,
+      Optional<List<String>> queryWorkflows) {
+
+    // Get Refs that request has access to
+    List<String> refs =
+        relationshipService.filter(
+            RelationshipType.WORKFLOW,
+            queryWorkflows,
+            Optional.of(RelationshipType.TEAM),
+            Optional.of(List.of(team)),
+            false);
+    if (refs == null || refs.size() == 0) {
+      return Page.empty();
+    }
+
     List<String> workflowRefs =
         relationshipService.filter(
             RelationshipType.WORKFLOW,
-            workflowIds,
+            queryWorkflows,
             Optional.of(RelationshipType.TEAM),
             Optional.of(List.of(team)));
 
-    Criteria criteria = buildCriteriaList(from, to, Optional.of(workflowRefs), types, status);
+    Criteria criteria =
+        buildCriteriaList(from, to, Optional.of(workflowRefs), queryTypes, queryStatus);
     Query query = new Query(criteria).with(pageable);
 
     List<ActionEntity> actionEntities =
