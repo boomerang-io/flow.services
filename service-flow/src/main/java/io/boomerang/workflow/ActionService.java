@@ -194,15 +194,6 @@ public class ActionService {
     return this.convertToAction(actionEntity.get());
   }
 
-  //  @Override
-  //  public Action getByTaskRun(String id) {
-  //    Optional<ActionEntity> actionEntity = this.actionRepository.findByTaskRunRef(id);
-  //    if (actionEntity.isEmpty()) {
-  //      throw new BoomerangException(BoomerangError.ACTION_INVALID_REF);
-  //    }
-  //    return this.convertToAction(actionEntity.get());
-  //  }
-
   public Page<Action> query(
       String team,
       Optional<Date> from,
@@ -248,14 +239,18 @@ public class ActionService {
       String team,
       Optional<Date> fromDate,
       Optional<Date> toDate,
-      Optional<List<String>> workflowIds) {
+      Optional<List<String>> queryWorkflows) {
+    ActionSummary summary = new ActionSummary();
     List<String> workflowRefs =
         relationshipService.filter(
             RelationshipType.WORKFLOW,
-            workflowIds,
+            queryWorkflows,
             Optional.of(RelationshipType.TEAM),
-            Optional.of(List.of(team)));
-
+            Optional.of(List.of(team)),
+            false);
+    if (workflowRefs == null || workflowRefs.size() == 0) {
+      return summary;
+    }
     long approvalCount =
         this.getActionCountForType(
             ActionType.approval, fromDate, toDate, Optional.of(workflowRefs));
@@ -271,11 +266,9 @@ public class ActionService {
       approvalRateCount = (((approvedCount + rejectedCount) / total) * 100);
     }
 
-    ActionSummary summary = new ActionSummary();
     summary.setApprovalsRate(approvalRateCount);
     summary.setManual(manualCount);
     summary.setApprovals(approvalCount);
-
     return summary;
   }
 
