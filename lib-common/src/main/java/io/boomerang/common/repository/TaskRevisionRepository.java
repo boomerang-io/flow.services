@@ -1,13 +1,15 @@
-package io.boomerang.engine.repository;
+package io.boomerang.common.repository;
 
+import io.boomerang.common.entity.TaskRevisionEntity;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import io.boomerang.common.entity.TaskRevisionEntity;
 
 public interface TaskRevisionRepository extends MongoRepository<TaskRevisionEntity, String> {
   Integer countByParentRef(String parent);
+
+  Integer countByParentRefAndVersion(String parent, Integer version);
 
   List<TaskRevisionEntity> findByParentRef(String parent);
 

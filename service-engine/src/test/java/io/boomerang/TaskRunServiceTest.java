@@ -7,6 +7,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import io.boomerang.common.model.TaskRun;
+import io.boomerang.common.repository.TaskRunRepository;
+import io.boomerang.engine.TaskRunService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -18,8 +21,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
-
-import io.boomerang.engine.repository.TaskRunRepository;
 
 class TaskRunServiceTest {
 

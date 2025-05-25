@@ -1,7 +1,7 @@
-package io.boomerang.engine.repository;
+package io.boomerang.common.repository;
 
-import org.springframework.data.mongodb.repository.MongoRepository;
 import io.boomerang.common.entity.WorkflowRunEntity;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface WorkflowRunRepository extends MongoRepository<WorkflowRunEntity, String> {
 

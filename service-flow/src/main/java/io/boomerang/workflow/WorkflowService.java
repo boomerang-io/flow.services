@@ -1,5 +1,8 @@
 package io.boomerang.workflow;
 
+import static java.util.stream.Collectors.groupingBy;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.Configuration;
@@ -9,22 +12,14 @@ import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.JacksonJsonNodeJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import io.boomerang.client.EngineClient;
-import io.boomerang.client.WorkflowResponsePage;
+import io.boomerang.common.entity.TaskRevisionEntity;
+import io.boomerang.common.entity.WorkflowEntity;
+import io.boomerang.common.entity.WorkflowRevisionEntity;
 import io.boomerang.common.enums.TaskType;
 import io.boomerang.common.enums.TriggerEnum;
-import io.boomerang.common.model.ChangeLogVersion;
-import io.boomerang.common.model.ParamLayers;
-import io.boomerang.common.model.RunParam;
-import io.boomerang.common.model.Trigger;
-import io.boomerang.common.model.Workflow;
-import io.boomerang.common.model.WorkflowCount;
-import io.boomerang.common.model.WorkflowRun;
-import io.boomerang.common.model.WorkflowSubmitRequest;
-import io.boomerang.common.model.WorkflowTask;
-import io.boomerang.common.model.WorkflowTaskDependency;
-import io.boomerang.common.model.WorkflowTrigger;
-import io.boomerang.common.model.WorkflowWorkspace;
-import io.boomerang.common.model.WorkflowWorkspaceSpec;
+import io.boomerang.common.enums.WorkflowStatus;
+import io.boomerang.common.model.*;
+import io.boomerang.common.repository.*;
 import io.boomerang.common.util.DataAdapterUtil;
 import io.boomerang.common.util.DataAdapterUtil.FieldType;
 import io.boomerang.common.util.ParameterUtil;
@@ -45,21 +40,26 @@ import io.boomerang.workflow.model.CurrentQuotas;
 import io.boomerang.workflow.model.WorkflowCanvas;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.net.URLDecoder;
+import java.util.*;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -87,6 +87,10 @@ public class WorkflowService {
   public static final String QUOTA_MAX_WORKFLOW_STORAGE = "max.workflow.storage";
   public static final String QUOTA_MAX_WORKFLOWRUN_STORAGE = "max.workflowrun.storage";
   public static final String TASK_SETTINGS_KEY = "task";
+  private static final String CHANGELOG_INITIAL = "Initial Workflow";
+  private static final String CHANGELOG_UPDATE = "Updated Workflow";
+  private static final String ANNOTATION_GENERATION = "4";
+  private static final String ANNOTATION_KIND = "Workflow";
 
   private final EngineClient engineClient;
   private final RelationshipService relationshipService;
@@ -96,6 +100,14 @@ public class WorkflowService {
   private final ActionService actionService;
   private final TokenService tokenService;
   private final TeamService teamService;
+  private final TaskService taskService;
+  private final WorkflowRepository workflowRepository;
+  private final WorkflowRevisionRepository workflowRevisionRepository;
+  private final WorkflowRunRepository workflowRunRepository;
+  private final TaskRunRepository taskRunRepository;
+  private final ActionRepository actionRepository;
+  private final TaskRevisionRepository taskRevisionRepository;
+  private final MongoTemplate mongoTemplate;
 
   public WorkflowService(
       EngineClient engineClient,
@@ -103,9 +115,17 @@ public class WorkflowService {
       @Lazy ScheduleService scheduleService,
       ParameterManager parameterManager,
       SettingsService settingsService,
-      ActionService actionService,
+      @Lazy ActionService actionService,
       TokenService tokenService,
-      @Lazy TeamService teamService) {
+      @Lazy TeamService teamService,
+      TaskService taskService,
+      WorkflowRepository workflowRepository,
+      WorkflowRevisionRepository workflowRevisionRepository,
+      WorkflowRunRepository workflowRunRepository,
+      TaskRunRepository taskRunRepository,
+      ActionRepository actionRepository,
+      TaskRevisionRepository taskRevisionRepository,
+      MongoTemplate mongoTemplate) {
     this.engineClient = engineClient;
     this.relationshipService = relationshipService;
     this.scheduleService = scheduleService;
@@ -114,6 +134,14 @@ public class WorkflowService {
     this.actionService = actionService;
     this.tokenService = tokenService;
     this.teamService = teamService;
+    this.taskService = taskService;
+    this.workflowRepository = workflowRepository;
+    this.workflowRevisionRepository = workflowRevisionRepository;
+    this.workflowRunRepository = workflowRunRepository;
+    this.taskRunRepository = taskRunRepository;
+    this.actionRepository = actionRepository;
+    this.taskRevisionRepository = taskRevisionRepository;
+    this.mongoTemplate = mongoTemplate;
   }
 
   /*
@@ -148,10 +176,34 @@ public class WorkflowService {
             Optional.of(List.of(team)),
             false);
     if (!refs.isEmpty()) {
-      Workflow workflow = engineClient.getWorkflow(refs.get(0), version, withTasks);
+      // Retrieve Workflow by Ref
+      final Optional<WorkflowEntity> optWfEntity = workflowRepository.findById(refs.get(0));
+      Optional<WorkflowRevisionEntity> optWfRevisionEntity;
+      if (version.isPresent()) {
+        optWfRevisionEntity =
+            workflowRevisionRepository.findByWorkflowRefAndVersion(refs.get(0), version.get());
+        if (!optWfRevisionEntity.isPresent()) {
+          throw new BoomerangException(BoomerangError.WORKFLOW_REVISION_NOT_FOUND);
+        }
+      } else {
+        optWfRevisionEntity =
+            workflowRevisionRepository.findByWorkflowRefAndLatestVersion(refs.get(0));
+      }
+      if (!optWfEntity.isPresent() || !optWfRevisionEntity.isPresent()) {
+        throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
+      }
 
-      // Convert Workflow TaskRefs to Slugs
-      convertTaskRefsToSlugs(team, workflow);
+      Workflow workflow =
+          convertWorkflowEntityToModel(optWfEntity.get(), optWfRevisionEntity.get());
+      if (withTasks) {
+        // Determine if there are Task upgrades available
+        areTaskUpgradesAvailable(workflow);
+        // Convert Workflow TaskRefs to Slugs
+        convertTaskRefsToSlugs(team, workflow);
+      } else {
+        workflow.setTasks(new LinkedList<>());
+      }
+
       return workflow;
     }
     throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
@@ -160,7 +212,7 @@ public class WorkflowService {
   /*
    * Query for Workflows.
    */
-  public WorkflowResponsePage query(
+  public Page<Workflow> query(
       String queryTeam,
       Optional<Integer> queryLimit,
       Optional<Integer> queryPage,
@@ -179,29 +231,83 @@ public class WorkflowService {
             false);
     LOGGER.debug("Workflow Refs: {}", refs.toString());
     if (refs == null || refs.size() == 0) {
-      return new WorkflowResponsePage();
+      return Page.empty();
     }
 
-    WorkflowResponsePage response =
-        engineClient.queryWorkflows(
-            queryLimit, queryPage, querySort, queryLabels, queryStatus, Optional.of(refs));
+    Pageable pageable = Pageable.unpaged();
+    final Sort sort = Sort.by(new Sort.Order(querySort.orElse(Direction.ASC), "creationDate"));
+    if (queryLimit.isPresent()) {
+      pageable = PageRequest.of(queryPage.get(), queryLimit.get(), sort);
+    }
+    List<Criteria> criteriaList = new ArrayList<>();
 
-    LOGGER.debug("Workflow Response: {}", response.toString());
-    if (!response.getContent().isEmpty()) {
-      response
-          .getContent()
+    if (queryLabels.isPresent()) {
+      queryLabels.get().stream()
           .forEach(
-              w -> {
-                // Filter out sensitive values
-                DataAdapterUtil.filterParamSpecValueByFieldType(
-                    w.getParams(), FieldType.PASSWORD.value());
-                // Convert Workflow TaskRefs to Slugs
-                convertTaskRefsToSlugs(queryTeam, w);
-                w.setId(null);
+              l -> {
+                String decodedLabel = "";
+                try {
+                  decodedLabel = URLDecoder.decode(l, "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                  throw new BoomerangException(e, BoomerangError.QUERY_INVALID_FILTERS, "labels");
+                }
+                LOGGER.debug(decodedLabel.toString());
+                String[] label = decodedLabel.split("[=]+");
+                Criteria labelsCriteria =
+                    Criteria.where("labels." + label[0].replace(".", "#")).is(label[1]);
+                criteriaList.add(labelsCriteria);
               });
     }
 
-    return response;
+    if (queryStatus.isPresent()) {
+      if (queryStatus.get().stream()
+          .allMatch(q -> EnumUtils.isValidEnumIgnoreCase(WorkflowStatus.class, q))) {
+        Criteria criteria = Criteria.where("status").in(queryStatus.get());
+        criteriaList.add(criteria);
+      } else {
+        throw new BoomerangException(BoomerangError.QUERY_INVALID_FILTERS, "status");
+      }
+    }
+
+    Criteria criteria = Criteria.where("id").in(refs);
+    criteriaList.add(criteria);
+
+    Criteria[] criteriaArray = criteriaList.toArray(new Criteria[criteriaList.size()]);
+    Criteria allCriteria = new Criteria();
+    if (criteriaArray.length > 0) {
+      allCriteria.andOperator(criteriaArray);
+    }
+    Query query = new Query(allCriteria);
+    if (queryLimit.isPresent()) {
+      query.with(pageable);
+    } else {
+      query.with(sort);
+    }
+
+    LOGGER.debug("Query: " + query.toString());
+    List<WorkflowEntity> wfEntities = mongoTemplate.find(query, WorkflowEntity.class);
+
+    List<Workflow> workflows = new LinkedList<>();
+    wfEntities.forEach(
+        e -> {
+          LOGGER.debug("Workflow: " + e.toString());
+          Optional<WorkflowRevisionEntity> optWfRevisionEntity =
+              workflowRevisionRepository.findByWorkflowRefAndLatestVersion(e.getId());
+          if (optWfRevisionEntity.isPresent()) {
+            LOGGER.debug("Revision: " + optWfRevisionEntity.get().toString());
+            Workflow w = convertWorkflowEntityToModel(e, optWfRevisionEntity.get());
+            // Determine if there are template upgrades available
+            areTaskUpgradesAvailable(w);
+            // Filter out sensitive values
+            DataAdapterUtil.filterParamSpecValueByFieldType(
+                w.getParams(), FieldType.PASSWORD.value());
+            // Convert Workflow TaskRefs to Slugs
+            convertTaskRefsToSlugs(queryTeam, w);
+            workflows.add(w);
+          }
+        });
+
+    return PageableExecutionUtils.getPage(workflows, pageable, () -> workflows.size());
   }
 
   /*
@@ -213,6 +319,7 @@ public class WorkflowService {
       Optional<Long> to,
       Optional<List<String>> queryLabels,
       Optional<List<String>> queryWorkflows) {
+    WorkflowCount wfCount = new WorkflowCount();
     // Get Refs that request has access to
     List<String> refs =
         relationshipService.filter(
@@ -222,12 +329,68 @@ public class WorkflowService {
             Optional.of(List.of(queryTeam)),
             false);
     LOGGER.debug("Workflow Refs: {}", refs.toString());
-
     // Handle no Workflows for Team. Otherwise the engine will return all workflows due to no filter
-    if (refs.size() > 0) {
-      return engineClient.countWorkflows(queryLabels, Optional.of(refs), from, to);
+    if (refs == null || refs.size() == 0) {
+      return wfCount;
     }
-    return new WorkflowCount();
+
+    List<Criteria> criteriaList = new ArrayList<>();
+    if (from.isPresent() && !to.isPresent()) {
+      Criteria criteria = Criteria.where("creationDate").gte(from.get());
+      criteriaList.add(criteria);
+    } else if (!from.isPresent() && to.isPresent()) {
+      Criteria criteria = Criteria.where("creationDate").lt(to.get());
+      criteriaList.add(criteria);
+    } else if (from.isPresent() && to.isPresent()) {
+      Criteria criteria = Criteria.where("creationDate").gte(from.get()).lt(to.get());
+      criteriaList.add(criteria);
+    }
+
+    // TODO add the ability to OR labels not just AND
+    if (queryLabels.isPresent()) {
+      queryLabels.get().stream()
+          .forEach(
+              l -> {
+                String decodedLabel = "";
+                try {
+                  decodedLabel = URLDecoder.decode(l, "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                  throw new BoomerangException(e, BoomerangError.QUERY_INVALID_FILTERS, "labels");
+                }
+                LOGGER.debug(decodedLabel.toString());
+                String[] label = decodedLabel.split("[=]+");
+                Criteria labelsCriteria =
+                    Criteria.where("labels." + label[0].replace(".", "#")).is(label[1]);
+                criteriaList.add(labelsCriteria);
+              });
+    }
+
+    Criteria criteria = Criteria.where("id").in(refs);
+    criteriaList.add(criteria);
+
+    Criteria[] criteriaArray = criteriaList.toArray(new Criteria[criteriaList.size()]);
+    Criteria allCriteria = new Criteria();
+    if (criteriaArray.length > 0) {
+      allCriteria.andOperator(criteriaArray);
+    }
+    Query query = new Query(allCriteria);
+    LOGGER.debug("Query: " + query.toString());
+    List<WorkflowEntity> wfEntities = mongoTemplate.find(query, WorkflowEntity.class);
+
+    // Collate by status count
+    Map<String, Long> result =
+        wfEntities.stream()
+            .collect(groupingBy(v -> getStatusValue(v), Collectors.counting())); // NOSONAR
+    result.put("all", Long.valueOf(wfEntities.size()));
+
+    Arrays.stream(WorkflowStatus.values()).forEach(v -> result.putIfAbsent(v.toString(), 0L));
+
+    wfCount.setStatus(result);
+    return wfCount;
+  }
+
+  private String getStatusValue(WorkflowEntity v) {
+    return v.getStatus() == null ? "no_status" : v.getStatus().toString();
   }
 
   /*
@@ -269,10 +432,29 @@ public class WorkflowService {
     // Convert TaskRefs to IDs
     convertTaskSlugsToRefs(team, request);
 
+    // TODO determine if we can get rid of ID
     request.setId(null);
 
-    Workflow workflow = engineClient.createWorkflow(request);
-    LOGGER.debug("Workflow DisplayName: {}", workflow.getDisplayName());
+    // Create Workflow
+    WorkflowEntity wfEntity = new WorkflowEntity();
+    wfEntity.setName(request.getName());
+    wfEntity.setDisplayName(request.getDisplayName());
+    wfEntity.setIcon(request.getIcon());
+    wfEntity.setDescription(request.getDescription());
+    wfEntity.setLabels(request.getLabels());
+    wfEntity.setStatus(WorkflowStatus.active);
+    wfEntity.setTriggers(request.getTriggers());
+    // Add System Generated Annotations
+    request.getAnnotations().put("boomerang.io/generation", ANNOTATION_GENERATION);
+    request.getAnnotations().put("boomerang.io/kind", ANNOTATION_KIND);
+    wfEntity.setAnnotations(request.getAnnotations());
+
+    // Create Revision
+    WorkflowRevisionEntity wfRevisionEntity = createWorkflowRevisionEntity(request, 1);
+    wfEntity = workflowRepository.save(wfEntity);
+    request.setId(wfEntity.getId());
+    wfRevisionEntity.setWorkflowRef(wfEntity.getId());
+    workflowRevisionRepository.save(wfRevisionEntity);
 
     // Create Relationship
     relationshipService.createNodeAndEdge(
@@ -280,12 +462,17 @@ public class WorkflowService {
         team,
         RelationshipLabel.HAS_WORKFLOW,
         RelationshipType.WORKFLOW,
-        workflow.getId(),
-        workflow.getName(),
+        wfEntity.getId(),
+        wfEntity.getName(),
         Optional.empty(),
         Optional.empty());
 
     // TODO go through and ensure all the required ParamSpec elements are set
+
+    Workflow workflow = convertWorkflowEntityToModel(wfEntity, wfRevisionEntity);
+
+    // Determine if there are template upgrades available
+    areTaskUpgradesAvailable(workflow);
 
     // Filter out sensitive values
     DataAdapterUtil.filterParamSpecValueByFieldType(
@@ -369,54 +556,115 @@ public class WorkflowService {
   }
 
   /*
-   * Apply allows you to create a new version or override an existing Workflow as well as create new
-   * Workflow with supplied ID
+   * Apply allows you to create a new version or override an existing Workflow
+   *
+   *   // TODO: handle more of the apply i.e. if original has element, and new does not, keep the
+  // original element.
    */
-  public Workflow apply(String team, Workflow workflow, boolean replace) {
-    if (workflow != null && workflow.getName() != null && !workflow.getName().isBlank()) {
-      List<String> refs =
-          relationshipService.filter(
-              RelationshipType.WORKFLOW,
-              Optional.of(List.of(workflow.getName())),
-              Optional.of(RelationshipType.TEAM),
-              Optional.of(List.of(team)),
-              false);
-      if (!refs.isEmpty()) {
-        workflow.setId(refs.get(0));
+  public Workflow apply(String team, Workflow request, boolean replace) {
+    if (request == null || request.getName() == null || request.getName().isBlank()) {
+      throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
+    }
+    List<String> refs =
+        relationshipService.filter(
+            RelationshipType.WORKFLOW,
+            Optional.of(List.of(request.getName())),
+            Optional.of(RelationshipType.TEAM),
+            Optional.of(List.of(team)),
+            false);
+    request.setId(null);
+    if (refs.isEmpty()) {
+      return this.create(team, request);
+    }
+    // Fill in displayName if not set
+    validateAndSetDisplayName(request);
 
-        // Fill in displayName if not set
-        validateAndSetDisplayName(workflow);
+    // Update Schedule Triggers
+    updateScheduleTriggers(
+        request, this.get(team, request.getName(), Optional.empty(), false).getTriggers());
 
-        // Update Schedule Triggers
-        updateScheduleTriggers(
-            workflow, this.get(team, workflow.getName(), Optional.empty(), false).getTriggers());
+    // Default Triggers
+    validateTriggerDefaults(request);
 
-        // Default Triggers
-        validateTriggerDefaults(workflow);
+    // Convert TaskSlugs to Refs(IDs)
+    convertTaskSlugsToRefs(team, request);
 
-        // Convert TaskSlugs to Refs(IDs)
-        convertTaskSlugsToRefs(team, workflow);
+    // TODO go through and ensure all the required ParamSpec elements are set
 
-        // TODO go through and ensure all the required ParamSpec elements are set
-
-        Workflow appliedWorkflow = engineClient.applyWorkflow(workflow, replace);
-
-        // Filter out sensitive values
-        DataAdapterUtil.filterParamSpecValueByFieldType(
-            appliedWorkflow.getParams(), FieldType.PASSWORD.value());
-
-        // Convert Workflow TaskRefs(IDs) to Slugs
-        convertTaskRefsToSlugs(team, appliedWorkflow);
-
-        workflow.setId(null);
-        return appliedWorkflow;
+    // Apply Workflow
+    WorkflowEntity workflowEntity = workflowRepository.findById(refs.get(0)).get();
+    if (request.getStatus() != null) {
+      workflowEntity.setStatus(request.getStatus());
+    }
+    if (request.getDescription() != null && !request.getDescription().isBlank()) {
+      workflowEntity.setDescription(request.getDescription());
+    }
+    if (request.getLabels() != null && !request.getLabels().isEmpty()) {
+      if (replace) {
+        workflowEntity.setLabels(request.getLabels());
+      } else {
+        workflowEntity.getLabels().putAll(request.getLabels());
       }
     }
-    if (workflow != null) {
-      workflow.setId(null);
-      return this.create(team, workflow);
+    if (request.getAnnotations() != null && !request.getAnnotations().isEmpty()) {
+      if (replace) {
+        workflowEntity.setAnnotations(request.getAnnotations());
+      } else {
+        workflowEntity.getAnnotations().putAll(request.getAnnotations());
+      }
     }
-    throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
+    if (!Objects.isNull(request.getTriggers())) {
+      if (!Objects.isNull(request.getTriggers().getManual())) {
+        workflowEntity.getTriggers().setManual(request.getTriggers().getManual());
+      }
+      if (!Objects.isNull(request.getTriggers().getSchedule())) {
+        workflowEntity.getTriggers().setSchedule(request.getTriggers().getSchedule());
+      }
+      if (!Objects.isNull(request.getTriggers().getWebhook())) {
+        workflowEntity.getTriggers().setWebhook(request.getTriggers().getWebhook());
+      }
+      if (!Objects.isNull(request.getTriggers().getEvent())) {
+        workflowEntity.getTriggers().setEvent(request.getTriggers().getEvent());
+      }
+      if (!Objects.isNull(request.getTriggers().getGithub())) {
+        workflowEntity.getTriggers().setGithub(request.getTriggers().getGithub());
+      }
+    }
+    // Add System Generated Annotations
+    workflowEntity.getAnnotations().put("boomerang.io/generation", ANNOTATION_GENERATION);
+    workflowEntity.getAnnotations().put("boomerang.io/kind", ANNOTATION_KIND);
+    workflowRepository.save(workflowEntity);
+
+    // TODO, the creation of new better to include fields available on the old that aren't available
+    // on the new.
+    WorkflowRevisionEntity workflowRevisionEntity =
+        workflowRevisionRepository.findByWorkflowRefAndLatestVersion(refs.get(0)).get();
+    Integer version = workflowRevisionEntity.getVersion();
+    WorkflowRevisionEntity newWorkflowRevisionEntity = null;
+    if (!replace) {
+      version++;
+    }
+    newWorkflowRevisionEntity = createWorkflowRevisionEntity(request, version);
+    if (replace) {
+      newWorkflowRevisionEntity.setId(workflowRevisionEntity.getId());
+    }
+    newWorkflowRevisionEntity.setWorkflowRef(workflowRevisionEntity.getWorkflowRef());
+
+    workflowRevisionRepository.save(newWorkflowRevisionEntity);
+
+    Workflow workflow = convertWorkflowEntityToModel(workflowEntity, newWorkflowRevisionEntity);
+    // Determine if there are template upgrades available
+    areTaskUpgradesAvailable(workflow);
+
+    // Filter out sensitive values
+    DataAdapterUtil.filterParamSpecValueByFieldType(
+        workflow.getParams(), FieldType.PASSWORD.value());
+
+    // Convert Workflow TaskRefs(IDs) to Slugs
+    convertTaskRefsToSlugs(team, workflow);
+
+    request.setId(null);
+    return workflow;
   }
 
   /*
@@ -471,31 +719,57 @@ public class WorkflowService {
    */
   public WorkflowRun internalSubmit(
       String team, String workflowId, WorkflowSubmitRequest request, boolean start) {
-    // Check if Workflow exists and is active. Then check triggers are enabled.
-    // Presumed workflow exists as relationship was valid to get to this point.
-    Workflow workflow = engineClient.getWorkflow(workflowId, Optional.empty(), false);
-    // Check Triggers - Throws Exception - Check first, as if trigger not enabled, no point in
-    // checking quotas
-    canRunWithTrigger(workflow.getTriggers(), request.getTrigger(), request.getParams());
-    // Check Quotas - Throws Exception
-    canRunWithQuotas(team, Optional.of(request.getWorkspaces()));
+    LOGGER.debug("[{}] Workflow Submit Request Received.", workflowId);
+    logPayload(request);
+    // Retrieve Workflow
+    Workflow workflow =
+        this.get(
+            team,
+            workflowId,
+            request.getWorkflowVersion() != null
+                ? Optional.of(request.getWorkflowVersion())
+                : Optional.empty(),
+            false);
+
+    // Set version
+    request.setWorkflowVersion(workflow.getVersion());
+
     // Set Workflow & Task Debug
-    if (Objects.isNull(request.getDebug())) {
-      boolean enableDebug = false;
+    boolean enableDebug = false;
+    if (!Objects.isNull(request.getDebug())) {
+      request.setDebug(Boolean.valueOf(enableDebug));
+      //    } else (!Objects.isNull(workflow.getDebug())) {
+      //      TODO: future when Workflow can have debug set
+    } else {
       String setting = this.settingsService.getSettingConfig("task", "debug").getValue();
       if (setting != null) {
         enableDebug = Boolean.parseBoolean(setting);
       }
-      request.setDebug(Boolean.valueOf(enableDebug));
-      LOGGER.info("Setting debug = " + enableDebug);
     }
-    // Set Workflow Timeout
+    LOGGER.debug("[{}] Setting debug={}", workflowId, enableDebug);
+
+    // Set Request Timeout as long as it's less than the max timeout quota
+    // Checks the request, then the workflow, otherwise sets to quota
     Long timeout = teamService.getWorkflowMaxDurationForTeam(team).longValue();
     if (!Objects.isNull(request.getTimeout()) && request.getTimeout() < timeout) {
       timeout = request.getTimeout();
+    } else if (!Objects.isNull(workflow.getTimeout()) && workflow.getTimeout() < timeout) {
+      timeout = workflow.getTimeout();
     }
     request.setTimeout(Long.valueOf(timeout));
+    LOGGER.debug("[{}] Setting timeout={}", workflowId, timeout.toString());
+
+    // Set Retries if not provided in the request and set on the workflow
+    if (Objects.isNull(request.getRetries()) && !Objects.isNull(workflow.getRetries())) {
+      request.setRetries(workflow.getRetries());
+    }
+
+    // Get the Annotations and combine from workflow and request.
+    // Add the executionAnnotations last so they override all.
     // These annotations are processed by the DAGUtility in the Engine
+    Map<String, Object> annotations =
+        workflow.getAnnotations() != null ? workflow.getAnnotations() : new HashMap<>();
+    annotations.putAll(request.getAnnotations());
     Map<String, Object> executionAnnotations = new HashMap<>();
     executionAnnotations.put(
         "boomerang.io/task-deletion",
@@ -506,18 +780,31 @@ public class WorkflowService {
     executionAnnotations.put(
         "boomerang.io/task-timeout",
         this.settingsService.getSettingConfig(TASK_SETTINGS_KEY, "default.timeout").getValue());
-
     // Add Context, Global, and Team parameters to the WorkflowRun request
     ParamLayers paramLayers = parameterManager.buildParamLayers(team, workflow);
     executionAnnotations.put("boomerang.io/global-params", paramLayers.getGlobalParams());
     executionAnnotations.put("boomerang.io/context-params", paramLayers.getContextParams());
     executionAnnotations.put("boomerang.io/team-params", paramLayers.getTeamParams());
-
     // Add Contextual Information such as team-name. Used by Engine and the AcquireTaskLock and
     // other tasks to add a hidden prefix.
     executionAnnotations.put("boomerang.io/team-name", team);
-    request.getAnnotations().putAll(executionAnnotations);
+    annotations.putAll(executionAnnotations);
+    request.setAnnotations(annotations);
+    // Add Workflow Labels
+    request.getLabels().putAll(workflow.getLabels());
+    List<RunParam> workflowParams = ParameterUtil.paramSpecToRunParam(workflow.getParams());
+    workflowParams.addAll(request.getParams());
+    request.setParams(workflowParams);
+    // Add Workspaces
+    List<WorkflowWorkspace> workspaces = new ArrayList<>();
+    workspaces.addAll(workflow.getWorkspaces());
+    if (request.getWorkspaces() != null && !request.getWorkspaces().isEmpty()) {
+      // Add the request workspaces to the workflow
+      workspaces.addAll(request.getWorkspaces());
+    }
+    request.setWorkspaces(workspaces);
 
+    // TODO add team prefix into engine
     WorkflowRun wfRun = engineClient.submitWorkflow(workflowId, request, start);
 
     // Creates relationship with owning team
@@ -536,6 +823,8 @@ public class WorkflowService {
 
   /*
    * Retrieve a workflows changelog from all versions
+   *
+   * TODO: borrow from TaskService and return user name instead of ID in changelog
    */
   public ResponseEntity<List<ChangeLogVersion>> changelog(String team, String name) {
     if (name == null || name.isBlank()) {
@@ -549,19 +838,38 @@ public class WorkflowService {
             Optional.of(RelationshipType.TEAM),
             Optional.of(List.of(team)),
             false);
-    if (!refs.isEmpty()) {
-      return ResponseEntity.ok(engineClient.getWorkflowChangeLog(refs.get(0)));
-    } else {
+    LOGGER.debug("Workflow Refs: {}", refs.toString());
+    if (refs.isEmpty()) {
       throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
     }
+
+    final Optional<WorkflowEntity> optWfEntity = workflowRepository.findById(refs.get(0));
+    if (optWfEntity.isPresent()) {
+      List<WorkflowRevisionEntity> wfRevisionEntities =
+          workflowRevisionRepository.findByWorkflowRef(refs.get(0));
+      if (wfRevisionEntities.isEmpty()) {
+        throw new BoomerangException(BoomerangError.WORKFLOW_REVISION_NOT_FOUND);
+      }
+      List<ChangeLogVersion> changelogs = new LinkedList<>();
+      wfRevisionEntities.forEach(
+          wfRevision -> {
+            ChangeLogVersion cl = new ChangeLogVersion();
+            cl.setVersion(wfRevision.getVersion());
+            cl.setAuthor(wfRevision.getChangelog().getAuthor());
+            cl.setReason(wfRevision.getChangelog().getReason());
+            cl.setDate(wfRevision.getChangelog().getDate());
+            changelogs.add(cl);
+          });
+      return ResponseEntity.ok(changelogs);
+    }
+
+    throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
   }
 
   /*
-   * Delete the Workflows, WorkflowRuns, and TaskRuns by calling Engine.
+   * Deletes the Workflow and associated objects
    *
-   * Engine takes care of deleting Triggers & Workspaces
-   *
-   * We have to delete the Actions, Schedules, Tokens, and Relationships
+   * TODO: figure out how to have this roll back if one of them fails
    */
   public void delete(String team, String name) {
     if (name == null || name.isBlank()) {
@@ -576,13 +884,16 @@ public class WorkflowService {
             Optional.of(List.of(team)),
             false);
     if (!refs.isEmpty()) {
-      // Deletes the Workflow and associated WorkflowRuns, and TaskRuns
-      engineClient.deleteWorkflow(refs.get(0));
+      // This has to be the ID as it is unique across all teams
+      relationshipService.removeNodeAndEdgeByRef(RelationshipType.WORKFLOW, refs.get(0));
+      workflowRepository.deleteById(refs.get(0));
       scheduleService.deleteAllForWorkflow(refs.get(0));
       tokenService.deleteAllForPrincipal(name);
       actionService.deleteAllByWorkflow(refs.get(0));
-      // This has to be the ID (ref) as it is unique across all teams
-      relationshipService.removeNodeAndEdgeByRef(RelationshipType.WORKFLOW, refs.get(0));
+      actionRepository.deleteByWorkflowRef(refs.get(0));
+      taskRunRepository.deleteByWorkflowRef(refs.get(0));
+      workflowRunRepository.deleteByWorkflowRef(refs.get(0));
+      workflowRevisionRepository.deleteByWorkflowRef(refs.get(0));
     } else {
       throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
     }
@@ -1131,5 +1442,101 @@ public class WorkflowService {
                         });
               }
             });
+  }
+
+  // This will set both the Workflow and Tasks flags for upgrades available
+  private void areTaskUpgradesAvailable(Workflow workflow) {
+    for (WorkflowTask t : workflow.getTasks()) {
+      Optional<TaskRevisionEntity> task =
+          taskRevisionRepository.findByParentRefAndLatestVersion(t.getTaskRef());
+      if (task.isPresent()
+          && t.getTaskVersion() != null
+          && (t.getTaskVersion() < task.get().getVersion())) {
+        t.setUpgradesAvailable(true);
+        workflow.setUpgradesAvailable(true);
+      }
+    }
+  }
+
+  /*
+   * Creates a Workflow from WorkflowEntity and WorkflowRevisionEntity
+   *
+   * Does not copy / convert the stored Tasks onto the Workflow. If you want the Tasks you need to run
+   * workflow.setTasks(TaskMapper.revisionTasksToListOfTasks(wfRevisionEntity.getTasks()));
+   */
+  public static Workflow convertWorkflowEntityToModel(
+      WorkflowEntity wfEntity, WorkflowRevisionEntity wfRevisionEntity) {
+    Workflow model = new Workflow();
+    BeanUtils.copyProperties(wfEntity, model);
+    BeanUtils.copyProperties(wfRevisionEntity, model, "id");
+    return model;
+  }
+
+  private WorkflowRevisionEntity createWorkflowRevisionEntity(Workflow request, Integer version) {
+    WorkflowRevisionEntity wfRevisionEntity = new WorkflowRevisionEntity();
+    wfRevisionEntity.setVersion(version);
+    ChangeLog changelog = new ChangeLog(version.equals(1) ? CHANGELOG_INITIAL : CHANGELOG_UPDATE);
+    if (request.getChangelog() != null) {
+      if (request.getChangelog().getAuthor() != null) {
+        changelog.setAuthor(request.getChangelog().getAuthor());
+      }
+      if (request.getChangelog().getReason() != null) {
+        changelog.setReason(request.getChangelog().getReason());
+      }
+      if (request.getChangelog().getDate() != null) {
+        changelog.setDate(request.getChangelog().getDate());
+      }
+    }
+    wfRevisionEntity.setChangelog(changelog);
+    wfRevisionEntity.setMarkdown(request.getMarkdown());
+    wfRevisionEntity.setParams(request.getParams());
+    wfRevisionEntity.setWorkspaces(request.getWorkspaces());
+    if (request.getTasks() == null || request.getTasks().isEmpty()) {
+      List<WorkflowTask> tasks = new LinkedList<>();
+      WorkflowTask startTask = new WorkflowTask();
+      startTask.setName("start");
+      startTask.setType(TaskType.start);
+      tasks.add(startTask);
+      WorkflowTask endTask = new WorkflowTask();
+      endTask.setName("end");
+      endTask.setType(TaskType.end);
+      tasks.add(endTask);
+      wfRevisionEntity.setTasks(tasks);
+    } else {
+      wfRevisionEntity.setTasks(request.getTasks());
+    }
+    wfRevisionEntity.setTimeout(request.getTimeout());
+    wfRevisionEntity.setRetries(request.getRetries());
+
+    // Check Task Names are unique
+    List<String> filteredNames =
+        wfRevisionEntity.getTasks().stream().map(t -> t.getName()).collect(Collectors.toList());
+    List<String> uniqueFilteredNames =
+        filteredNames.stream().distinct().collect(Collectors.toList());
+    LOGGER.debug("Name sizes: {} -> {}", filteredNames, uniqueFilteredNames);
+    if (filteredNames.size() != uniqueFilteredNames.size()) {
+      throw new BoomerangException(BoomerangError.WORKFLOW_NON_UNIQUE_TASK_NAME);
+    }
+
+    // Check Task Template references are valid
+    for (WorkflowTask wfTask : wfRevisionEntity.getTasks()) {
+      if (!TaskType.start.equals(wfTask.getType()) && !TaskType.end.equals(wfTask.getType())) {
+
+        // Shared utility with DAGUtility
+        Task taskTemplate = taskService.retrieveAndValidateTask(wfTask);
+        wfTask.setTaskVersion(taskTemplate.getVersion());
+      }
+    }
+    return wfRevisionEntity;
+  }
+
+  private void logPayload(WorkflowRunRequest request) {
+    try {
+      ObjectMapper objectMapper = new ObjectMapper();
+      String payload = objectMapper.writeValueAsString(request);
+      LOGGER.debug("Payload: {}", payload);
+    } catch (JsonProcessingException e) {
+      LOGGER.error(e.getStackTrace());
+    }
   }
 }

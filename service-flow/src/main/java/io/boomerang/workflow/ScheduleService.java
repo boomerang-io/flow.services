@@ -1,6 +1,5 @@
 package io.boomerang.workflow;
 
-import io.boomerang.client.EngineClient;
 import io.boomerang.common.entity.WorkflowScheduleEntity;
 import io.boomerang.common.enums.WorkflowScheduleStatus;
 import io.boomerang.common.enums.WorkflowScheduleType;
@@ -48,7 +47,6 @@ public class ScheduleService {
   private final WorkflowScheduleRepository scheduleRepository;
   private final WorkflowService workflowService;
   private final RelationshipService relationshipService;
-  private final EngineClient engineClient;
   private final MongoTemplate mongoTemplate;
 
   public ScheduleService(
@@ -56,13 +54,11 @@ public class ScheduleService {
       WorkflowScheduleRepository scheduleRepository,
       WorkflowService workflowService,
       RelationshipService relationshipService,
-      EngineClient engineClient,
       MongoTemplate mongoTemplate) {
     this.taskScheduler = taskScheduler;
     this.scheduleRepository = scheduleRepository;
     this.workflowService = workflowService;
     this.relationshipService = relationshipService;
-    this.engineClient = engineClient;
     this.mongoTemplate = mongoTemplate;
   }
 
@@ -204,7 +200,7 @@ public class ScheduleService {
       throw new BoomerangException(BoomerangError.SCHEDULE_INVALID_REQ);
     }
     Workflow workflow =
-        engineClient.getWorkflow(schedule.getWorkflowRef(), Optional.empty(), false);
+        workflowService.get(team, schedule.getWorkflowRef(), Optional.empty(), false);
     WorkflowScheduleEntity scheduleEntity = new WorkflowScheduleEntity();
     BeanUtils.copyProperties(schedule, scheduleEntity);
     Boolean enableJob = false;

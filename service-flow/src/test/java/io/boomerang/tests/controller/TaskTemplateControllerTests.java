@@ -7,7 +7,6 @@ import io.boomerang.misc.FlowTests;
 import io.boomerang.v3.mongo.model.ChangeLog;
 import io.boomerang.v3.mongo.model.FlowTaskTemplateStatus;
 import io.boomerang.v3.mongo.model.Revision;
-import io.boomerang.workflow.TaskControllerV2;
 import io.boomerang.workflow.model.FlowTaskTemplate;
 import io.boomerang.workflow.tekton.TektonTask;
 import java.util.ArrayList;

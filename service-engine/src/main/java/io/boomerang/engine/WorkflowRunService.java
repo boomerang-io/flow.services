@@ -12,12 +12,8 @@ import io.boomerang.common.enums.RunPhase;
 import io.boomerang.common.enums.RunStatus;
 import io.boomerang.common.enums.TaskType;
 import io.boomerang.common.model.*;
+import io.boomerang.common.repository.*;
 import io.boomerang.engine.model.*;
-import io.boomerang.engine.repository.ActionRepository;
-import io.boomerang.engine.repository.TaskRunRepository;
-import io.boomerang.engine.repository.WorkflowRepository;
-import io.boomerang.engine.repository.WorkflowRevisionRepository;
-import io.boomerang.engine.repository.WorkflowRunRepository;
 import io.boomerang.error.BoomerangError;
 import io.boomerang.error.BoomerangException;
 import io.boomerang.util.ConvertUtil;
@@ -517,7 +513,8 @@ public class WorkflowRunService {
     }
     // Set WorkflowVersion
     final Optional<WorkflowRevisionEntity> optWorkflowRevision =
-        workflowRevisionRepository.findById(wfRunEntity.getWorkflowRevisionRef());
+        workflowRevisionRepository.findByWorkflowRefAndVersion(
+            wfRunEntity.getWorkflowRef(), wfRunEntity.getWorkflowVersion());
     if (optWorkflowRevision.isPresent()) {
       wfRun.setWorkflowVersion(optWorkflowRevision.get().getVersion());
     }

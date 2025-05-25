@@ -7,7 +7,7 @@ import io.boomerang.common.enums.RunStatus;
 import io.boomerang.common.model.TaskRun;
 import io.boomerang.common.model.TaskRunEndRequest;
 import io.boomerang.common.model.TaskRunStartRequest;
-import io.boomerang.engine.repository.TaskRunRepository;
+import io.boomerang.common.repository.TaskRunRepository;
 import io.boomerang.error.BoomerangError;
 import io.boomerang.error.BoomerangException;
 import io.boomerang.util.ParameterUtil;

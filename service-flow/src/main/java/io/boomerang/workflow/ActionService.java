@@ -9,6 +9,7 @@ import io.boomerang.common.model.Actioner;
 import io.boomerang.common.model.TaskRun;
 import io.boomerang.common.model.TaskRunEndRequest;
 import io.boomerang.common.model.Workflow;
+import io.boomerang.common.repository.ActionRepository;
 import io.boomerang.core.RelationshipService;
 import io.boomerang.core.UserService;
 import io.boomerang.core.entity.UserEntity;
@@ -20,7 +21,6 @@ import io.boomerang.workflow.entity.ApproverGroupEntity;
 import io.boomerang.workflow.model.Action;
 import io.boomerang.workflow.model.ActionRequest;
 import io.boomerang.workflow.model.ActionSummary;
-import io.boomerang.workflow.repository.ActionRepository;
 import io.boomerang.workflow.repository.ApproverGroupRepository;
 import java.util.ArrayList;
 import java.util.Date;
@@ -45,6 +45,7 @@ public class ActionService {
   private final ActionRepository actionRepository;
   private final ApproverGroupRepository approverGroupRepository;
   private final EngineClient engineClient;
+  private final WorkflowService workflowService;
   private final RelationshipService relationshipService;
   private final UserService userService;
   private final MongoTemplate mongoTemplate;
@@ -53,12 +54,14 @@ public class ActionService {
       ActionRepository actionRepository,
       ApproverGroupRepository approverGroupRepository,
       EngineClient engineClient,
+      WorkflowService workflowService,
       RelationshipService relationshipService,
       UserService userService,
       MongoTemplate mongoTemplate) {
     this.actionRepository = actionRepository;
     this.approverGroupRepository = approverGroupRepository;
     this.engineClient = engineClient;
+    this.workflowService = workflowService;
     this.relationshipService = relationshipService;
     this.userService = userService;
     this.mongoTemplate = mongoTemplate;
@@ -153,7 +156,7 @@ public class ActionService {
     }
   }
 
-  private Action convertToAction(ActionEntity actionEntity) {
+  private Action convertToAction(String team, ActionEntity actionEntity) {
     Action action = new Action(actionEntity);
 
     action.setApprovalsRequired(actionEntity.getNumberOfApprovers());
@@ -173,7 +176,7 @@ public class ActionService {
     }
 
     Workflow workflow =
-        engineClient.getWorkflow(actionEntity.getWorkflowRef(), Optional.empty(), false);
+        workflowService.get(team, actionEntity.getWorkflowRef(), Optional.empty(), false);
     action.setWorkflowName(workflow.getName());
     try {
       TaskRun taskRun = engineClient.getTaskRun(actionEntity.getTaskRunRef());
@@ -191,7 +194,7 @@ public class ActionService {
     if (actionEntity.isEmpty()) {
       throw new BoomerangException(BoomerangError.ACTION_INVALID_REF);
     }
-    return this.convertToAction(actionEntity.get());
+    return this.convertToAction(team, actionEntity.get());
   }
 
   public Page<Action> query(
@@ -225,7 +228,7 @@ public class ActionService {
     List<Action> actions = new LinkedList<>();
     actionEntities.forEach(
         a -> {
-          actions.add(this.convertToAction(a));
+          actions.add(this.convertToAction(team, a));
         });
 
     Page<Action> pages =

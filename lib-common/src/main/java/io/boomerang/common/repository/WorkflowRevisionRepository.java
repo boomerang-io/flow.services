@@ -1,10 +1,10 @@
-package io.boomerang.engine.repository;
+package io.boomerang.common.repository;
 
+import io.boomerang.common.entity.WorkflowRevisionEntity;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import io.boomerang.common.entity.WorkflowRevisionEntity;
 
 public interface WorkflowRevisionRepository
     extends MongoRepository<WorkflowRevisionEntity, String> {

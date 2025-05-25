@@ -1,6 +1,5 @@
 package io.boomerang.workflow;
 
-import io.boomerang.client.TaskResponsePage;
 import io.boomerang.common.model.ChangeLogVersion;
 import io.boomerang.common.model.Task;
 import io.boomerang.security.AuthCriteria;
@@ -15,6 +14,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -126,7 +127,7 @@ public class TeamTaskControllerV2 {
         @ApiResponse(responseCode = "200", description = "OK"),
         @ApiResponse(responseCode = "400", description = "Bad Request")
       })
-  public TaskResponsePage queryTaskTemplates(
+  public Page<Task> queryTaskTemplates(
       @Parameter(
               name = "team",
               description = "Owning team name.",
