@@ -1,8 +1,8 @@
 package io.boomerang.aspect;
 
 import io.boomerang.common.entity.TaskRunEntity;
+import io.boomerang.common.repository.TaskRunRepository;
 import io.boomerang.engine.EventSinkService;
-import io.boomerang.engine.repository.TaskRunRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

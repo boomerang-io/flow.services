@@ -1,10 +1,15 @@
 package io.boomerang.workflow;
 
 import io.boomerang.client.EngineClient;
-import io.boomerang.client.TaskResponsePage;
+import io.boomerang.common.entity.TaskEntity;
+import io.boomerang.common.entity.TaskRevisionEntity;
+import io.boomerang.common.enums.TaskStatus;
 import io.boomerang.common.model.ChangeLog;
 import io.boomerang.common.model.ChangeLogVersion;
 import io.boomerang.common.model.Task;
+import io.boomerang.common.model.WorkflowTask;
+import io.boomerang.common.repository.TaskRepository;
+import io.boomerang.common.repository.TaskRevisionRepository;
 import io.boomerang.core.RelationshipService;
 import io.boomerang.core.UserService;
 import io.boomerang.core.enums.RelationshipLabel;
@@ -15,17 +20,31 @@ import io.boomerang.error.BoomerangException;
 import io.boomerang.security.IdentityService;
 import io.boomerang.workflow.tekton.TektonConverter;
 import io.boomerang.workflow.tekton.TektonTask;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.*;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bson.types.ObjectId;
+import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 
 /*
- * This service replicates the required calls for Engine TaskTemplateV1 APIs
+ * Tasks are stored in a main TaskEntity with fields that have limited change scope
+ * and a TaskRevisionEntity that holds the versioned elements
+ *
+ * It utilises a @DocumentReference for the parent field that allows us to retrieve the TaskEntity from within the TaskRevisionEntity when reading
  *
  * - Checks Relationships
  * - Determines if to add or remove elements
@@ -37,22 +56,33 @@ public class TaskService {
 
   private static final Logger LOGGER = LogManager.getLogger();
 
+  private static final String CHANGELOG_INITIAL = "Initial Task Template";
+  private static final String CHANGELOG_UPDATE = "Updated Task Template";
   private static final String NAME_REGEX = "^([0-9a-zA-Z\\-]+)$";
+  private static final String ANNOTATION_GENERATION = "4";
+  private static final String ANNOTATION_KIND = "Task";
 
-  private final EngineClient engineClient;
   private final RelationshipService relationshipService;
   private final IdentityService identityService;
   private final UserService userService;
+  private final TaskRepository taskRepository;
+  private final TaskRevisionRepository taskRevisionRepository;
+  private final MongoTemplate mongoTemplate;
 
   public TaskService(
       EngineClient engineClient,
       RelationshipService relationshipService,
       IdentityService identityService,
-      UserService userService) {
-    this.engineClient = engineClient;
+      UserService userService,
+      TaskRepository taskRepository,
+      TaskRevisionRepository taskRevisionRepository,
+      MongoTemplate mongoTemplate) {
     this.relationshipService = relationshipService;
     this.identityService = identityService;
     this.userService = userService;
+    this.taskRepository = taskRepository;
+    this.taskRevisionRepository = taskRevisionRepository;
+    this.mongoTemplate = mongoTemplate;
   }
 
   /*
@@ -98,22 +128,30 @@ public class TaskService {
         BoomerangError.TASK_INVALID_REF, name, version.isPresent() ? version.get() : "latest");
   }
 
-  private Task internalGet(String id, Optional<Integer> version) {
-    Task taskTemplate = engineClient.getTask(id, version);
-
-    // Switch author from ID to Name
-    switchChangeLogAuthorToUserName(taskTemplate.getChangelog());
-
-    // Remove ID
-    taskTemplate.setId(null);
-
-    return taskTemplate;
+  private Task internalGet(String ref, Optional<Integer> version) {
+    Optional<TaskEntity> taskEntity = taskRepository.findById(ref);
+    if (taskEntity.isPresent()) {
+      Optional<TaskRevisionEntity> taskRevisionEntity;
+      if (version.isPresent()) {
+        taskRevisionEntity =
+            taskRevisionRepository.findByParentRefAndVersion(
+                taskEntity.get().getId(), version.get());
+      } else {
+        taskRevisionEntity =
+            taskRevisionRepository.findByParentRefAndLatestVersion(taskEntity.get().getId());
+      }
+      if (taskRevisionEntity.isPresent()) {
+        return convertEntityToModel(taskEntity.get(), taskRevisionEntity.get());
+      }
+    }
+    throw new BoomerangException(
+        BoomerangError.TASK_INVALID_REF, ref, version.isPresent() ? version.get() : "latest");
   }
 
   /*
    * Query for TEAMTASKS.
    */
-  public TaskResponsePage query(
+  public Page<Task> query(
       String queryTeam,
       Optional<Integer> queryLimit,
       Optional<Integer> queryPage,
@@ -132,7 +170,7 @@ public class TaskService {
             false);
     LOGGER.debug("Task Refs: {}", refs.toString());
     if (refs == null || refs.size() == 0) {
-      return new TaskResponsePage();
+      return Page.empty();
     }
     return internalQuery(queryLimit, queryPage, querySort, queryLabels, queryStatus, refs);
   }
@@ -140,7 +178,7 @@ public class TaskService {
   /*
    * Query for TASKS.
    */
-  public TaskResponsePage query(
+  public Page<Task> query(
       Optional<Integer> queryLimit,
       Optional<Integer> queryPage,
       Optional<Direction> querySort,
@@ -153,33 +191,84 @@ public class TaskService {
             RelationshipType.TASK, queryNames, Optional.empty(), Optional.empty(), false);
     LOGGER.debug("Global Task Refs: {}", refs.toString());
     if (refs == null || refs.size() == 0) {
-      return new TaskResponsePage();
+      return Page.empty();
     }
     return internalQuery(queryLimit, queryPage, querySort, queryLabels, queryStatus, refs);
   }
 
-  private TaskResponsePage internalQuery(
+  private Page<Task> internalQuery(
       Optional<Integer> queryLimit,
       Optional<Integer> queryPage,
       Optional<Direction> querySort,
       Optional<List<String>> queryLabels,
       Optional<List<String>> queryStatus,
       List<String> queryRefs) {
-    TaskResponsePage response =
-        engineClient.queryTask(
-            queryLimit, queryPage, querySort, queryLabels, queryStatus, queryRefs);
+    Pageable pageable = Pageable.unpaged();
+    final Sort sort = Sort.by(new Sort.Order(querySort.orElse(Direction.ASC), "creationDate"));
+    if (queryLimit.isPresent()) {
+      pageable = PageRequest.of(queryPage.get(), queryLimit.get(), sort);
+    }
+    List<Criteria> criteriaList = new ArrayList<>();
 
-    if (!response.getContent().isEmpty()) {
-      response
-          .getContent()
+    if (queryLabels.isPresent()) {
+      queryLabels.get().stream()
           .forEach(
-              t -> {
-                switchChangeLogAuthorToUserName(t.getChangelog());
-                // Remove ID
-                t.setId(null);
+              l -> {
+                String decodedLabel = "";
+                try {
+                  decodedLabel = URLDecoder.decode(l, "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                  throw new BoomerangException(e, BoomerangError.QUERY_INVALID_FILTERS, "labels");
+                }
+                LOGGER.debug(decodedLabel.toString());
+                String[] label = decodedLabel.split("[=]+");
+                Criteria labelsCriteria =
+                    Criteria.where("labels." + label[0].replace(".", "#")).is(label[1]);
+                criteriaList.add(labelsCriteria);
               });
     }
-    return response;
+
+    if (queryStatus.isPresent()) {
+      if (queryStatus.get().stream()
+          .allMatch(q -> EnumUtils.isValidEnumIgnoreCase(TaskStatus.class, q))) {
+        Criteria criteria = Criteria.where("status").in(queryStatus.get());
+        criteriaList.add(criteria);
+      } else {
+        throw new BoomerangException(BoomerangError.QUERY_INVALID_FILTERS, "status");
+      }
+    }
+
+    List<ObjectId> queryIds = queryRefs.stream().map(ObjectId::new).collect(Collectors.toList());
+    Criteria criteria = Criteria.where("_id").in(queryIds);
+    criteriaList.add(criteria);
+
+    Criteria[] criteriaArray = criteriaList.toArray(new Criteria[criteriaList.size()]);
+    Criteria allCriteria = new Criteria();
+    if (criteriaArray.length > 0) {
+      allCriteria.andOperator(criteriaArray);
+    }
+    Query query = new Query(allCriteria);
+    if (queryLimit.isPresent()) {
+      query.with(pageable);
+    } else {
+      query.with(sort);
+    }
+
+    List<TaskEntity> taskEntities = mongoTemplate.find(query.with(pageable), TaskEntity.class);
+
+    List<Task> tasks = new LinkedList<>();
+    taskEntities.forEach(
+        e -> {
+          LOGGER.debug(e.toString());
+          Optional<TaskRevisionEntity> taskRevisionEntity =
+              taskRevisionRepository.findByParentRefAndLatestVersion(e.getId());
+          if (taskRevisionEntity.isPresent()) {
+            tasks.add(convertEntityToModel(e, taskRevisionEntity.get()));
+          }
+        });
+
+    Page<Task> page = PageableExecutionUtils.getPage(tasks, pageable, () -> tasks.size());
+    return page;
   }
 
   /*
@@ -259,17 +348,35 @@ public class TaskService {
   private Task internalCreate(Task request) {
     // Ignore any provided Ids as this is a create
     request.setId(null);
-    // Set verified to false - this is only able to be set via Engine or Loader
+    // Set verified to false - this is only able to be set via Loader - TODO: allow admins to set it
     request.setVerified(false);
 
     // Update Changelog
     updateChangeLog(request.getChangelog());
 
-    // Come back to this once we have separated the controllers - works better for scope checks.
-    Task taskTemplate = engineClient.createTask(request);
-    switchChangeLogAuthorToUserName(taskTemplate.getChangelog());
+    // Set Display Name if not provided
+    if (request.getDisplayName() == null || request.getDisplayName().isBlank()) {
+      request.setDisplayName(request.getName());
+    }
 
-    return taskTemplate;
+    // Set System Generated Annotations
+    request.getAnnotations().put("boomerang.io/generation", ANNOTATION_GENERATION);
+    request.getAnnotations().put("boomerang.io/kind", ANNOTATION_KIND);
+
+    // Set as initial version
+    request.setVersion(1);
+
+    // Set Changelog
+    request.setChangelog(updateChangeLog(new ChangeLog(CHANGELOG_INITIAL)));
+
+    // Save
+    TaskEntity taskEntity = new TaskEntity(request);
+    TaskRevisionEntity taskRevisionEntity = new TaskRevisionEntity(request);
+    taskEntity = taskRepository.save(taskEntity);
+    taskRevisionEntity.setParentRef(taskEntity.getId());
+    taskRevisionRepository.save(taskRevisionEntity);
+
+    return convertEntityToModel(taskEntity, taskRevisionEntity);
   }
 
   /*
@@ -329,43 +436,71 @@ public class TaskService {
     }
   }
 
+  // TODO set verfieid to whatever is in databsed
   private Task internalApply(Task request, boolean replace) {
-    // Set verfied to false - this is only able to be set via Engine or Loader
-    request.setVerified(false);
-
-    // Update Changelog
-    updateChangeLog(request.getChangelog());
-
-    Task template = engineClient.applyTask(request, replace);
-    switchChangeLogAuthorToUserName(template.getChangelog());
-
-    return template;
-  }
-
-  // Override changelog date and set author. Used on creation/update of TaskTemplate
-  private void updateChangeLog(ChangeLog changelog) {
-    if (changelog == null) {
-      changelog = new ChangeLog();
+    // Retrieve Task
+    Optional<TaskEntity> taskOpt = taskRepository.findById(request.getId());
+    if (taskOpt.isEmpty()) {
+      return this.create(request);
     }
-    changelog.setDate(new Date());
-    if (identityService.getCurrentIdentity().getPrincipal() != null) {
-      changelog.setAuthor(identityService.getCurrentIdentity().getPrincipal());
-    }
-  }
+    TaskEntity taskEntity = taskOpt.get();
 
-  // TODO - need to make more performant
-  private void switchChangeLogAuthorToUserName(ChangeLog changelog) {
-    if (changelog != null && changelog.getAuthor() != null) {
-      Optional<User> user = userService.getUserByID(changelog.getAuthor());
-      if (user.isPresent()) {
-        changelog.setAuthor(
-            user.get().getDisplayName().isEmpty()
-                ? user.get().getName()
-                : user.get().getDisplayName());
-      } else {
-        changelog.setAuthor("---");
-      }
+    // Check for active status
+    if (TaskStatus.inactive.equals(taskEntity.getStatus())
+        && !TaskStatus.active.equals(request.getStatus())) {
+      throw new BoomerangException(
+          BoomerangError.TASK_INACTIVE_STATUS, request.getName(), "latest");
     }
+
+    // Get latest revision
+    Optional<TaskRevisionEntity> taskRevisionEntity =
+        taskRevisionRepository.findByParentRefAndLatestVersion(request.getId());
+    if (taskRevisionEntity.isEmpty()) {
+      throw new BoomerangException(BoomerangError.TASK_INVALID_REF, request.getName(), "latest");
+    }
+
+    // Update TaskTemplateEntity
+    // Set System Generated Annotations
+    // Name (slug), Type, Creation Date, and Verified cannot be updated
+    if (request.getStatus() != null) {
+      taskEntity.setStatus(request.getStatus());
+    }
+    if (!request.getAnnotations().isEmpty()) {
+      taskEntity.getAnnotations().putAll(request.getAnnotations());
+    }
+    taskEntity.getAnnotations().put("boomerang.io/generation", ANNOTATION_GENERATION);
+    taskEntity.getAnnotations().put("boomerang.io/kind", ANNOTATION_KIND);
+    if (!request.getLabels().isEmpty()) {
+      taskEntity.getLabels().putAll(request.getLabels());
+    }
+
+    // Create / Replace TaskRevisionEntity
+    TaskRevisionEntity newTaskRevisionEntity = new TaskRevisionEntity(request);
+    if (replace) {
+      newTaskRevisionEntity.setId(taskRevisionEntity.get().getId());
+      newTaskRevisionEntity.setVersion(taskRevisionEntity.get().getVersion());
+    } else {
+      newTaskRevisionEntity.setVersion(taskRevisionEntity.get().getVersion() + 1);
+    }
+
+    // Set Display Name if not provided
+    if (newTaskRevisionEntity.getDisplayName() == null
+        || newTaskRevisionEntity.getDisplayName().isBlank()) {
+      newTaskRevisionEntity.setDisplayName(request.getName());
+    }
+
+    // Update changelog
+    ChangeLog changelog =
+        new ChangeLog(
+            taskRevisionEntity.get().getVersion().equals(1) ? CHANGELOG_INITIAL : CHANGELOG_UPDATE);
+    newTaskRevisionEntity.setChangelog(updateChangeLog(changelog));
+
+    // Save entities
+    TaskEntity savedEntity = taskRepository.save(taskEntity);
+    newTaskRevisionEntity.setParentRef(taskEntity.getId());
+    TaskRevisionEntity savedRevision = taskRevisionRepository.save(newTaskRevisionEntity);
+
+    return convertEntityToModel(savedEntity, savedRevision);
   }
 
   public TektonTask getAsTekton(String team, String name, Optional<Integer> version) {
@@ -440,10 +575,30 @@ public class TaskService {
     throw new BoomerangException(BoomerangError.TASK_INVALID_NAME, name);
   }
 
-  private List<ChangeLogVersion> internalChangelog(String id) {
-    List<ChangeLogVersion> changeLog = engineClient.getTaskChangeLog(id);
-    changeLog.forEach(clv -> switchChangeLogAuthorToUserName(clv));
-    return changeLog;
+  /*
+   * Retrieve all the changelogs and return by version
+   */
+  private List<ChangeLogVersion> internalChangelog(String ref) {
+    Task task = this.get(ref, Optional.empty());
+    List<TaskRevisionEntity> taskRevisionEntities =
+        taskRevisionRepository.findByParentRef(task.getId());
+    if (taskRevisionEntities.isEmpty()) {
+      throw new BoomerangException(BoomerangError.TASK_INVALID_REF, ref, "latest");
+    }
+    List<ChangeLogVersion> changelogs = new LinkedList<>();
+    taskRevisionEntities.forEach(
+        v -> {
+          ChangeLogVersion cl = new ChangeLogVersion();
+          cl.setVersion(v.getVersion());
+          if (v.getChangelog() != null) {
+            cl.setAuthor(v.getChangelog().getAuthor());
+            cl.setReason(v.getChangelog().getReason());
+            cl.setDate(v.getChangelog().getDate());
+            switchChangeLogAuthorToUserName(cl);
+          }
+          changelogs.add(cl);
+        });
+    return changelogs;
   }
 
   /*
@@ -462,9 +617,93 @@ public class TaskService {
             Optional.of(List.of(team)),
             false);
     if (!refs.isEmpty()) {
-      engineClient.deleteTask(refs.get(0));
+      taskRevisionRepository.deleteByParentRef(name);
+      taskRepository.deleteById(name);
     }
     // TODO - change error to don't have access
     throw new BoomerangException(BoomerangError.TASK_INVALID_NAME, name);
+  }
+
+  /**
+   * Validates the task reference, version, and status
+   *
+   * <p>Shared with Engine Service
+   *
+   * @param wfTask
+   * @return Task
+   */
+  public Task retrieveAndValidateTask(final WorkflowTask wfTask) {
+    // Get TaskEntity - this will check valid ref and Version
+    if (wfTask == null || wfTask.getTaskRef() == null || wfTask.getTaskRef().isEmpty()) {
+      throw new BoomerangException(BoomerangError.TASK_INVALID_REF);
+    }
+    Optional<TaskEntity> taskEntity = taskRepository.findById(wfTask.getTaskRef());
+    if (taskEntity.isPresent()) {
+      // Check Task Status
+      if (TaskStatus.inactive.equals(taskEntity.get().getStatus())) {
+        throw new BoomerangException(
+            BoomerangError.TASK_INACTIVE_STATUS, wfTask.getTaskRef(), wfTask.getTaskVersion());
+      }
+      // Retrieve version or latest
+      Optional<TaskRevisionEntity> taskRevisionEntity;
+      if (wfTask.getTaskVersion() != null && wfTask.getTaskVersion() > 0) {
+        taskRevisionEntity =
+            taskRevisionRepository.findByParentRefAndVersion(
+                taskEntity.get().getId(), wfTask.getTaskVersion());
+      } else {
+        taskRevisionEntity =
+            taskRevisionRepository.findByParentRefAndLatestVersion(taskEntity.get().getId());
+      }
+      if (taskRevisionEntity.isPresent()) {
+        return convertEntityToModel(taskEntity.get(), taskRevisionEntity.get());
+      }
+    }
+    throw new BoomerangException(
+        BoomerangError.TASK_INVALID_REF,
+        wfTask.getTaskRef(),
+        wfTask.getTaskVersion() != null && wfTask.getTaskVersion() > 0
+            ? wfTask.getTaskVersion()
+            : "latest");
+  }
+
+  // Override changelog date and set author. Used on creation/update of TaskTemplate
+  private ChangeLog updateChangeLog(ChangeLog changelog) {
+    if (changelog == null) {
+      changelog = new ChangeLog();
+    }
+    changelog.setDate(new Date());
+    if (identityService.getCurrentIdentity().getPrincipal() != null) {
+      changelog.setAuthor(identityService.getCurrentIdentity().getPrincipal());
+    }
+    return changelog;
+  }
+
+  // TODO - need to make more performant
+  private void switchChangeLogAuthorToUserName(ChangeLog changelog) {
+    if (changelog != null && changelog.getAuthor() != null) {
+      Optional<User> user = userService.getUserByID(changelog.getAuthor());
+      if (user.isPresent()) {
+        changelog.setAuthor(
+            user.get().getDisplayName().isEmpty()
+                ? user.get().getName()
+                : user.get().getDisplayName());
+      } else {
+        changelog.setAuthor("---");
+      }
+    }
+  }
+
+  private Task convertEntityToModel(TaskEntity entity, TaskRevisionEntity revision) {
+    Task task = new Task();
+    BeanUtils.copyProperties(entity, task);
+    BeanUtils.copyProperties(revision, task, "id"); // want to keep the TaskEntity ID
+
+    // Switch to names for the User in changelog
+    switchChangeLogAuthorToUserName(task.getChangelog());
+
+    // Remove ID
+    // TODO do we remove IDs from the Task model and only pass the entity model to the engine
+    task.setId(null);
+    return task;
   }
 }

@@ -1,26 +1,33 @@
 package io.boomerang.common.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import io.boomerang.common.enums.RunPhase;
+import io.boomerang.common.enums.RunStatus;
+import io.boomerang.common.model.RunParam;
+import io.boomerang.common.model.RunResult;
+import io.boomerang.common.model.WorkflowWorkspace;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import io.boomerang.common.model.RunParam;
-import io.boomerang.common.model.RunResult;
-import io.boomerang.common.model.WorkflowWorkspace;
-import io.boomerang.common.enums.RunPhase;
-import io.boomerang.common.enums.RunStatus;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(Include.NON_NULL)
+@CompoundIndexes({
+  @CompoundIndex(
+      name = "workflow_ref_version_idx",
+      def = "{'workflowRef': 1, 'workflowVersion': 1}")
+})
 @Document(collection = "#{@mongoConfiguration.fullCollectionName('workflow_runs')}")
 public class WorkflowRunEntity {
 
@@ -38,8 +45,9 @@ public class WorkflowRunEntity {
   private RunStatus statusOverride;
   private String statusMessage;
   private boolean isAwaitingApproval;
-  private String workflowRef;
-  private String workflowRevisionRef;
+  @Indexed private String workflowRef;
+  private Integer workflowVersion;
+  //  private String workflowRevisionRef; // TODO: break this
   private String trigger;
   private String initiatedByRef;
   private List<RunParam> params = new LinkedList<>();
@@ -78,8 +86,8 @@ public class WorkflowRunEntity {
         + isAwaitingApproval
         + ", workflowRef="
         + workflowRef
-        + ", workflowRevisionRef="
-        + workflowRevisionRef
+        + ", workflowVersion="
+        + workflowVersion
         + ", trigger="
         + trigger
         + ", initiatedByRef="

@@ -7,7 +7,7 @@ import io.boomerang.common.enums.*;
 import io.boomerang.common.model.Task;
 import io.boomerang.common.model.WorkflowTask;
 import io.boomerang.common.model.WorkflowTaskDependency;
-import io.boomerang.engine.repository.TaskRunRepository;
+import io.boomerang.common.repository.TaskRunRepository;
 import io.boomerang.error.BoomerangError;
 import io.boomerang.error.BoomerangException;
 import io.boomerang.util.GraphProcessor;

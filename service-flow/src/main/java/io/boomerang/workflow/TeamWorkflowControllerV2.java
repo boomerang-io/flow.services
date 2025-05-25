@@ -1,6 +1,5 @@
 package io.boomerang.workflow;
 
-import io.boomerang.client.WorkflowResponsePage;
 import io.boomerang.common.model.ChangeLogVersion;
 import io.boomerang.common.model.Workflow;
 import io.boomerang.common.model.WorkflowRun;
@@ -19,6 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -108,7 +108,7 @@ public class TeamWorkflowControllerV2 {
         @ApiResponse(responseCode = "200", description = "OK"),
         @ApiResponse(responseCode = "400", description = "Bad Request")
       })
-  public WorkflowResponsePage queryWorkflows(
+  public Page<Workflow> queryWorkflows(
       @Parameter(
               name = "team",
               description = "Owning team name.",
