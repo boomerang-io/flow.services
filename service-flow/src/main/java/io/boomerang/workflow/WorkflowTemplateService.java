@@ -142,7 +142,10 @@ public class WorkflowTemplateService {
     wfTemplateEntities.forEach(e -> wfTemplates.add(new WorkflowTemplate(e)));
 
     Page<WorkflowTemplate> pages =
-        PageableExecutionUtils.getPage(wfTemplates, pageable, () -> wfTemplates.size());
+        PageableExecutionUtils.getPage(
+            wfTemplates,
+            pageable,
+            () -> mongoTemplate.count(new Query(allCriteria), WorkflowTemplateEntity.class));
 
     return pages;
   }

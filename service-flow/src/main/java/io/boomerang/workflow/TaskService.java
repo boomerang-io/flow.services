@@ -270,7 +270,9 @@ public class TaskService {
           }
         });
 
-    Page<Task> page = PageableExecutionUtils.getPage(tasks, pageable, () -> tasks.size());
+    Page<Task> page =
+        PageableExecutionUtils.getPage(
+            tasks, pageable, () -> mongoTemplate.count(new Query(allCriteria), TaskEntity.class));
     return page;
   }
 

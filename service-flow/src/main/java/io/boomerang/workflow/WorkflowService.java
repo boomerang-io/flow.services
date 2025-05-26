@@ -310,7 +310,10 @@ public class WorkflowService {
           }
         });
 
-    return PageableExecutionUtils.getPage(workflows, pageable, () -> workflows.size());
+    return PageableExecutionUtils.getPage(
+        workflows,
+        pageable,
+        () -> mongoTemplate.count(new Query(allCriteria), WorkflowEntity.class));
   }
 
   /*

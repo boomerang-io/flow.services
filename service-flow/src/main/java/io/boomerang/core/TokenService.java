@@ -287,7 +287,9 @@ public class TokenService {
 
     Page<Token> pages =
         PageableExecutionUtils.getPage(
-            response, pageable, () -> mongoTemplate.count(query, ActionEntity.class));
+            response,
+            pageable,
+            () -> mongoTemplate.count(new Query(allCriteria), ActionEntity.class));
 
     return pages;
   }
