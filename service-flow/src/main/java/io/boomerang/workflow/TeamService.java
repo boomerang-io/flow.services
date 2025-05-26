@@ -69,7 +69,7 @@ public class TeamService {
   private static final Logger LOGGER = LogManager.getLogger();
 
   public static final List<String> RESERVED_TEAM_NAMES =
-      List.of("home", "admin", "system", "profile", "connect");
+      List.of("home", "admin", "system", "profile", "callback");
   public static final String TEAMS_SETTINGS_KEY = "teams";
   public static final String QUOTA_MAX_WORKFLOW_COUNT = "max.workflow.count";
   public static final String QUOTA_MAX_WORKFLOW_STORAGE = "max.workflow.storage";
@@ -426,7 +426,7 @@ public class TeamService {
 
     Page<Team> pages =
         PageableExecutionUtils.getPage(
-            teams, pageable, () -> mongoTemplate.count(query, TeamEntity.class));
+            teams, pageable, () -> mongoTemplate.count(new Query(allCriteria), TeamEntity.class));
 
     return pages;
   }

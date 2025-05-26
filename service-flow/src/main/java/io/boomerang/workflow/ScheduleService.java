@@ -161,7 +161,7 @@ public class ScheduleService {
           PageableExecutionUtils.getPage(
               workflowSchedules,
               pageable,
-              () -> mongoTemplate.count(query, WorkflowScheduleEntity.class));
+              () -> mongoTemplate.count(new Query(allCriteria), WorkflowScheduleEntity.class));
       return pages;
     }
     throw new BoomerangException(BoomerangError.SCHEDULE_INVALID_REF);
