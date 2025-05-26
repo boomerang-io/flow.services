@@ -1,5 +1,7 @@
 package io.boomerang.util;
 
+import static io.boomerang.common.util.ConvertUtil.entityToModel;
+
 import io.boomerang.common.entity.TaskRunEntity;
 import io.boomerang.common.entity.WorkflowEntity;
 import io.boomerang.common.entity.WorkflowRunEntity;
@@ -60,7 +62,7 @@ public class EventFactory {
     statusEvent.setSubject(eventSubject);
     statusEvent.setDate(new Date());
     statusEvent.setType(EventType.WORKFLOWRUN_STATUS_UPDATE);
-    statusEvent.setWorkflowRun(ConvertUtil.entityToModel(wfRunEntity, WorkflowRun.class));
+    statusEvent.setWorkflowRun(entityToModel(wfRunEntity, WorkflowRun.class));
 
     return statusEvent;
   }

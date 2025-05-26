@@ -9,6 +9,9 @@ import io.boomerang.common.model.ChangeLog;
 import io.boomerang.common.model.WorkflowTask;
 import io.boomerang.common.model.WorkflowTemplate;
 import io.boomerang.common.repository.TaskRevisionRepository;
+import io.boomerang.core.audit.Audit;
+import io.boomerang.core.audit.AuditAction;
+import io.boomerang.core.audit.AuditResource;
 import io.boomerang.workflow.repository.WorkflowTemplateRepository;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -147,6 +150,7 @@ public class WorkflowTemplateService {
   /*
    * Create Workflow Template.
    */
+  @Audit(scope = AuditResource.workflowtemplate, action = AuditAction.create)
   public WorkflowTemplate create(WorkflowTemplate request) {
     // Ensure name is provided
     if (request.getName() == null || request.getName().isBlank()) {
@@ -224,6 +228,7 @@ public class WorkflowTemplateService {
    * Apply allows you to create a new version or override an existing WorkflowTemplate as well as create new
    * WorkflowTemplate with supplied ID
    */
+  @Audit(scope = AuditResource.workflowtemplate, action = AuditAction.update)
   public WorkflowTemplate apply(WorkflowTemplate request, boolean replace) {
     // Ensure name is provided
     if (request.getName() == null || request.getName().isBlank()) {
@@ -309,9 +314,39 @@ public class WorkflowTemplateService {
     return template;
   }
 
+  //  /*
+  //   * Export the Workflow as JSON
+  //   */
+  //  public ResponseEntity<InputStreamResource> export(String name) {
+  //    final Workflow workflow = this.get(team, name, Optional.empty(), true);
+  //
+  //    HttpHeaders headers = new HttpHeaders();
+  //    headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+  //    headers.add("Pragma", "no-cache");
+  //    headers.add("Expires", "0");
+  //    headers.add("Content-Disposition", "attachment; filename=\"any_name.json\"");
+  //
+  //    try {
+  //
+  //      ObjectMapper mapper = new ObjectMapper();
+  //
+  //      byte[] buf = mapper.writeValueAsBytes(workflow);
+  //
+  //      return ResponseEntity.ok()
+  //          .contentLength(buf.length)
+  //          .contentType(MediaType.parseMediaType("application/octet-stream"))
+  //          .body(new InputStreamResource(new ByteArrayInputStream(buf)));
+  //    } catch (IOException e) {
+  //
+  //      LOGGER.error(e);
+  //    }
+  //    return null;
+  //  }
+
   /*
    * Delete WorkflowTemplate
    */
+  @Audit(scope = AuditResource.workflowtemplate, action = AuditAction.delete)
   public void delete(String name) {
     // Ensure name is provided
     if (name == null || name.isBlank()) {

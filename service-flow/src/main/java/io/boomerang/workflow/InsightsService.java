@@ -7,7 +7,7 @@ import io.boomerang.common.model.WorkflowRunSummary;
 import io.boomerang.core.RelationshipService;
 import io.boomerang.core.audit.AuditEntity;
 import io.boomerang.core.audit.AuditRepository;
-import io.boomerang.core.audit.AuditScope;
+import io.boomerang.core.audit.AuditResource;
 import io.boomerang.core.enums.RelationshipType;
 import java.util.ArrayList;
 import java.util.Date;
@@ -59,11 +59,11 @@ public class InsightsService {
     // Otherwise we turn to the audit table.
     if (workflowRefs.isEmpty()) {
       Optional<AuditEntity> teamAE =
-          auditRepository.findFirstByScopeAndSelfName(AuditScope.TEAM, team);
+          auditRepository.findFirstByScopeAndSelfLabel(AuditResource.team, team);
       if (teamAE.isPresent()) {
         LOGGER.debug("Audit Team: {}", teamAE.toString());
         List<AuditEntity> workflowAEList =
-            auditRepository.findByScopeAndParent(AuditScope.WORKFLOW, teamAE.get().getId());
+            auditRepository.findByScopeAndParentRef(AuditResource.workflow, teamAE.get().getId());
         wfRefs = workflowAEList.stream().map(AuditEntity::getSelfRef).toList();
       }
     } else {
@@ -128,7 +128,7 @@ public class InsightsService {
             summary.setWorkflowRef(e.getData().get("workflowRef"));
             Optional<AuditEntity> wfAE =
                 auditRepository.findFirstByScopeAndSelfRef(
-                    AuditScope.WORKFLOW, e.getData().get("workflowRef"));
+                    AuditResource.workflow, e.getData().get("workflowRef"));
             if (wfAE.isPresent()) {
               summary.setWorkflowName(wfAE.get().getData().get("name"));
             }

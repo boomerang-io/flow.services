@@ -155,15 +155,19 @@ public class WorkflowTemplateControllerV2 {
           String name) {
     templateService.delete(name);
   }
-  //
-  //  @GetMapping(value = "/{name}/export", produces = "application/json")
-  //  @AuthScope(types = {TokenScope.global}, access = TokenAccess.read, object =
-  // TokenObject.workflowtemplate)
-  //  @Operation(summary = "Export the Workflow Template as JSON.")
-  //  public ResponseEntity<InputStreamResource> export(@Parameter(name = "name",
-  //      description = "Name of Workflow Template", required = true) @PathVariable String name) {
-  //    return engineClient.export(name);
-  //  }
+
+//  @GetMapping(value = "/{name}/export", produces = "application/json")
+//  @AuthCriteria(
+//      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.session},
+//      action = PermissionAction.READ,
+//      resource = PermissionResource.WORKFLOWTEMPLATE)
+//  @Operation(summary = "Export the Workflow Template as JSON.")
+//  public ResponseEntity<InputStreamResource> export(
+//      @Parameter(name = "name", description = "Name of Workflow Template", required = true)
+//          @PathVariable
+//          String name) {
+//    return templateService.export(name);
+//  }
   //
   //  @GetMapping(value = "/{workflowId}/compose")
   //  @AuthScope(types = {TokenScope.global}, access = TokenAccess.read, object =

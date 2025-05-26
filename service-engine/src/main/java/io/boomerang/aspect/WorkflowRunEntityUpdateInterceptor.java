@@ -1,19 +1,12 @@
 package io.boomerang.aspect;
 
-import io.boomerang.audit.AuditInterceptor;
-import io.boomerang.audit.AuditType;
 import io.boomerang.common.entity.WorkflowRunEntity;
-import io.boomerang.common.enums.RunStatus;
 import io.boomerang.common.repository.WorkflowRunRepository;
 import io.boomerang.engine.EventSinkService;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -26,15 +19,11 @@ public class WorkflowRunEntityUpdateInterceptor {
 
   private final WorkflowRunRepository workflowRunRepository;
   private final EventSinkService eventSinkService;
-  private final AuditInterceptor auditInterceptor;
 
   public WorkflowRunEntityUpdateInterceptor(
-      WorkflowRunRepository workflowRunRepository,
-      EventSinkService eventSinkService,
-      AuditInterceptor auditInterceptor) {
+      WorkflowRunRepository workflowRunRepository, EventSinkService eventSinkService) {
     this.workflowRunRepository = workflowRunRepository;
     this.eventSinkService = eventSinkService;
-    this.auditInterceptor = auditInterceptor;
   }
 
   @Before(
@@ -52,44 +41,6 @@ public class WorkflowRunEntityUpdateInterceptor {
 
     if (entityToBeSaved instanceof WorkflowRunEntity) {
       workflowRunEntityToBeUpdated((WorkflowRunEntity) entityToBeSaved);
-    }
-  }
-
-  @AfterReturning(
-      pointcut =
-          "execution(* io.boomerang.engine.repository.WorkflowRunRepository.save(..)) && args(request)",
-      returning = "entity")
-  @ConditionalOnProperty(name = "flow.audit.enabled", havingValue = "true", matchIfMissing = false)
-  public void saveInvoked(
-      JoinPoint thisJoinPoint, WorkflowRunEntity request, WorkflowRunEntity entity) {
-
-    LOGGER.info(
-        "Intercepted save action on entity {} from {}",
-        request,
-        thisJoinPoint.getSignature().getDeclaringTypeName());
-    if (request.getStatus().equals(RunStatus.notstarted)) {
-      Map<String, String> data = new HashMap<>();
-      data.put("duration", String.valueOf(entity.getDuration()));
-      data.put("workflowRef", request.getWorkflowRef());
-      data.put("phase", request.getPhase().toString());
-      data.put("status", request.getStatus().toString());
-      auditInterceptor.createWfRunLog(entity.getId(), entity.getWorkflowRef(), Optional.of(data));
-    } else {
-      LOGGER.info(
-          "Status Label: {}, Audit Type: {}",
-          entity.getStatus().getStatus(),
-          AuditType.valueOfLabel(entity.getStatus().getStatus()));
-      Map<String, String> data = new HashMap<>();
-      data.put("duration", String.valueOf(entity.getDuration()));
-      data.put("phase", request.getPhase().toString());
-      data.put("status", request.getStatus().toString());
-      if (request.getStartTime() != null) {
-        data.put("startTime", request.getStartTime().toString());
-      }
-      auditInterceptor.updateWfRunLog(
-          AuditType.valueOfLabel(entity.getStatus().getStatus()),
-          entity.getId(),
-          Optional.of(data));
     }
   }
 

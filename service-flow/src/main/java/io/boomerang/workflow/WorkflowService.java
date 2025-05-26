@@ -29,6 +29,9 @@ import io.boomerang.common.util.StringUtil;
 import io.boomerang.core.RelationshipService;
 import io.boomerang.core.SettingsService;
 import io.boomerang.core.TokenService;
+import io.boomerang.core.audit.Audit;
+import io.boomerang.core.audit.AuditAction;
+import io.boomerang.core.audit.AuditResource;
 import io.boomerang.core.enums.RelationshipLabel;
 import io.boomerang.core.enums.RelationshipType;
 import io.boomerang.workflow.model.CanvasEdge;
@@ -398,7 +401,7 @@ public class WorkflowService {
    *
    * No need to validate params as they are either defaulted or optional
    */
-  //  @Audit(scope = PermissionScope.WORKFLOW)
+  @Audit(scope = AuditResource.workflow, action = AuditAction.create)
   public Workflow create(String team, Workflow request) {
     // Ensure name is in slug format
     if (request.getName() != null && !request.getName().isBlank()) {
@@ -561,6 +564,7 @@ public class WorkflowService {
    *   // TODO: handle more of the apply i.e. if original has element, and new does not, keep the
   // original element.
    */
+  @Audit(scope = AuditResource.workflow, action = AuditAction.update)
   public Workflow apply(String team, Workflow request, boolean replace) {
     if (request == null || request.getName() == null || request.getName().isBlank()) {
       throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
@@ -670,6 +674,7 @@ public class WorkflowService {
   /*
    * Submit Workflow to Run
    */
+  @Audit(scope = AuditResource.workflowrun, action = AuditAction.create)
   public WorkflowRun submit(
       String team, String name, WorkflowSubmitRequest request, boolean start) {
     if (name == null || name.isBlank()) {
@@ -871,6 +876,7 @@ public class WorkflowService {
    *
    * TODO: figure out how to have this roll back if one of them fails
    */
+  @Audit(scope = AuditResource.workflow, action = AuditAction.delete)
   public void delete(String team, String name) {
     if (name == null || name.isBlank()) {
       throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
@@ -902,6 +908,7 @@ public class WorkflowService {
   /*
    * Export the Workflow as JSON
    */
+  @Audit(scope = AuditResource.workflow, action = AuditAction.export)
   public ResponseEntity<InputStreamResource> export(String team, String name) {
     final Workflow workflow = this.get(team, name, Optional.empty(), true);
 
@@ -964,6 +971,7 @@ public class WorkflowService {
    *
    * TODO: add a type to handle canvas or Tekton YAML etc etc
    */
+  @Audit(scope = AuditResource.workflow, action = AuditAction.update)
   public WorkflowCanvas composeApply(String team, WorkflowCanvas canvas, boolean replace) {
     if (canvas == null) {
       throw new BoomerangException(BoomerangError.WORKFLOW_INVALID_REF);
