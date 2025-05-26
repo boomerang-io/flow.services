@@ -1,5 +1,7 @@
 package io.boomerang.core;
 
+import io.boomerang.common.error.BoomerangError;
+import io.boomerang.common.error.BoomerangException;
 import io.boomerang.core.entity.UserEntity;
 import io.boomerang.core.enums.RelationshipLabel;
 import io.boomerang.core.enums.RelationshipType;
@@ -8,8 +10,6 @@ import io.boomerang.core.enums.UserType;
 import io.boomerang.core.model.*;
 import io.boomerang.core.repository.RoleRepository;
 import io.boomerang.core.repository.UserRepository;
-import io.boomerang.error.BoomerangError;
-import io.boomerang.error.BoomerangException;
 import io.boomerang.security.IdentityService;
 import io.boomerang.workflow.entity.TeamEntity;
 import io.boomerang.workflow.model.TeamStatus;

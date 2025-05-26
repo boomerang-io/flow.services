@@ -1,10 +1,10 @@
-package io.boomerang.error;
+package io.boomerang.common.error;
 
 import org.springframework.http.HttpStatus;
 
 /*
  * The Boomerang exception format
- * 
+ *
  * References:
  * - https://cloud.google.com/apis/design/errors
  * - https://docs.aws.amazon.com/AWSEC2/latest/APIReference/errors-overview.html#api-error-response
@@ -12,13 +12,13 @@ import org.springframework.http.HttpStatus;
 public class BoomerangException extends RuntimeException {
 
   private static final long serialVersionUID = 1L;
-  
+
   private final int code;
   private final String reason;
   private final String message;
   private final HttpStatus status;
   private final Object[] args;
-  
+
   public BoomerangException(int code, String reason, HttpStatus status, Object... args) {
     super();
     this.code = code;
@@ -27,8 +27,9 @@ public class BoomerangException extends RuntimeException {
     this.status = status;
     this.args = args;
   }
-  
-  public BoomerangException(Throwable ex, int code, String reason, HttpStatus status, Object... args) {
+
+  public BoomerangException(
+      Throwable ex, int code, String reason, HttpStatus status, Object... args) {
     super(ex);
     this.code = code;
     this.reason = reason;
@@ -36,8 +37,9 @@ public class BoomerangException extends RuntimeException {
     this.status = status;
     this.args = args;
   }
-  
-  public BoomerangException(int code, String reason, String message, HttpStatus status, Object... args) {
+
+  public BoomerangException(
+      int code, String reason, String message, HttpStatus status, Object... args) {
     super();
     this.code = code;
     this.reason = reason;
@@ -45,8 +47,9 @@ public class BoomerangException extends RuntimeException {
     this.status = status;
     this.args = args;
   }
-  
-  public BoomerangException(Throwable ex, int code, String reason, String message, HttpStatus status, Object... args) {
+
+  public BoomerangException(
+      Throwable ex, int code, String reason, String message, HttpStatus status, Object... args) {
     super(ex);
     this.code = code;
     this.reason = reason;
@@ -72,7 +75,7 @@ public class BoomerangException extends RuntimeException {
     this.status = error.getStatus();
     this.args = args;
   }
-  
+
   public int getCode() {
     return code;
   }
@@ -86,11 +89,10 @@ public class BoomerangException extends RuntimeException {
   }
 
   public Object[] getArgs() {
-      return args;
+    return args;
   }
 
   public HttpStatus getStatus() {
     return status;
   }
-
 }

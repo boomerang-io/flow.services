@@ -2,6 +2,8 @@ package io.boomerang.workflow;
 
 import static io.boomerang.common.util.DataAdapterUtil.filterValueByFieldType;
 
+import io.boomerang.common.error.BoomerangError;
+import io.boomerang.common.error.BoomerangException;
 import io.boomerang.common.model.AbstractParam;
 import io.boomerang.common.model.WorkflowCount;
 import io.boomerang.common.model.WorkflowRunInsight;
@@ -16,8 +18,6 @@ import io.boomerang.core.entity.UserEntity;
 import io.boomerang.core.enums.*;
 import io.boomerang.core.model.*;
 import io.boomerang.core.repository.RoleRepository;
-import io.boomerang.error.BoomerangError;
-import io.boomerang.error.BoomerangException;
 import io.boomerang.security.IdentityService;
 import io.boomerang.workflow.entity.ApproverGroupEntity;
 import io.boomerang.workflow.entity.TeamEntity;
