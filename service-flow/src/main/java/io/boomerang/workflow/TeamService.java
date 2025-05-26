@@ -13,6 +13,9 @@ import io.boomerang.core.RelationshipService;
 import io.boomerang.core.SettingsService;
 import io.boomerang.core.TokenService;
 import io.boomerang.core.UserService;
+import io.boomerang.core.audit.Audit;
+import io.boomerang.core.audit.AuditAction;
+import io.boomerang.core.audit.AuditResource;
 import io.boomerang.core.entity.RoleEntity;
 import io.boomerang.core.entity.UserEntity;
 import io.boomerang.core.enums.*;
@@ -154,6 +157,7 @@ public class TeamService {
    * - Name must not be blank
    * - Display name must not be blank
    */
+  @Audit(scope = AuditResource.team, action = AuditAction.create)
   public Team create(TeamRequest request) {
     if (!request.getName().isBlank() && !request.getDisplayName().isBlank()) {
       // Validate name - will throw exception if not valid
@@ -210,6 +214,7 @@ public class TeamService {
   /*
    * Patch team
    */
+  @Audit(scope = AuditResource.team, action = AuditAction.update)
   public Team patch(String team, TeamRequest request) {
     if (request != null) {
       LOGGER.debug("Request: " + request.toString());
@@ -281,6 +286,7 @@ public class TeamService {
   /*
    * Destructive cascade Team deletion
    */
+  @Audit(scope = AuditResource.team, action = AuditAction.delete)
   public void delete(String team) {
     if (team == null || team.isBlank()) {
       throw new BoomerangException(BoomerangError.TEAM_INVALID_REF);
@@ -464,6 +470,7 @@ public class TeamService {
    *
    *  TODO: ensure the remaining owner cannot leave the team
    */
+  @Audit(scope = AuditResource.team, action = AuditAction.leave)
   public void leave(String team) {
     if (team == null || team.isBlank()) {
       throw new BoomerangException(BoomerangError.TEAM_INVALID_REF);
@@ -503,6 +510,7 @@ public class TeamService {
   /*
    * Delete parameters by key
    */
+  @Audit(scope = AuditResource.team, action = AuditAction.update)
   public void deleteParameter(String team, String name) {
     if (team == null || team.isBlank()) {
       throw new BoomerangException(BoomerangError.TEAM_INVALID_REF);

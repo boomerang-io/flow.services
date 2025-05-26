@@ -2,8 +2,8 @@ package io.boomerang.core.audit;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import io.boomerang.security.enums.AuthScope;
 import io.boomerang.core.model.Token;
+import io.boomerang.security.enums.AuthScope;
 
 @JsonInclude(Include.NON_NULL)
 public class AuditActor {
@@ -17,7 +17,7 @@ public class AuditActor {
   }
 
   public AuditActor(Token token) {
-    this.principal = token.getPrincipal();
+    this.principal = token.getPrincipal() != null ? token.getPrincipal() : "";
     this.type = token.getType();
     this.tokenRef = token.getId();
   }

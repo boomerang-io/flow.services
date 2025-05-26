@@ -8,6 +8,9 @@ import io.boomerang.common.error.BoomerangException;
 import io.boomerang.common.model.Workflow;
 import io.boomerang.common.model.WorkflowSchedule;
 import io.boomerang.core.RelationshipService;
+import io.boomerang.core.audit.Audit;
+import io.boomerang.core.audit.AuditAction;
+import io.boomerang.core.audit.AuditResource;
 import io.boomerang.core.enums.RelationshipType;
 import io.boomerang.quartz.QuartzSchedulerService;
 import io.boomerang.workflow.model.WorkflowScheduleCalendar;
@@ -169,6 +172,7 @@ public class ScheduleService {
    *
    * @return echos the created schedule
    */
+  @Audit(scope = AuditResource.schedule, action = AuditAction.create)
   public WorkflowSchedule create(String team, final WorkflowSchedule schedule) {
     if (schedule != null && schedule.getWorkflowRef() != null) {
       List<String> refs =
@@ -330,6 +334,7 @@ public class ScheduleService {
    *
    * @return echos the updated schedule
    */
+  @Audit(scope = AuditResource.schedule, action = AuditAction.update)
   public WorkflowSchedule apply(String team, final WorkflowSchedule request) {
     if (request != null
         && request.getId() != null
@@ -531,6 +536,7 @@ public class ScheduleService {
   /*
    * Mark a single schedule as deleted and cancel the quartz jobs. Used by the UI when deleting a schedule.
    */
+  @Audit(scope = AuditResource.schedule, action = AuditAction.delete)
   public void delete(String team, final String scheduleId) {
     final Optional<WorkflowScheduleEntity> schedule = scheduleRepository.findById(scheduleId);
     if (schedule.isPresent()

@@ -5,6 +5,9 @@ import io.boomerang.common.error.BoomerangException;
 import io.boomerang.common.model.AbstractParam;
 import io.boomerang.common.util.DataAdapterUtil;
 import io.boomerang.common.util.DataAdapterUtil.FieldType;
+import io.boomerang.core.audit.Audit;
+import io.boomerang.core.audit.AuditAction;
+import io.boomerang.core.audit.AuditResource;
 import io.boomerang.workflow.entity.GlobalParamEntity;
 import io.boomerang.workflow.repository.GlobalParamRepository;
 import java.util.LinkedList;
@@ -51,6 +54,7 @@ public class ParameterService {
     return params;
   }
 
+  @Audit(scope = AuditResource.parameter, action = AuditAction.update)
   public AbstractParam update(AbstractParam param) {
     if (!Objects.isNull(param) && param.getName() != null) {
       Optional<GlobalParamEntity> optParamEntity = paramRepository.findOneByName(param.getName());
@@ -64,6 +68,7 @@ public class ParameterService {
     throw new BoomerangException(BoomerangError.PARAMS_INVALID_REFERENCE);
   }
 
+  @Audit(scope = AuditResource.parameter, action = AuditAction.create)
   public AbstractParam create(AbstractParam request) {
     if (!Objects.isNull(request) && request.getName() != null) {
 
@@ -83,6 +88,7 @@ public class ParameterService {
     throw new BoomerangException(BoomerangError.PARAMS_INVALID_REFERENCE);
   }
 
+  @Audit(scope = AuditResource.parameter, action = AuditAction.delete)
   public void delete(String name) {
     if (!Objects.isNull(name) && name != null && paramRepository.countByName(name) > 0) {
       paramRepository.deleteByName(name);

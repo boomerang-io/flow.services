@@ -8,5 +8,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Audit {
- AuditScope scope();
+  AuditResource scope();
+
+  AuditAction action() default AuditAction.create;
 }

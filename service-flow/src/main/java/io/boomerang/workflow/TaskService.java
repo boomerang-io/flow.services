@@ -14,6 +14,9 @@ import io.boomerang.common.repository.TaskRepository;
 import io.boomerang.common.repository.TaskRevisionRepository;
 import io.boomerang.core.RelationshipService;
 import io.boomerang.core.UserService;
+import io.boomerang.core.audit.Audit;
+import io.boomerang.core.audit.AuditAction;
+import io.boomerang.core.audit.AuditResource;
 import io.boomerang.core.enums.RelationshipLabel;
 import io.boomerang.core.enums.RelationshipType;
 import io.boomerang.core.model.User;
@@ -274,6 +277,7 @@ public class TaskService {
   /*
    * Creates the Task and Relationship
    */
+  @Audit(scope = AuditResource.teamtask, action = AuditAction.create)
   public Task create(String team, Task request) {
     // Validate Access
     if (!relationshipService.check(
@@ -314,6 +318,7 @@ public class TaskService {
     return task;
   }
 
+  @Audit(scope = AuditResource.task, action = AuditAction.create)
   public Task create(Task request) {
     // Check name matches the requirements
     if (request.getName().isBlank() || !request.getName().matches(NAME_REGEX)) {
@@ -385,6 +390,7 @@ public class TaskService {
    * Names are akin to a slug and are immutable. If the name changes, a new TaskTemplate is created
    *
    */
+  @Audit(scope = AuditResource.teamtask, action = AuditAction.update)
   public Task apply(String name, String team, Task request, boolean replace) {
     if (name.isBlank() || !name.matches(NAME_REGEX)) {
       throw new BoomerangException(BoomerangError.TASK_INVALID_NAME, request.getName());
@@ -411,6 +417,7 @@ public class TaskService {
     }
   }
 
+  @Audit(scope = AuditResource.task, action = AuditAction.update)
   public Task apply(String name, Task request, boolean replace) {
     LOGGER.debug("Applying Task: {}", request.toString());
     if (name.isBlank() || !name.matches(NAME_REGEX)) {
@@ -605,6 +612,7 @@ public class TaskService {
    * Deletes a TeamTask - team is required as you cannot delete a global template (only make
    * inactive)
    */
+  @Audit(scope = AuditResource.teamtask, action = AuditAction.delete)
   public void delete(String team, String name) {
     if (Objects.isNull(name) || name.isBlank()) {
       throw new BoomerangException(BoomerangError.TASK_INVALID_REF);
