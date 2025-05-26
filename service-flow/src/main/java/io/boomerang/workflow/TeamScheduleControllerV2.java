@@ -1,7 +1,7 @@
 package io.boomerang.workflow;
 
+import io.boomerang.common.error.BoomerangException;
 import io.boomerang.common.model.WorkflowSchedule;
-import io.boomerang.error.BoomerangException;
 import io.boomerang.security.AuthCriteria;
 import io.boomerang.security.enums.AuthScope;
 import io.boomerang.security.enums.PermissionAction;

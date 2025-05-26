@@ -1,4 +1,4 @@
-package io.boomerang.error;
+package io.boomerang.common.error;
 
 import java.util.Locale;
 import javax.naming.AuthenticationException;
@@ -27,8 +27,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
   @Value("${flow.error.include-cause:false}")
   public boolean includeCause;
 
-  @Autowired
-  private MessageSource messageSource;
+  @Autowired private MessageSource messageSource;
 
   @ExceptionHandler({BoomerangException.class})
   public ResponseEntity<Object> handleBoomerangException(BoomerangException ex) {
@@ -38,8 +37,8 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     errorResponse.setReason(ex.getReason());
     if (ex.getMessage() == null || ex.getMessage().isBlank()) {
       try {
-        errorResponse
-            .setMessage(messageSource.getMessage(ex.getReason(), ex.getArgs(), Locale.ENGLISH));
+        errorResponse.setMessage(
+            messageSource.getMessage(ex.getReason(), ex.getArgs(), Locale.ENGLISH));
       } catch (NoSuchMessageException nsme) {
         errorResponse.setMessage("No message available");
       }

@@ -1,13 +1,13 @@
 package io.boomerang.workflow;
 
+import io.boomerang.common.error.BoomerangError;
+import io.boomerang.common.error.BoomerangException;
 import io.boomerang.common.model.AbstractParam;
 import io.boomerang.common.model.ParamLayers;
 import io.boomerang.common.model.Workflow;
 import io.boomerang.core.SettingsService;
 import io.boomerang.core.entity.TokenEntity;
 import io.boomerang.core.repository.TokenRepository;
-import io.boomerang.error.BoomerangError;
-import io.boomerang.error.BoomerangException;
 import io.boomerang.security.enums.AuthScope;
 import io.boomerang.workflow.entity.TeamEntity;
 import io.boomerang.workflow.repository.TeamRepository;

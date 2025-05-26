@@ -1,38 +1,27 @@
-package io.boomerang.util;
+package io.boomerang.common.util;
 
-import io.boomerang.common.entity.WorkflowEntity;
-import io.boomerang.common.entity.WorkflowRevisionEntity;
 import io.boomerang.common.error.BoomerangError;
 import io.boomerang.common.error.BoomerangException;
-import io.boomerang.common.model.Workflow;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 import org.springframework.beans.BeanUtils;
 
-/*
+/**
  * This class will do the BeanUtils.copyproperties from Entity to Model ensuring its not in the
  * shared models and the entities don't need to be copied to the other service
  */
 public class ConvertUtil {
 
-  /*
-   * Creates a Workflow from WorkflowEntity and WorkflowRevisionEntity
+  /**
+   * Generic method to convert from entity to specified Model and copy elements. public static <E,
+   * M> M entityToModel(E entity, Class<M> modelClass) { return entityToModel(entity, modelClass,
+   * (String[]) null); }
    *
-   * Does not copy / convert the stored Tasks onto the Workflow. If you want the Tasks you need to run
-   * workflow.setTasks(TaskMapper.revisionTasksToListOfTasks(wfRevisionEntity.getTasks()));
+   * <p>/** Generic method to convert from entity to specified Model and copy elements.
+   *
+   * <p>Includes the ability to ignore properties
    */
-  public static Workflow wfEntityToModel(
-      WorkflowEntity wfEntity, WorkflowRevisionEntity wfRevisionEntity) {
-    Workflow model = new Workflow();
-    BeanUtils.copyProperties(wfEntity, model);
-    BeanUtils.copyProperties(wfRevisionEntity, model, "id");
-    return model;
-  }
-
-  /*
-   * Generic method to convert from entity to specified Model and copy elements.
-   */
-  public static <E, M> M entityToModel(E entity, Class<M> modelClass) {
+  public static <E, M> M entityToModel(E entity, Class<M> modelClass, String... ignoreProperties) {
     if (Objects.isNull(entity) || Objects.isNull(modelClass)) {
       throw new BoomerangException(BoomerangError.DATA_CONVERSION_FAILED);
     }

@@ -1,5 +1,6 @@
 package io.boomerang.client;
 
+import io.boomerang.common.error.BoomerangException;
 import io.boomerang.common.model.TaskRun;
 import io.boomerang.common.model.TaskRunEndRequest;
 import io.boomerang.common.model.WorkflowRun;
@@ -7,7 +8,6 @@ import io.boomerang.common.model.WorkflowRunCount;
 import io.boomerang.common.model.WorkflowRunInsight;
 import io.boomerang.common.model.WorkflowRunRequest;
 import io.boomerang.common.model.WorkflowSubmitRequest;
-import io.boomerang.error.BoomerangException;
 import io.boomerang.workflow.model.WorkflowRunEventRequest;
 import java.io.InputStream;
 import java.io.OutputStream;

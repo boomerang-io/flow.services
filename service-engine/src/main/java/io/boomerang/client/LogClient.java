@@ -23,7 +23,7 @@ import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-import io.boomerang.error.BoomerangException;
+import io.boomerang.common.error.BoomerangException;
 
 @Service
 @Primary
@@ -35,45 +35,52 @@ public class LogClient {
   private String logStreamURL;
 
   @Autowired
-
   @Qualifier("insecureRestTemplate")
   public RestTemplate restTemplate;
 
-  public StreamingResponseBody streamLog(String workflowId, String workflowRunId, String taskRunId) {
-      LOGGER.info("URL: " + logStreamURL);
+  public StreamingResponseBody streamLog(
+      String workflowId, String workflowRunId, String taskRunId) {
+    LOGGER.info("URL: " + logStreamURL);
 
-      Map<String, String> requestParams = new HashMap<>();
-      requestParams.put("workflowRef", workflowId);
-      requestParams.put("workflowRunRef", workflowRunId);
-      requestParams.put("taskRunRef", taskRunId);
-      
-      String encodedURL =
-          requestParams.keySet().stream().map(key -> key + "=" + requestParams.get(key))
-              .collect(Collectors.joining("&", logStreamURL + "?", ""));
-      
-      return outputStream -> {
-        RequestCallback requestCallback = request -> request.getHeaders()
-            .setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM, MediaType.ALL));
+    Map<String, String> requestParams = new HashMap<>();
+    requestParams.put("workflowRef", workflowId);
+    requestParams.put("workflowRunRef", workflowRunId);
+    requestParams.put("taskRunRef", taskRunId);
 
-        PrintWriter printWriter = new PrintWriter(outputStream);
-        List<String> removeList = Collections.emptyList();  
-        ResponseExtractor<Void> responseExtractor =
-            getResponseExtractorForRemovalList(removeList, outputStream, printWriter);
-        LOGGER.info("Starting log download: {}", encodedURL);
-        try {
-          restTemplate.execute(encodedURL, HttpMethod.GET, requestCallback, responseExtractor);
-        } catch (Exception ex) {
-          LOGGER.error(ex.toString());
-          throw new BoomerangException(ex, HttpStatus.INTERNAL_SERVER_ERROR.value(),
-              ex.getClass().getSimpleName(), "Exception in communicating with internal services.",
-              HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        LOGGER.info("Finished TaskRun[{}] log stream.", taskRunId);
-      };
+    String encodedURL =
+        requestParams.keySet().stream()
+            .map(key -> key + "=" + requestParams.get(key))
+            .collect(Collectors.joining("&", logStreamURL + "?", ""));
+
+    return outputStream -> {
+      RequestCallback requestCallback =
+          request ->
+              request
+                  .getHeaders()
+                  .setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM, MediaType.ALL));
+
+      PrintWriter printWriter = new PrintWriter(outputStream);
+      List<String> removeList = Collections.emptyList();
+      ResponseExtractor<Void> responseExtractor =
+          getResponseExtractorForRemovalList(removeList, outputStream, printWriter);
+      LOGGER.info("Starting log download: {}", encodedURL);
+      try {
+        restTemplate.execute(encodedURL, HttpMethod.GET, requestCallback, responseExtractor);
+      } catch (Exception ex) {
+        LOGGER.error(ex.toString());
+        throw new BoomerangException(
+            ex,
+            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            ex.getClass().getSimpleName(),
+            "Exception in communicating with internal services.",
+            HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+      LOGGER.info("Finished TaskRun[{}] log stream.", taskRunId);
+    };
   }
-  
-  private ResponseExtractor<Void> getResponseExtractorForRemovalList(List<String> maskWordList,
-      OutputStream outputStream, PrintWriter printWriter) {
+
+  private ResponseExtractor<Void> getResponseExtractorForRemovalList(
+      List<String> maskWordList, OutputStream outputStream, PrintWriter printWriter) {
     if (maskWordList.isEmpty()) {
       LOGGER.info("Remove word list empty, moving on.");
       return restTemplateResponse -> {
@@ -85,29 +92,29 @@ public class LogClient {
         }
         return null;
       };
-//    } else {
-//      LOGGER.info("Streaming response from controller and processing");
-//      return restTemplateResponse -> {
-//        try {
-//          InputStream is = restTemplateResponse.getBody();
-//          Reader reader = new InputStreamReader(is);
-//          BufferedReader bufferedReader = new BufferedReader(reader);
-//          String input = null;
-//          while ((input = bufferedReader.readLine()) != null) {
-//
-//            printWriter.println(satanzieInput(input, maskWordList));
-//            if (!input.isBlank()) {
-//              printWriter.flush();
-//            }
-//          }
-//        } catch (Exception e) {
-//          LOGGER.error("Error streaming logs, displaying exception and moving on.");
-//          LOGGER.error(ExceptionUtils.getStackTrace(e));
-//        } finally {
-//          printWriter.close();
-//        }
-//        return null;
-//      };
+      //    } else {
+      //      LOGGER.info("Streaming response from controller and processing");
+      //      return restTemplateResponse -> {
+      //        try {
+      //          InputStream is = restTemplateResponse.getBody();
+      //          Reader reader = new InputStreamReader(is);
+      //          BufferedReader bufferedReader = new BufferedReader(reader);
+      //          String input = null;
+      //          while ((input = bufferedReader.readLine()) != null) {
+      //
+      //            printWriter.println(satanzieInput(input, maskWordList));
+      //            if (!input.isBlank()) {
+      //              printWriter.flush();
+      //            }
+      //          }
+      //        } catch (Exception e) {
+      //          LOGGER.error("Error streaming logs, displaying exception and moving on.");
+      //          LOGGER.error(ExceptionUtils.getStackTrace(e));
+      //        } finally {
+      //          printWriter.close();
+      //        }
+      //        return null;
+      //      };
     }
     return null;
   }
