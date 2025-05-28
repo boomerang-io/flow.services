@@ -38,7 +38,7 @@ public class MessageListener {
     InetAddress[] addresses = InetAddress.getAllByName(broadcastHost);
     for (InetAddress address : addresses) {
       String ip = address.getHostAddress();
-      String url = "http://" + ip + ":80/broadcast";
+      String url = "http://" + ip + ":80/internal/broadcast";
       LOGGER.info("Broadcasting message to: {}", url);
       try {
         ResponseEntity<Void> responseEntity = restTemplate.postForEntity(url, message, Void.class);
@@ -47,7 +47,7 @@ public class MessageListener {
           LOGGER.debug("httpSink() - Body: " + responseEntity.getBody().toString());
         }
       } catch (ResourceAccessException rae) {
-        LOGGER.fatal("A fatal error has occurred while publishing the message!");
+        LOGGER.fatal("A fatal error has occurred while publishing the message!", rae.getMessage());
         // eventRepository.save(new EventQueueEntity(sinkUrl, req));
       }
     }
