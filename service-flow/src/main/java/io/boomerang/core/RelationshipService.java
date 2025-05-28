@@ -4,6 +4,7 @@ import io.boomerang.core.entity.RelationshipEdgeEntity;
 import io.boomerang.core.entity.RelationshipNodeEntity;
 import io.boomerang.core.enums.RelationshipLabel;
 import io.boomerang.core.enums.RelationshipType;
+import io.boomerang.core.message.Message;
 import io.boomerang.core.model.RelationshipGraphEdge;
 import io.boomerang.core.model.ResolvedPermissions;
 import io.boomerang.core.model.Token;
@@ -17,6 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.shortestpath.BFSShortestPath;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,16 +31,19 @@ public class RelationshipService {
   private final RelationshipNodeRepository nodeRepository;
   private final RelationshipEdgeRepository edgeRepository;
   private final IdentityService identityService;
+  private final ApplicationEventPublisher eventPublisher;
 
   // TODO make sure the graph should be initialised here or better on start of service.
   // How many times does this service get created?
   public RelationshipService(
       RelationshipNodeRepository nodeRepository,
       RelationshipEdgeRepository edgeRepository,
-      IdentityService identityService) {
+      IdentityService identityService,
+      ApplicationEventPublisher eventPublisher) {
     this.nodeRepository = nodeRepository;
     this.edgeRepository = edgeRepository;
     this.identityService = identityService;
+    this.eventPublisher = eventPublisher;
     this.graphCache.buildGraph(nodeRepository.findAll(), edgeRepository.findAll());
   }
 
@@ -92,6 +97,7 @@ public class RelationshipService {
   /*
    * Creates the Relationship Node mapped to an object in the system
    */
+  @Transactional
   public void createNodeAndEdge(
       RelationshipType fromType,
       String from,
@@ -110,6 +116,11 @@ public class RelationshipService {
     edgeRepository.save(
         new RelationshipEdgeEntity(fromResult.getId(), label, toNode.getId(), edgeData));
     this.graphCache.buildGraph(nodeRepository.findAll(), edgeRepository.findAll());
+    LOGGER.info("_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-");
+    eventPublisher.publishEvent(
+        new Message(
+            "relationship.created",
+            fromType.getLabel() + ":" + from + " -> " + toType.getLabel() + ":" + toRef));
   }
 
   /*
