@@ -4,6 +4,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class MessageListener {
 
   private final RestTemplate restTemplate;
 
-  public MessageListener(RestTemplate restTemplate) {
+  public MessageListener(@Qualifier("insecureRestTemplate") RestTemplate restTemplate) {
     this.restTemplate = restTemplate;
   }
 
