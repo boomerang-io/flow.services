@@ -47,6 +47,10 @@ public class RelationshipService {
     this.graphCache.buildGraph(nodeRepository.findAll(), edgeRepository.findAll());
   }
 
+  public void buildGraph() {
+    this.graphCache.buildGraph(nodeRepository.findAll(), edgeRepository.findAll());
+  }
+
   /*
    * Creates the Relationship Node mapped to an object in the system
    */

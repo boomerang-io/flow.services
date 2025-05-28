@@ -7,6 +7,7 @@ import io.boomerang.common.model.WorkflowSubmitRequest;
 import io.boomerang.core.entity.SettingEntity;
 import io.boomerang.core.enums.RelationshipLabel;
 import io.boomerang.core.enums.RelationshipType;
+import io.boomerang.core.message.Message;
 import io.boomerang.core.model.TokenCreateRequest;
 import io.boomerang.core.model.TokenCreateResponse;
 import io.boomerang.workflow.ScheduleService;
@@ -129,5 +130,17 @@ public class InternalController {
   @Operation(summary = "Create a Debug Token")
   public TokenCreateResponse createToken(@RequestBody TokenCreateRequest request) {
     return tokenService.create(request);
+  }
+
+  @PostMapping("/broadcast")
+  public void handleBroadcastMessage(@RequestBody Message message) {
+    if ("relationship.created".equals(message.getType())
+        || "relationship.updated".equals(message.getType())
+        || "relationship.removed".equals(message.getType())) {
+      LOGGER.debug("Handling broadcast message of type: {}", message.getType());
+      relationshipService.buildGraph(); // Trigger graph rebuild
+    } else {
+      LOGGER.warn("Unhandled message type: " + message.getType());
+    }
   }
 }
