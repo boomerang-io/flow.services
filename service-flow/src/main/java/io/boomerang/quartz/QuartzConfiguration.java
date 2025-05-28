@@ -48,7 +48,7 @@ public class QuartzConfiguration {
     if (collectionNamePrefix.endsWith("_")) {
       collectionNamePrefix = collectionNamePrefix.substring(0, collectionNamePrefix.length() - 1);
     }
-    prop.setProperty("org.quartz.jobStore.collectionPrefix", collectionNamePrefix);
+    prop.setProperty("org.quartz.jobStore.collectionPrefix", collectionNamePrefix + "_quartz");
     logger.debug("Quartz Configuration: " + prop.toString());
 
     return prop;
