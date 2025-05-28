@@ -38,7 +38,7 @@ public class MessageListener {
     InetAddress[] addresses = InetAddress.getAllByName(broadcastHost);
     for (InetAddress address : addresses) {
       String ip = address.getHostAddress();
-      String url = "http://" + ip + ":80/internal/broadcast";
+      String url = "http://" + ip + ":8080/internal/broadcast";
       LOGGER.info("Broadcasting message to: {}", url);
       try {
         ResponseEntity<Void> responseEntity = restTemplate.postForEntity(url, message, Void.class);
