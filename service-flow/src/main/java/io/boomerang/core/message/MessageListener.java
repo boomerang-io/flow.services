@@ -1,5 +1,7 @@
 package io.boomerang.core.message;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,8 +18,14 @@ public class MessageListener {
   public MessageListener() {}
 
   @EventListener
-  public void handleGraphEvent(Message message) {
-    LOGGER.info("-----> Broadcast host: {}", broadcastHost);
+  public void handleGraphEvent(Message message) throws UnknownHostException {
     LOGGER.info("Received message: {} of type: {}", message.getMessage(), message.getType());
+    LOGGER.info("-----> Broadcast host: {}", broadcastHost);
+    InetAddress[] addresses = InetAddress.getAllByName(broadcastHost);
+    for (InetAddress address : addresses) {
+      String ip = address.getHostAddress();
+      String url = "http://" + ip + ":8080/your-endpoint";
+      LOGGER.info("Sending message to: {}", url);
+    }
   }
 }
