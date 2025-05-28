@@ -17,6 +17,12 @@ public class MessageListener {
 
   public MessageListener() {}
 
+  /**
+   * This method will listen for messages being produced throughout the system.
+   *
+   * <p>TODO: wrap in a mode, if a particular mode is enabled i.e. standalone, then just do the
+   * action, if not broadcast
+   */
   @EventListener
   public void handleGraphEvent(Message message) throws UnknownHostException {
     LOGGER.info("Received message: {} of type: {}", message.getMessage(), message.getType());
