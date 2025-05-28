@@ -132,15 +132,19 @@ public class InternalController {
     return tokenService.create(request);
   }
 
+  /**
+   * Receive Messages between instances via the internal broadcast endpoint.
+   *
+   * @param message
+   */
   @PostMapping("/broadcast")
   public void handleBroadcastMessage(@RequestBody Message message) {
-    if ("relationship.created".equals(message.getType())
-        || "relationship.updated".equals(message.getType())
-        || "relationship.removed".equals(message.getType())) {
-      LOGGER.debug("Handling broadcast message of type: {}", message.getType());
-      relationshipService.buildGraph(); // Trigger graph rebuild
-    } else {
-      LOGGER.warn("Unhandled message type: " + message.getType());
+    switch (message.getType()) {
+      case "relationship.created", "relationship.updated", "relationship.removed" -> {
+        LOGGER.debug("Handling broadcast message of type: {}", message.getType());
+        relationshipService.buildGraph(); // Trigger graph rebuild
+      }
+      default -> LOGGER.warn("Unhandled message type: {}", message.getType());
     }
   }
 }
