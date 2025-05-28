@@ -6,7 +6,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
 
 @Component
 public class MessageListener {
@@ -15,7 +18,11 @@ public class MessageListener {
   @Value("${flow.broadcast.host}")
   private String broadcastHost;
 
-  public MessageListener() {}
+  private final RestTemplate restTemplate;
+
+  public MessageListener(RestTemplate restTemplate) {
+    this.restTemplate = restTemplate;
+  }
 
   /**
    * This method will listen for messages being produced throughout the system.
@@ -24,14 +31,24 @@ public class MessageListener {
    * action, if not broadcast
    */
   @EventListener
-  public void handleGraphEvent(Message message) throws UnknownHostException {
+  public void handleMessage(Message message) throws UnknownHostException {
     LOGGER.info("Received message: {} of type: {}", message.getMessage(), message.getType());
     LOGGER.info("-----> Broadcast host: {}", broadcastHost);
     InetAddress[] addresses = InetAddress.getAllByName(broadcastHost);
     for (InetAddress address : addresses) {
       String ip = address.getHostAddress();
-      String url = "http://" + ip + ":8080/your-endpoint";
-      LOGGER.info("Sending message to: {}", url);
+      String url = "http://" + ip + ":80/broadcast";
+      LOGGER.info("Broadcasting message to: {}", url);
+      try {
+        ResponseEntity<Void> responseEntity = restTemplate.postForEntity(url, message, Void.class);
+        LOGGER.debug("httpSink() - Status Code: " + responseEntity.getStatusCode());
+        if (responseEntity.getBody() != null) {
+          LOGGER.debug("httpSink() - Body: " + responseEntity.getBody().toString());
+        }
+      } catch (ResourceAccessException rae) {
+        LOGGER.fatal("A fatal error has occurred while publishing the message!");
+        // eventRepository.save(new EventQueueEntity(sinkUrl, req));
+      }
     }
   }
 }
