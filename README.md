@@ -64,8 +64,9 @@ The following links will help provide guidance in development
 When ready to package the service(s) as a container, the tags will trigger the appropriate GitHub Action using the
 format `<svc>/<semver>`:
 
-- Engine Service: tag = `engine/1.0.0-beta.111`
-- Flow Service: tag = `flow/4.0.1`
+- Engine Service: tag = `engine@1.0.0-beta.111`
+- Flow Service: tag = `flow@4.0.1`
+- Handler Service: tag = `handler@7.0.1`
 
 ## Developing and Testing Locally
 
