@@ -159,7 +159,7 @@ _future_)
 
 ### Security
 
-Security is enabled / disabled through the `flow.authorization.enabled` flag in the application.properties
+Security is enabled / disabled through the `flow.auth.enabled` flag in the application.properties
 
 The following classes are conditionally loaded based on this flag
 
