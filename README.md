@@ -16,6 +16,8 @@ Handler that comes with Boomerang Flow by default is the Tekon Handler and execu
 Kubernetes. Additional implementations can be added, such as running tasks on IBM Code Engine or Azure Container Apps,
 etc
 
+The [Common LIbrary](./lib-common) holds shared models, entities, repository, and util classes in use across the services.
+
 ```mermaid
 graph LR
     A[External Requests] -->|HTTP| B[Flow Service]
