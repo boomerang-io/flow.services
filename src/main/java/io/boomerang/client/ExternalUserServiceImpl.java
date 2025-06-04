@@ -71,11 +71,11 @@ public class ExternalUserServiceImpl implements ExternalUserService {
     final HttpHeaders headers = new HttpHeaders();
     headers.add("Accept", "application/json");
     
-    if (email != null) {
-      headers.add(AUTHORIZATION_HEADER, TOKEN_PREFIX + apiTokenService.createJWTToken(email));     headers.add(AUTHORIZATION_HEADER, TOKEN_PREFIX + apiTokenService.createJWTToken(email));
-    } else {
-      headers.add(AUTHORIZATION_HEADER, TOKEN_PREFIX + apiTokenService.createJWTToken());
-    }
+//    if (email != null) {
+//      headers.add(AUTHORIZATION_HEADER, TOKEN_PREFIX + apiTokenService.createJWTToken(email));     headers.add(AUTHORIZATION_HEADER, TOKEN_PREFIX + apiTokenService.createJWTToken(email));
+//    } else {
+//      headers.add(AUTHORIZATION_HEADER, TOKEN_PREFIX + apiTokenService.createJWTToken());
+//    }
     
     headers.setContentType(MediaType.APPLICATION_JSON);
     return headers;
