@@ -2,15 +2,15 @@
 package io.boomerang.client.model;
 
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 import io.boomerang.mongo.model.UserType;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({"id", "email", "name", "isFirstVisit", "type", "isShowHelp", "firstLoginDate",
-    "lastLoginDate", "lowerLevelGroupIds", "pinnedToolIds", "favoritePackages", "personalizations",
-    "notificationSettings", "status", "teams", "hasConsented"})
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserProfile {
 
   @JsonProperty("id")
