@@ -13,8 +13,8 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
+
 import io.boomerang.client.model.UserProfile;
-import io.boomerang.security.service.ApiTokenService;
 import io.boomerang.service.UserIdentityService;
 
 @Service
@@ -30,12 +30,15 @@ public class ExternalUserServiceImpl implements ExternalUserService {
   @Autowired
   private UserIdentityService userDetailsService;
 
+/* 2026-06-04: Not required since Core migration to new cluster
+ * 
   private static final String AUTHORIZATION_HEADER = "Authorization";
   private static final String TOKEN_PREFIX = "Bearer ";
 
   @Autowired
   private ApiTokenService apiTokenService;
-
+*/
+  
   @Override
   public UserProfile getInternalUserProfile() {
     try {
@@ -71,11 +74,15 @@ public class ExternalUserServiceImpl implements ExternalUserService {
     final HttpHeaders headers = new HttpHeaders();
     headers.add("Accept", "application/json");
     
-//    if (email != null) {
-//      headers.add(AUTHORIZATION_HEADER, TOKEN_PREFIX + apiTokenService.createJWTToken(email));     headers.add(AUTHORIZATION_HEADER, TOKEN_PREFIX + apiTokenService.createJWTToken(email));
-//    } else {
-//      headers.add(AUTHORIZATION_HEADER, TOKEN_PREFIX + apiTokenService.createJWTToken());
-//    }
+/*  2026-06-04: Not required since Core migration to new cluster
+ * 
+ *  if (email != null) {
+ *     headers.add(AUTHORIZATION_HEADER, TOKEN_PREFIX + apiTokenService.createJWTToken(email));     headers.add(AUTHORIZATION_HEADER, TOKEN_PREFIX + apiTokenService.createJWTToken(email));
+ *  } else {
+ *     headers.add(AUTHORIZATION_HEADER, TOKEN_PREFIX + apiTokenService.createJWTToken());
+ *  }
+ *  
+ */
     
     headers.setContentType(MediaType.APPLICATION_JSON);
     return headers;
