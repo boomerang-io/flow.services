@@ -31,7 +31,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.client.MockRestServiceServer;
 import io.boomerang.workflow.model.FlowActivity;
 import io.boomerang.workflow.model.FlowExecutionRequest;
-import io.boomerang.service.FlowActivityService;
+import io.boomerang.agent.FlowActivityService;
 import io.boomerang.tests.IntegrationTests;
 
 @ExtendWith(SpringExtension.class)
@@ -41,8 +41,7 @@ import io.boomerang.tests.IntegrationTests;
 @WithUserDetails("mdroy@us.ibm.com")
 class CustomTaskFlowExecutionTests extends IntegrationTests {
 
-  @Autowired
-  protected FlowActivityService activityService;
+  @Autowired protected FlowActivityService activityService;
 
   @Test
   void testExecuteFlow() throws InterruptedException, ExecutionException {
@@ -63,7 +62,6 @@ class CustomTaskFlowExecutionTests extends IntegrationTests {
 
     assertNotNull(finalActivity.getDuration());
     mockServer.verify();
-
   }
 
   @Override
@@ -75,16 +73,21 @@ class CustomTaskFlowExecutionTests extends IntegrationTests {
         .expect(manyTimes(), requestTo(containsString("http://localhost:8084/internal/users/user")))
         .andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess(getMockFile("mock/users/users.json"), MediaType.APPLICATION_JSON));
-    mockServer.expect(times(1), requestTo(containsString("controller/workflow/execute")))
-        .andExpect(method(HttpMethod.POST)).andRespond(withStatus(HttpStatus.OK));
+    mockServer
+        .expect(times(1), requestTo(containsString("controller/workflow/execute")))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(withStatus(HttpStatus.OK));
 
-    mockServer.expect(times(1), requestTo(containsString("controller/task/execute")))
+    mockServer
+        .expect(times(1), requestTo(containsString("controller/task/execute")))
         .andExpect(method(HttpMethod.POST))
         .andExpect(jsonPath("$.workflowName").value("Unit Test Demo"))
         .andExpect(jsonPath("$.taskType").value("template"))
-        .andExpect(jsonPath("$.taskName").value("Echo Test")).andRespond(withStatus(HttpStatus.OK));
+        .andExpect(jsonPath("$.taskName").value("Echo Test"))
+        .andRespond(withStatus(HttpStatus.OK));
 
-    mockServer.expect(times(1), requestTo(containsString("controller/task/execute")))
+    mockServer
+        .expect(times(1), requestTo(containsString("controller/task/execute")))
         .andExpect(method(HttpMethod.POST))
         .andExpect(jsonPath("$.workflowName").value("Unit Test Demo"))
         .andExpect(jsonPath("$.taskType").value("template"))
@@ -94,15 +97,16 @@ class CustomTaskFlowExecutionTests extends IntegrationTests {
         .andExpect(jsonPath("$.taskName").value("Custom Task 1"))
         .andRespond(withStatus(HttpStatus.OK));
 
-    mockServer.expect(times(1), requestTo(containsString("controller/workflow/terminate")))
-        .andExpect(method(HttpMethod.POST)).andRespond(withStatus(HttpStatus.OK));
-
+    mockServer
+        .expect(times(1), requestTo(containsString("controller/workflow/terminate")))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(withStatus(HttpStatus.OK));
   }
 
   @Override
   protected void getTestCaseData(Map<String, List<String>> data) {
     data.put("flow_workflows", Arrays.asList("tests/scenarios/custom/custom-workflow.json"));
-    data.put("flow_workflows_revisions",
-        Arrays.asList("tests/scenarios/custom/custom-revision1.json"));
+    data.put(
+        "flow_workflows_revisions", Arrays.asList("tests/scenarios/custom/custom-revision1.json"));
   }
 }

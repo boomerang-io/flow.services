@@ -11,18 +11,18 @@ between objects, authentication and authorisation, scheduling engine and so on.
 The [Engine service](./service-engine) is the backbone providing the execution of the workflows as Directed Acyclic
 Graphs (DAGs).
 
-The [Handler service](./service-handler) is the service that listens to events and executes the appropriate tasks. The
-Handler that comes with Boomerang Flow by default is the Tekon Handler and executes the Tasks using Tekton on
-Kubernetes. Additional implementations can be added, such as running tasks on IBM Code Engine or Azure Container Apps,
-etc
+The [Agent service](./service-agent) is the service that connects to the Engine and retrieves and executes the
+appropriate filtered Workflows and Tasks. The Agent that comes by default is the Tekton Agent and
+executes the Tasks using Tekton on Kubernetes. Additional implementations can be added, such as IBM
+Code Engine, Azure Container Apps, etc
 
 ```mermaid
 graph LR
     A[External Requests] -->|HTTP| B[Flow Service]
     B -->|HTTP| C[Engine Service]
-    C -->|Events| D[Handler 1]
-    C -->|Events| E[Handler 2]
-    C -->|Events| F[Handler n]
+    D[Agent 1] -->|Events| C
+    E[Agent 2] -->|Events| C
+    F[Agent n] -->|Events| C
 ```
 
 ## v3 to v4 Change Log

@@ -2,6 +2,8 @@ package io.boomerang.common.enums;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /*
  * TaskTypes map to Tasks and also determine the logic gates for TaskExecution.
@@ -29,21 +31,28 @@ public enum TaskType {
   setwfstatus("setwfstatus"),
   sleep("sleep"); // NOSONAR
 
-  private String type;
+  private String label;
 
-  TaskType(String type) {
-    this.type = type;
+  TaskType(String label) {
+    this.label = label;
   }
 
   @JsonValue
-  public String getType() {
-    return type;
+  public String getLabel() {
+    return label;
   }
 
-  public static TaskType getRunType(String type) {
+  public static TaskType getType(String type) {
     return Arrays.asList(TaskType.values()).stream()
-        .filter(value -> value.getType().equals(type))
+        .filter(value -> value.getLabel().equals(type))
         .findFirst()
         .orElse(null);
+  }
+
+  public static List<TaskType> convertToTaskTypeList(List<String> types) {
+    return types.stream()
+        .map(TaskType::getType) // Convert each String to TaskType
+        .filter(taskType -> taskType != null) // Exclude null values
+        .collect(Collectors.toList()); // Collect into a List<TaskType>
   }
 }

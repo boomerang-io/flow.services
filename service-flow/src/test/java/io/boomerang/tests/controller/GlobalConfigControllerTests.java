@@ -13,7 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import io.boomerang.workflow.GlobalParamController;
 import io.boomerang.misc.FlowTests;
-import io.boomerang.service.config.model.GlobalConfig;
+import io.boomerang.agent.config.model.GlobalConfig;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -22,8 +22,7 @@ import io.boomerang.service.config.model.GlobalConfig;
 @WithUserDetails("mdroy@us.ibm.com")
 public class GlobalConfigControllerTests extends FlowTests {
 
-  @Autowired
-  private GlobalParamController globalConfigController;
+  @Autowired private GlobalParamController globalConfigController;
 
   @Test
   public void testGlobalConfigUpdate() {
@@ -47,6 +46,5 @@ public class GlobalConfigControllerTests extends FlowTests {
     assertEquals("New Description", updatedConfig.getDescription());
 
     this.globalConfigController.deleteConfiguration(updatedConfig.getId());
-
   }
 }

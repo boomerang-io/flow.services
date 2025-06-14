@@ -18,12 +18,16 @@ import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Document(collection = "#{@mongoConfiguration.fullCollectionName('task_runs')}")
+@CompoundIndexes({@CompoundIndex(name = "status_phase_idx", def = "{'status': 1, 'phase': 1}")})
 public class TaskRunEntity {
 
   @Id private String id;
@@ -40,8 +44,8 @@ public class TaskRunEntity {
   private List<RunResult> results = new LinkedList<>();
   private List<TaskWorkspace> workspaces = new LinkedList<>();
   private TaskRunSpec spec = new TaskRunSpec();
-  private RunStatus status;
-  private RunPhase phase;
+  @Indexed private RunStatus status;
+  @Indexed private RunPhase phase;
   private String statusMessage;
   @JsonIgnore private boolean preApproved;
   @JsonIgnore private String decisionValue;

@@ -1,8 +1,8 @@
 package io.boomerang.scenarios;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.client.ExpectedCount.times;
@@ -10,6 +10,13 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+
+import io.boomerang.agent.refactor.TaskClient;
+import io.boomerang.tests.IntegrationTests;
+import io.boomerang.v3.mongo.model.TaskStatus;
+import io.boomerang.workflow.model.FlowActivity;
+import io.boomerang.workflow.model.FlowWebhookResponse;
+import io.boomerang.workflow.model.RequestFlowExecution;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -31,12 +38,6 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.client.MockRestServiceServer;
-import io.boomerang.workflow.model.FlowActivity;
-import io.boomerang.workflow.model.FlowWebhookResponse;
-import io.boomerang.workflow.model.RequestFlowExecution;
-import io.boomerang.service.refactor.TaskClient;
-import io.boomerang.tests.IntegrationTests;
-import io.boomerang.v3.mongo.model.TaskStatus;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -46,14 +47,13 @@ import io.boomerang.v3.mongo.model.TaskStatus;
 @Disabled
 public class RunWorkflowExecutionTest extends IntegrationTests {
 
-  @SpyBean
-  private TaskClient taskClient;
+  @SpyBean private TaskClient taskClient;
 
   @Test
   public void testExecution() throws Exception {
 
-
-    doReturn(null).when(taskClient)
+    doReturn(null)
+        .when(taskClient)
         .submitWebhookEvent(ArgumentMatchers.any(RequestFlowExecution.class));
 
     String workflowId = "603936f5c3a72a0d655fb337";
@@ -80,21 +80,26 @@ public class RunWorkflowExecutionTest extends IntegrationTests {
   public void setUp() throws IOException {
     super.setUp();
     mockServer = MockRestServiceServer.bindTo(this.restTemplate).ignoreExpectOrder(true).build();
-    mockServer.expect(times(1), requestTo(containsString("controller/workflow/execute")))
-        .andExpect(method(HttpMethod.POST)).andRespond(withStatus(HttpStatus.OK));
-    mockServer.expect(times(1), requestTo(containsString("internal/users/user")))
+    mockServer
+        .expect(times(1), requestTo(containsString("controller/workflow/execute")))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(withStatus(HttpStatus.OK));
+    mockServer
+        .expect(times(1), requestTo(containsString("internal/users/user")))
         .andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess(getMockFile("mock/users/users.json"), MediaType.APPLICATION_JSON));
-    mockServer.expect(times(1), requestTo(containsString("controller/workflow/terminate")))
-        .andExpect(method(HttpMethod.POST)).andRespond(withStatus(HttpStatus.OK));
+    mockServer
+        .expect(times(1), requestTo(containsString("controller/workflow/terminate")))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(withStatus(HttpStatus.OK));
   }
 
   @Override
   protected void getTestCaseData(Map<String, List<String>> data) {
-    data.put("flow_workflows",
-        Arrays.asList("tests/scenarios/runworkflow/runworkflow-workflow.json"));
-    data.put("flow_workflows_revisions",
+    data.put(
+        "flow_workflows", Arrays.asList("tests/scenarios/runworkflow/runworkflow-workflow.json"));
+    data.put(
+        "flow_workflows_revisions",
         Arrays.asList("tests/scenarios/runworkflow/runworkflow-revision.json"));
   }
-
 }
