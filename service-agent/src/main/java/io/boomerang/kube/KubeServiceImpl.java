@@ -46,7 +46,7 @@ public class KubeServiceImpl implements KubeService {
   @Value("${kube.task.ttlDays}")
   protected Integer kubeJobTTLDays;
 
-  @Value("${kube.worker.serviceaccount}")
+  @Value("${agent.tasks.serviceaccount}")
   protected String kubeJobServiceAccount;
 
   @Value("${kube.resource.limit.ephemeral-storage}")
@@ -64,7 +64,7 @@ public class KubeServiceImpl implements KubeService {
   @Value("${kube.task.storage.data.memory}")
   private Boolean kubeWorkerStorageDataMemory;
 
-  @Value("${kube.worker.hostaliases}")
+  @Value("${agent.tasks.hostaliases}")
   protected String kubeHostAliases;
 
   protected KubernetesClient client = null;

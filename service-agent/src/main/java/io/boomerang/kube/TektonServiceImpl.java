@@ -2,13 +2,13 @@ package io.boomerang.kube;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import io.boomerang.agent.WorkspaceService;
 import io.boomerang.common.model.RunParam;
 import io.boomerang.common.model.RunResult;
 import io.boomerang.common.model.TaskEnvVar;
 import io.boomerang.common.model.TaskWorkspace;
 import io.boomerang.error.BoomerangError;
 import io.boomerang.error.BoomerangException;
-import io.boomerang.agent.WorkspaceService;
 import io.fabric8.knative.internal.pkg.apis.Condition;
 import io.fabric8.kubernetes.api.model.ConfigMapProjection;
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
@@ -93,16 +93,16 @@ public class TektonServiceImpl implements TektonService {
   @Value("${kube.task.storage.data.memory}")
   private Boolean kubeTaskStorageDataMemory;
 
-  @Value("${kube.worker.serviceaccount}")
+  @Value("${agent.tasks.serviceaccount}")
   private String kubeWorkerServiceAccount;
 
-  @Value("${kube.worker.hostaliases}")
+  @Value("${agent.tasks.hostaliases}")
   private String kubeWorkerHostAliases;
 
-  @Value("#{${kube.worker.nodeselector}}")
+  @Value("#{${agent.tasks.nodeselector}}")
   private Map<String, String> kubeWorkerNodeSelector;
 
-  @Value("${kube.worker.tolerations}")
+  @Value("${agent.tasks.tolerations}")
   private String kubeWorkerTolerations;
 
   TektonClient client = null;

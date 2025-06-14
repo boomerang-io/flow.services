@@ -14,9 +14,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 @Component
-public class LogService {
+public class KubeLogService {
 
-  private static final Logger LOGGER = LogManager.getLogger(LogService.class);
+  private static final Logger LOGGER = LogManager.getLogger(KubeLogService.class);
 
   private static final int BYTE_SIZE = 1024;
 
@@ -24,7 +24,7 @@ public class LogService {
 
   KubernetesClient client = null;
 
-  public LogService(KubeHelperService helperKubeService) {
+  public KubeLogService(KubeHelperService helperKubeService) {
     this.helperKubeService = helperKubeService;
     this.client = new DefaultKubernetesClient();
   }

@@ -77,6 +77,16 @@ public class AgentService {
     return entity.getId();
   }
 
+  /**
+   * Retrieves the workflowruns and taskruns for the agent. This is a long poll endpoint.
+   *
+   * <p>TODO: figure out how to have multiple agents and adding locks to the workflowruns and
+   * taskruns so that they are not sent to multiple agents. Might have to move them to a different
+   * status?
+   *
+   * @param id
+   * @return
+   */
   public ResponseEntity<AgentQueueResponse> getQueue(String id) {
     // Validate the Agent
     if (!agentRepository.existsById(id)) {

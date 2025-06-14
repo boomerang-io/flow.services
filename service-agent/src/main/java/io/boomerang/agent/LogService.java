@@ -1,5 +1,6 @@
 package io.boomerang.agent;
 
+import io.boomerang.kube.KubeLogService;
 import io.boomerang.kube.exception.KubeRuntimeException;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
@@ -26,17 +27,17 @@ public class LogService {
 
   private static final Logger LOGGER = LogManager.getLogger(LogService.class);
 
-  @Value("${kube.worker.logging.type}")
+  @Value("${agent.logging.type}")
   protected String loggingType;
 
   @Autowired private MessageSource messageSource;
 
-  @Autowired private io.boomerang.kube.LogService logKubeService;
+  @Autowired private KubeLogService logKubeService;
 
-  @Value("${kube.worker.logging.host}")
+  @Value("${agent.logging.host}")
   protected String lokiHost;
 
-  @Value("${kube.worker.logging.port}")
+  @Value("${agent.logging.port}")
   protected String lokiPort;
 
   public String getLogForTask(String workflowRef, String workflowRunRef, String taskRunRef) {
