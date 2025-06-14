@@ -103,7 +103,7 @@ public class AgentService {
     // Long poll logic
     Instant endTime =
         Instant.now().plusMillis(MAX_POLL_INTERVAL); // Keep connection open for 30 seconds
-    LOGGER.debug("Starting long poll queue for agent: {} with task types: {}", id);
+    LOGGER.debug("Starting long poll queue for agent: {}", id);
     while (Instant.now().isBefore(endTime)) {
       LOGGER.debug("Checking queue for agent: {} with task types: {}", id, taskTypeStrings);
       try {
