@@ -56,7 +56,7 @@ public class TaskRunEntity {
   private Integer taskVersion;
   private String workflowRef;
   private String workflowRevisionRef;
-  private String workflowRunRef;
+  @Indexed private String workflowRunRef; // Indexed when retrieving task runs for a workflow run
   private String agentRef;
 
   @Override
