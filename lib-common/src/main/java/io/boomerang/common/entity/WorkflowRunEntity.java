@@ -43,6 +43,7 @@ public class WorkflowRunEntity {
   private boolean isAwaitingApproval;
   private String workflowRef;
   private String workflowRevisionRef;
+  private String agentRef;
   private String trigger;
   private String initiatedByRef;
   private List<RunParam> params = new LinkedList<>();

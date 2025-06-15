@@ -113,14 +113,20 @@ public class AgentService {
         // Stream, convert, and collect WorkflowRunEntity to WorkflowRun
         List<WorkflowRun> workflowRuns =
             wfRunRepository
-                .findByPhaseInAndStatusIn(List.of(RunPhase.pending), List.of(RunStatus.ready))
+                .findByPhaseInAndStatusInOrPhaseIn(
+                    List.of(RunPhase.pending),
+                    List.of(RunStatus.ready),
+                    List.of(RunPhase.completed))
                 .stream()
                 .map((e) -> entityToModel(e, WorkflowRun.class))
                 .collect(Collectors.toList());
-        workflowRuns.addAll(
-            wfRunRepository.findByPhase(RunPhase.completed).stream()
-                .map((e) -> entityToModel(e, WorkflowRun.class))
-                .collect(Collectors.toList()));
+        //        workflowRuns.addAll(
+        //            wfRunRepository.findByPhase(RunPhase.completed).stream()
+        //                .map((e) -> entityToModel(e, WorkflowRun.class))
+        //                .collect(Collectors.toList()));
+        // Update the WorkflowRuns so that they are assigned to the agent and set to queued phase
+        wfRunRepository.updatePhaseAndAgentRef(
+            List.of(RunPhase.pending), List.of(RunStatus.ready), agentId, RunPhase.queued);
 
         // Stream, convert, and collect TaskRuns that are ready
         List<TaskRun> taskRuns =

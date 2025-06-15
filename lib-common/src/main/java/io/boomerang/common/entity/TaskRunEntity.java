@@ -27,7 +27,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Document(collection = "#{@mongoConfiguration.fullCollectionName('task_runs')}")
-@CompoundIndexes({@CompoundIndex(name = "status_phase_idx", def = "{'status': 1, 'phase': 1}")})
+@CompoundIndexes({
+  @CompoundIndex(name = "status_phase_type_idx", def = "{'status': 1, 'phase': 1, 'type': 1}")
+})
 public class TaskRunEntity {
 
   @Id private String id;
