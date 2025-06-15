@@ -42,6 +42,7 @@ public class WorkflowRunEntity {
   private String statusMessage;
   private boolean isAwaitingApproval;
   private String workflowRef;
+  private Integer workflowVersion;
   private String workflowRevisionRef;
   private String agentRef;
   private String trigger;

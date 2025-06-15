@@ -6,7 +6,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.boomerang.common.entity.TaskRunEntity;
 import io.boomerang.common.entity.WorkflowEntity;
-import io.boomerang.common.entity.WorkflowRevisionEntity;
 import io.boomerang.common.entity.WorkflowRunEntity;
 import io.boomerang.common.enums.RunPhase;
 import io.boomerang.common.enums.RunStatus;
@@ -514,12 +513,6 @@ public class WorkflowRunService {
     if (optWorkflow.isPresent()) {
       wfRun.setWorkflowName(optWorkflow.get().getName());
       wfRun.setWorkflowDisplayName(optWorkflow.get().getDisplayName());
-    }
-    // Set WorkflowVersion
-    final Optional<WorkflowRevisionEntity> optWorkflowRevision =
-        workflowRevisionRepository.findById(wfRunEntity.getWorkflowRevisionRef());
-    if (optWorkflowRevision.isPresent()) {
-      wfRun.setWorkflowVersion(optWorkflowRevision.get().getVersion());
     }
     // Remove Annotations
     // TODO determine if this should be done elsewhere

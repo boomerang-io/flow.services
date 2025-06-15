@@ -503,6 +503,7 @@ public class WorkflowService {
     final WorkflowRunEntity wfRunEntity = new WorkflowRunEntity();
     wfRunEntity.setWorkflowRevisionRef(wfRevision.getId());
     wfRunEntity.setWorkflowRef(wfRevision.getWorkflowRef());
+    wfRunEntity.setWorkflowVersion(wfRevision.getVersion());
     wfRunEntity.setCreationDate(new Date());
     wfRunEntity.setStatus(RunStatus.notstarted);
     wfRunEntity.getLabels().putAll(workflow.getLabels());
