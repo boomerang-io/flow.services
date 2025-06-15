@@ -125,26 +125,21 @@ public class AgentService {
         // Stream, convert, and collect TaskRuns that are ready
         List<TaskRun> taskRuns =
             taskRunRepository
-                .findByPhaseInAndStatusInAndTypeInAndAssign(
-                    List.of(RunPhase.pending),
-                    List.of(RunStatus.ready),
-                    entity.getTaskTypes(),
-                    agentId,
-                    RunPhase.queued)
+                .findByPhaseInAndStatusInAndTypeIn(
+                    List.of(RunPhase.pending, RunPhase.completed),
+                    List.of(RunStatus.ready, RunStatus.cancelled, RunStatus.timedout),
+                    entity.getTaskTypes())
                 .stream()
                 .map((e) -> entityToModel(e, TaskRun.class))
                 .collect(Collectors.toList());
 
-        // Find TaskRuns to cancel
-        taskRuns.addAll(
-            taskRunRepository
-                .findByPhaseInAndStatusInAndTypeIn(
-                    List.of(RunPhase.completed),
-                    List.of(RunStatus.cancelled, RunStatus.timedout),
-                    entity.getTaskTypes())
-                .stream()
-                .map((e) -> entityToModel(e, TaskRun.class))
-                .collect(Collectors.toList()));
+        // Update the TaskRuns so that they are assigned to the agent and set to queued phase
+        taskRunRepository.updatePhaseAndAgentRef(
+            List.of(RunPhase.pending),
+            List.of(RunStatus.ready),
+            entity.getTaskTypes(),
+            agentId,
+            RunPhase.queued);
 
         LOGGER.debug(
             "Found {} WorkflowRuns and {} TaskRuns for Agent: {}",

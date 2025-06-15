@@ -26,7 +26,7 @@ public interface TaskRunRepository extends MongoRepository<TaskRunEntity, String
   @Query(
       "{ 'phase': { $in: ?0 }, 'status': { $in: ?1 }, 'type': { $in: ?2 } '$or': [ { 'agentRef': '' }, { 'agentRef': { '$exists': false } } ]}")
   @Update("{ '$set': { 'agentRef': ?3, 'phase': ?4} }")
-  List<TaskRunEntity> findByPhaseInAndStatusInAndTypeInAndAssign(
+  void updatePhaseAndAgentRef(
       List<RunPhase> phase,
       List<RunStatus> statuses,
       List<TaskType> types,
