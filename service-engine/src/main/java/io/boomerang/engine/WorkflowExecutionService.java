@@ -98,7 +98,7 @@ public class WorkflowExecutionService {
     // Check if Phase is valid.
     // Pending / Queued means it correctly came from queueTask() or Agent;
     if (!RunPhase.pending.equals(wfRunEntity.getPhase())
-        || !RunPhase.queued.equals(wfRunEntity.getPhase())) {
+        && !RunPhase.queued.equals(wfRunEntity.getPhase())) {
       throw new BoomerangException(
           BoomerangError.WORKFLOWRUN_INVALID_PHASE,
           wfRunEntity.getPhase(),

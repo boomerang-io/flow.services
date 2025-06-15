@@ -159,7 +159,7 @@ public class TaskExecutionService {
     // Check if Phase is valid.
     // Pending / Queued means it correctly came from queueTask() or Agent;
     if (!RunPhase.pending.equals(taskExecution.getPhase())
-        || !RunPhase.queued.equals(taskExecution.getPhase())) {
+        && !RunPhase.queued.equals(taskExecution.getPhase())) {
       LOGGER.debug("[{}] Task Phase / Status invalid.", taskExecutionId);
       return;
     }
