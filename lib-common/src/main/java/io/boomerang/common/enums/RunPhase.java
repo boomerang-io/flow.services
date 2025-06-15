@@ -1,9 +1,10 @@
 package io.boomerang.common.enums;
 
-import java.util.Arrays;
 import com.fasterxml.jackson.annotation.JsonValue;
+import java.util.Arrays;
 
 public enum RunPhase {
+  queued("queued"),
   pending("pending"),
   running("running"),
   completed("completed"),

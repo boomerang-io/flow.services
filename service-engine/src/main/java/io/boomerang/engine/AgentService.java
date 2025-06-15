@@ -80,23 +80,22 @@ public class AgentService {
   /**
    * Retrieves the workflowruns and taskruns for the agent. This is a long poll endpoint.
    *
-   * <p>TODO: figure out how to have multiple agents and adding locks to the workflowruns and
-   * taskruns so that they are not sent to multiple agents. Might have to move them to a different
-   * status?
+   * <p>TODO: figure out how to have multiple agents, probably a centralised lock, so no chance of
+   * collision in retrieving and assigning
    *
-   * @param id
+   * @param agentId
    * @return
    */
-  public ResponseEntity<AgentQueueResponse> getQueue(String id) {
+  public ResponseEntity<AgentQueueResponse> getQueue(String agentId) {
     // Validate the Agent
-    if (!agentRepository.existsById(id)) {
-      LOGGER.error("Agent {} not registered", id);
+    if (!agentRepository.existsById(agentId)) {
+      LOGGER.error("Agent {} not registered", agentId);
       throw new IllegalArgumentException("Agent ID does not exist or is not registered.");
     }
-    agentRepository.updateLastConnected(id, new Date());
-    AgentEntity entity = agentRepository.findTaskTypesByAgentId(id);
+    agentRepository.updateLastConnected(agentId, new Date());
+    AgentEntity entity = agentRepository.findTaskTypesByAgentId(agentId);
     if (entity != null && entity.getTaskTypes() != null && entity.getTaskTypes().isEmpty()) {
-      LOGGER.warn("Agent {} has no task types defined. Returning 204.", id);
+      LOGGER.warn("Agent {} has no task types defined. Returning 204.", agentId);
       return ResponseEntity.noContent().build();
     }
 
@@ -105,9 +104,10 @@ public class AgentService {
     // Long poll logic
     Instant endTime =
         Instant.now().plusMillis(MAX_POLL_INTERVAL); // Keep connection open for 30 seconds
-    LOGGER.debug("Starting long poll queue for agent: {}", id);
+    LOGGER.debug("Starting long poll queue for agent: {}", agentId);
     while (Instant.now().isBefore(endTime)) {
-      LOGGER.debug("Checking queue for agent: {} with task types: {}", id, entity.getTaskTypes());
+      LOGGER.debug(
+          "Checking queue for agent: {} with task types: {}", agentId, entity.getTaskTypes());
       try {
         // Retrieve workflows and tasks for the agent filtered as per agents capabilities
         // Stream, convert, and collect WorkflowRunEntity to WorkflowRun
@@ -122,33 +122,46 @@ public class AgentService {
                 .map((e) -> entityToModel(e, WorkflowRun.class))
                 .collect(Collectors.toList()));
 
-        // Stream, convert, and collect TaskRunEntity to TaskRun
+        // Stream, convert, and collect TaskRuns that are ready
         List<TaskRun> taskRuns =
             taskRunRepository
-                .findByPhaseInAndStatusInAndTypeIn(
-                    List.of(RunPhase.pending, RunPhase.completed),
-                    List.of(RunStatus.ready, RunStatus.cancelled, RunStatus.timedout),
+                .findByPhaseInAndStatusInAndTypeInAndAssign(
+                    List.of(RunPhase.pending),
+                    List.of(RunStatus.ready),
                     entity.getTaskTypes(),
-                    id)
+                    agentId,
+                    RunPhase.queued)
                 .stream()
                 .map((e) -> entityToModel(e, TaskRun.class))
                 .collect(Collectors.toList());
+
+        // Find TaskRuns to cancel
+        taskRuns.addAll(
+            taskRunRepository
+                .findByPhaseInAndStatusInAndTypeIn(
+                    List.of(RunPhase.completed),
+                    List.of(RunStatus.cancelled, RunStatus.timedout),
+                    entity.getTaskTypes())
+                .stream()
+                .map((e) -> entityToModel(e, TaskRun.class))
+                .collect(Collectors.toList()));
 
         LOGGER.debug(
             "Found {} WorkflowRuns and {} TaskRuns for Agent: {}",
             workflowRuns.size(),
             taskRuns.size(),
-            id);
+            agentId);
         if (workflowRuns.size() > 0 || taskRuns.size() > 0) {
           return ResponseEntity.ok(new AgentQueueResponse(workflowRuns, taskRuns));
         }
         // Sleep for a short interval before checking again
         Thread.sleep(MAX_SLEEP_INTERVAL);
       } catch (Exception e) {
-        LOGGER.error("Error retrieving workflows or tasks for agent {}: {}", id, e.getMessage());
+        LOGGER.error(
+            "Error retrieving workflows or tasks for agent {}: {}", agentId, e.getMessage());
       }
     }
-    LOGGER.debug("Ending long poll queue for agent: {}", id);
+    LOGGER.debug("Ending long poll queue for agent: {}", agentId);
     return ResponseEntity.noContent().build();
   }
 }

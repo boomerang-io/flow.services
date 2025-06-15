@@ -20,9 +20,16 @@ public interface TaskRunRepository extends MongoRepository<TaskRunEntity, String
 
   void deleteByWorkflowRunRef(String workflowRunRef);
 
+  List<TaskRunEntity> findByPhaseInAndStatusInAndTypeIn(
+      List<RunPhase> phase, List<RunStatus> statuses, List<TaskType> types);
+
   @Query(
       "{ 'phase': { $in: ?0 }, 'status': { $in: ?1 }, 'type': { $in: ?2 } '$or': [ { 'agentRef': '' }, { 'agentRef': { '$exists': false } } ]}")
-  @Update("{ '$set': { 'agentRef': ?3 } }")
-  List<TaskRunEntity> findByPhaseInAndStatusInAndTypeIn(
-      List<RunPhase> phase, List<RunStatus> statuses, List<TaskType> types, String agentRef);
+  @Update("{ '$set': { 'agentRef': ?3, 'phase': ?4} }")
+  List<TaskRunEntity> findByPhaseInAndStatusInAndTypeInAndAssign(
+      List<RunPhase> phase,
+      List<RunStatus> statuses,
+      List<TaskType> types,
+      String agentRef,
+      RunPhase phaseToSet);
 }
