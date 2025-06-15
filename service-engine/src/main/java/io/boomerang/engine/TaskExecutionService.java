@@ -156,9 +156,11 @@ public class TaskExecutionService {
     String taskExecutionId = taskExecution.getId();
     LOGGER.info("[{}] Recieved start task request.", taskExecutionId);
 
-    // Check if TaskRun Phase is valid. Pending means it correctly came from queueTask();
-    if (!RunPhase.pending.equals(taskExecution.getPhase())) {
-      LOGGER.debug("[{}] Task Status invalid.", taskExecutionId);
+    // Check if Phase is valid.
+    // Pending / Queued means it correctly came from queueTask() or Agent;
+    if (!RunPhase.pending.equals(taskExecution.getPhase())
+        || !RunPhase.queued.equals(taskExecution.getPhase())) {
+      LOGGER.debug("[{}] Task Phase / Status invalid.", taskExecutionId);
       return;
     }
 

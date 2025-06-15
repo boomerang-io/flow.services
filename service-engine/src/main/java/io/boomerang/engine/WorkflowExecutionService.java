@@ -94,12 +94,15 @@ public class WorkflowExecutionService {
 
   public CompletableFuture<Boolean> start(WorkflowRunEntity wfRunEntity) {
     LOGGER.debug("[{}] Received start WorkflowRun request.", wfRunEntity.getId());
-    // Check the WorkflowRun has been queued, throw if not
-    // Don't update the WorkflowRun status as this may cause a running WorkflowRun to be incorrectly
-    // changed.
-    if (!RunPhase.pending.equals(wfRunEntity.getPhase())) {
+
+    // Check if Phase is valid.
+    // Pending / Queued means it correctly came from queueTask() or Agent;
+    if (!RunPhase.pending.equals(wfRunEntity.getPhase())
+        || !RunPhase.queued.equals(wfRunEntity.getPhase())) {
       throw new BoomerangException(
-          BoomerangError.WORKFLOWRUN_INVALID_PHASE, wfRunEntity.getPhase(), RunPhase.pending);
+          BoomerangError.WORKFLOWRUN_INVALID_PHASE,
+          wfRunEntity.getPhase(),
+          RunPhase.pending + " or " + RunPhase.queued);
     }
     final List<TaskRunEntity> tasks = dagUtility.retrieveTaskList(wfRunEntity.getId());
     final TaskRunEntity start = dagUtility.getTaskByType(tasks, TaskType.start);
