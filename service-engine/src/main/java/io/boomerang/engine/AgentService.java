@@ -2,6 +2,7 @@ package io.boomerang.engine;
 
 import static io.boomerang.util.ConvertUtil.entityToModel;
 
+import io.boomerang.common.entity.TaskRunEntity;
 import io.boomerang.common.enums.RunPhase;
 import io.boomerang.common.enums.RunStatus;
 import io.boomerang.common.enums.TaskType;
@@ -123,13 +124,14 @@ public class AgentService {
                 .collect(Collectors.toList()));
 
         // Stream, convert, and collect TaskRunEntity to TaskRun
+        List<TaskRunEntity> taskRunEntities =
+            taskRunRepository.findByPhaseInAndStatusInAndTypeIn(
+                List.of(RunPhase.pending, RunPhase.completed),
+                List.of(RunStatus.ready, RunStatus.cancelled, RunStatus.timedout),
+                entity.getTaskTypes());
+        LOGGER.debug("Found {} task runs for agent: {}", taskRunEntities.size(), id);
         List<TaskRun> taskRuns =
-            taskRunRepository
-                .findByPhaseInAndStatusInAndTypeIn(
-                    List.of(RunPhase.pending, RunPhase.completed),
-                    List.of(RunStatus.ready, RunStatus.cancelled, RunStatus.timedout),
-                    entity.getTaskTypes())
-                .stream()
+            taskRunEntities.stream()
                 .map((e) -> entityToModel(e, TaskRun.class))
                 .collect(Collectors.toList());
         if (workflowRuns.size() > 0 || taskRuns.size() > 0) {

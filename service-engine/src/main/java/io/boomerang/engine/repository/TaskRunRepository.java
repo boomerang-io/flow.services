@@ -1,7 +1,6 @@
 package io.boomerang.engine.repository;
 
 import io.boomerang.common.entity.TaskRunEntity;
-import io.boomerang.common.entity.WorkflowRunEntity;
 import io.boomerang.common.enums.RunPhase;
 import io.boomerang.common.enums.RunStatus;
 import io.boomerang.common.enums.TaskType;
@@ -19,6 +18,6 @@ public interface TaskRunRepository extends MongoRepository<TaskRunEntity, String
 
   void deleteByWorkflowRunRef(String workflowRunRef);
 
-  List<WorkflowRunEntity> findByPhaseInAndStatusInAndTypeIn(
+  List<TaskRunEntity> findByPhaseInAndStatusInAndTypeIn(
       List<RunPhase> phase, List<RunStatus> statuses, List<TaskType> types);
 }
