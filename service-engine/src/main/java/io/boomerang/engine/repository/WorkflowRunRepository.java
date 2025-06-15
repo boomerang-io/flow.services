@@ -4,8 +4,6 @@ import io.boomerang.common.entity.WorkflowRunEntity;
 import io.boomerang.common.enums.RunPhase;
 import io.boomerang.common.enums.RunStatus;
 import java.util.List;
-
-import io.boomerang.common.enums.TaskType;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.mongodb.repository.Update;
@@ -22,7 +20,7 @@ public interface WorkflowRunRepository extends MongoRepository<WorkflowRunEntity
 
   @Query(
       "{ 'phase': { $in: ?0 }, 'status': { $in: ?1 }, '$or': [ { 'agentRef': '' }, { 'agentRef': { '$exists': false } } ]}")
-  @Update("{ '$set': { 'agentRef': ?3, 'phase': ?4} }")
+  @Update("{ '$set': { 'agentRef': ?2, 'phase': ?3} }")
   void updatePhaseAndAgentRef(
       List<RunPhase> phase, List<RunStatus> statuses, String agentRef, RunPhase phaseToSet);
 }
