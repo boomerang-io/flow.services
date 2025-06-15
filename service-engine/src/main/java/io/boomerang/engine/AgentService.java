@@ -94,18 +94,20 @@ public class AgentService {
       throw new IllegalArgumentException("Agent ID does not exist or is not registered.");
     }
     agentRepository.updateLastConnected(id, new Date());
-    List<String> taskTypeStrings = agentRepository.findTaskTypesByAgentId(id);
-    if (taskTypeStrings.isEmpty()) {
+    AgentEntity entity = agentRepository.findTaskTypesByAgentId(id);
+    if (entity != null && entity.getTaskTypes() != null && entity.getTaskTypes().isEmpty()) {
       LOGGER.warn("Agent {} has no task types defined. Returning 204.", id);
       return ResponseEntity.noContent().build();
     }
+
+    LOGGER.debug("Entity: {}", entity);
 
     // Long poll logic
     Instant endTime =
         Instant.now().plusMillis(MAX_POLL_INTERVAL); // Keep connection open for 30 seconds
     LOGGER.debug("Starting long poll queue for agent: {}", id);
     while (Instant.now().isBefore(endTime)) {
-      LOGGER.debug("Checking queue for agent: {} with task types: {}", id, taskTypeStrings);
+      LOGGER.debug("Checking queue for agent: {} with task types: {}", id, entity.getTaskTypes());
       try {
         // Retrieve workflows and tasks for the agent filtered as per agents capabilities
         // Stream, convert, and collect WorkflowRunEntity to WorkflowRun
@@ -126,7 +128,7 @@ public class AgentService {
                 .findByPhaseInAndStatusInAndTypeIn(
                     List.of(RunPhase.pending, RunPhase.completed),
                     List.of(RunStatus.ready, RunStatus.cancelled, RunStatus.timedout),
-                    TaskType.convertToTaskTypeList(taskTypeStrings))
+                    entity.getTaskTypes())
                 .stream()
                 .map((e) -> entityToModel(e, TaskRun.class))
                 .collect(Collectors.toList());
