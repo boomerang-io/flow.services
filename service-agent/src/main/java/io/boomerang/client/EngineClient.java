@@ -1,7 +1,7 @@
 package io.boomerang.client;
 
-import io.boomerang.common.model.*;
 import io.boomerang.agent.QueueService;
+import io.boomerang.common.model.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
@@ -25,7 +25,7 @@ public class EngineClient {
 
   private static final Logger LOGGER = LogManager.getLogger(EngineClient.class);
 
-  private static final Integer HEARTBEAT_INTERVAL = 5000; // milliseconds
+  private static final Integer HEARTBEAT_INTERVAL = 5000; // 5 seconds
 
   private String agentHost;
 

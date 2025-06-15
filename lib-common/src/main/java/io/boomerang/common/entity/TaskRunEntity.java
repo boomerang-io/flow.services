@@ -55,6 +55,7 @@ public class TaskRunEntity {
   private String workflowRef;
   private String workflowRevisionRef;
   private String workflowRunRef;
+  private String agentRef;
 
   @Override
   public String toString() {

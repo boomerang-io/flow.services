@@ -7,6 +7,8 @@ import io.boomerang.common.enums.TaskType;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.mongodb.repository.Update;
 
 public interface TaskRunRepository extends MongoRepository<TaskRunEntity, String> {
 
@@ -18,6 +20,9 @@ public interface TaskRunRepository extends MongoRepository<TaskRunEntity, String
 
   void deleteByWorkflowRunRef(String workflowRunRef);
 
+  @Query(
+      "{ 'phase': { $in: ?0 }, 'status': { $in: ?1 }, 'type': { $in: ?2 } '$or': [ { 'agentRef': '' }, { 'agentRef': { '$exists': false } } ]}")
+  @Update("{ '$set': { 'agentRef': ?3 } }")
   List<TaskRunEntity> findByPhaseInAndStatusInAndTypeIn(
-      List<RunPhase> phase, List<RunStatus> statuses, List<TaskType> types);
+      List<RunPhase> phase, List<RunStatus> statuses, List<TaskType> types, String agentRef);
 }
