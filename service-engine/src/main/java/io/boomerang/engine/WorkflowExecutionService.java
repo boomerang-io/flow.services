@@ -157,11 +157,14 @@ public class WorkflowExecutionService {
         // Check the WorkflowRun has been queued, throw if not
         // Don't update the WorkflowRun status as this may cause a running WorkflowRun to be
         // incorrectly changed.
-        if (!RunPhase.pending.equals(wfRunEntity.getPhase())) {
+        if (!RunPhase.pending.equals(wfRunEntity.getPhase())
+            && !RunPhase.queued.equals(wfRunEntity.getPhase())) {
           lockManager.releaseLock(wfRunId, lockId);
           LOGGER.info("[{}] Released WorkflowRun lock", wfRunId);
           throw new BoomerangException(
-              BoomerangError.WORKFLOWRUN_INVALID_PHASE, wfRunEntity.getPhase(), RunPhase.pending);
+              BoomerangError.WORKFLOWRUN_INVALID_PHASE,
+              wfRunEntity.getPhase(),
+              RunPhase.pending + " or " + RunPhase.queued);
         }
         // Set Workflow to Running (Status and Phase). From this point, the duration needs to be
         // calculated.
