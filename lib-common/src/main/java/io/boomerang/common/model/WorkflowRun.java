@@ -1,5 +1,7 @@
 package io.boomerang.common.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import io.boomerang.common.enums.RunPhase;
 import io.boomerang.common.enums.RunStatus;
@@ -30,6 +32,8 @@ import org.springframework.data.annotation.Id;
   "params",
   "tasks"
 })
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class WorkflowRun {
 
   @Id private String id;
