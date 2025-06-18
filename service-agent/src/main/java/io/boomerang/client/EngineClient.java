@@ -193,6 +193,8 @@ public class EngineClient {
         LOGGER.info("Received {} {}Runs.", runs.size(), isWorkflow ? "Workflow" : "Task");
         runs.forEach(
             run -> {
+              LOGGER.debug(
+                  "Processing {}Run: {}", isWorkflow ? "Workflow" : "Task", run.toString());
               if (isWorkflow) {
                 queueService.processWorkflowRun((WorkflowRun) run);
               } else {
