@@ -11,11 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -26,7 +22,7 @@ public class EngineClient {
 
   private static final Logger LOGGER = LogManager.getLogger(EngineClient.class);
 
-  private static final Integer HEARTBEAT_INTERVAL = 5000; // 5 seconds
+  private static final long HEARTBEAT_INTERVAL = 5000L; // 5 seconds
 
   private String agentHost;
 
@@ -180,6 +176,8 @@ public class EngineClient {
    * what it can achieve
    */
   private void retrieveAgentQueue(String url, boolean isWorkflow) {
+    LOGGER.info(
+        "Retrieving {}Runs Queue for Agent ({})", isWorkflow ? "Workflow" : "Task", agentId);
     try {
       ResponseEntity<?> response =
           restTemplate.exchange(
@@ -201,7 +199,7 @@ public class EngineClient {
                 queueService.processTaskRun((TaskRun) run);
               }
             });
-      } else if (response.getStatusCodeValue() == 204) {
+      } else if (response.getStatusCode().isSameCodeAs(HttpStatusCode.valueOf(204))) {
         LOGGER.debug("Queue returned 204 - No content.");
       }
     } catch (Exception e) {

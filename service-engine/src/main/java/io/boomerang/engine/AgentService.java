@@ -187,7 +187,7 @@ public class AgentService {
             agentId,
             RunPhase.queued);
 
-        LOGGER.debug("Found {} {} TaskRuns for Agent: {}", taskRuns.size(), agentId);
+        LOGGER.debug("Found {} TaskRuns for Agent: {}", taskRuns.size(), agentId);
         if (taskRuns.size() > 0) {
           return ResponseEntity.ok(taskRuns);
         }

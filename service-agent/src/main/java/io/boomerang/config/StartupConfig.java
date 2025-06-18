@@ -14,9 +14,5 @@ public class StartupConfig {
   public void init() {
     // Register Agent into the Engine
     engineClient.registerAgent();
-
-    // Start the check process
-    engineClient.retrieveAgentWorkflowQueue();
-    engineClient.retrieveAgentTaskQueue();
   }
 }

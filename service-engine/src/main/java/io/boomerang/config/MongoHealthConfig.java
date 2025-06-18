@@ -11,11 +11,11 @@ import org.springframework.stereotype.Component;
  * <p>management.health.mongo.enabled=false
  */
 @Component
-public class MongoHealthConfiguration implements HealthIndicator {
+public class MongoHealthConfig implements HealthIndicator {
 
   private final MongoTemplate mongoTemplate;
 
-  public MongoHealthConfiguration(MongoTemplate mongoTemplate) {
+  public MongoHealthConfig(MongoTemplate mongoTemplate) {
     this.mongoTemplate = mongoTemplate;
   }
 

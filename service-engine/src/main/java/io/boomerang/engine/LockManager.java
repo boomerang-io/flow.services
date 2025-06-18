@@ -1,5 +1,10 @@
 package io.boomerang.engine;
 
+import com.github.alturkovic.lock.exception.LockNotAvailableException;
+import com.github.alturkovic.lock.mongo.impl.SimpleMongoLock;
+import io.boomerang.config.MongoConfiguration;
+import io.boomerang.util.CosmosDBMongoLock;
+import io.boomerang.util.FlowMongoLock;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -11,11 +16,6 @@ import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
-import com.github.alturkovic.lock.exception.LockNotAvailableException;
-import com.github.alturkovic.lock.mongo.impl.SimpleMongoLock;
-import io.boomerang.config.MongoConfiguration;
-import io.boomerang.util.CosmosDBMongoLock;
-import io.boomerang.util.FlowMongoLock;
 
 @Service
 public class LockManager {
@@ -46,7 +46,7 @@ public class LockManager {
 
   /*
    * Lock used by the AcquireTask lock
-   * 
+   *
    * Allows a custom key and timeout. Backoff period is 5s
    */
   public String acquireLock(String key, Long timeout) {
@@ -55,8 +55,8 @@ public class LockManager {
 
     return this.acquireLock(keys, timeout, 5000l, Integer.MAX_VALUE);
   }
-  
-  /* 
+
+  /*
    * Release Lock
    */
   public void releaseLock(String key, String tokenId) {
@@ -67,16 +67,16 @@ public class LockManager {
 
   /*
    * Utilize the Distributed Lock library to acquire (and retry endlessly)
-   * 
+   *
    * - The RetriableLock requires a TTL index on the expiresAt field in the MongoCollection. This is
    * created by the Loader, if you do not use the loader, you will need to create manually.
-   * 
+   *
    * - Extended the SimpleMongoLock for Azure CosmosDB API for Mongo. This uses the timeout in
    * seconds.
-   * 
+   *
    * - Under the covers, the token is created from the String in the supplier which we set it to the
    * key.
-   * 
+   *
    */
   // private String acquireLock(List<String> keys, long timeout, long backOffPeriod,
   // Integer maxAttempts) {
@@ -109,10 +109,9 @@ public class LockManager {
   // return token;
   // }
 
-
-  //TODO - perform testing of the locks and if the above commented out code is needed
-  private String acquireLock(List<String> keys, long timeout, long backOffPeriod,
-      Integer maxAttempts) {
+  // TODO - perform testing of the locks and if the above commented out code is needed
+  private String acquireLock(
+      List<String> keys, long timeout, long backOffPeriod, Integer maxAttempts) {
     String storeId = mongoConfiguration.fullCollectionName(LOCKS_COLLECTION_NAME);
     // String token = "";
     if (keys != null) {
@@ -127,14 +126,16 @@ public class LockManager {
         // retryLock = new RetriableLock(mongoLock, retryTemplate);
         // token = retryLock.acquire(keys, storeId, timeout / 1000);
 
-        return retryTemplate.execute(ctx -> {
-          final boolean lockExists = mongoLock.exists(storeId, keys.get(0));
-          if (lockExists) {
-            throw new LockNotAvailableException(
-                String.format("Lock hasn't been released yet for: %s in store %s", keys, storeId));
-          }
-          return mongoLock.acquire(keys, storeId, timeout);
-        });
+        return retryTemplate.execute(
+            ctx -> {
+              final boolean lockExists = mongoLock.exists(storeId, keys.get(0));
+              if (lockExists) {
+                throw new LockNotAvailableException(
+                    String.format(
+                        "Lock hasn't been released yet for: %s in store %s", keys, storeId));
+              }
+              return mongoLock.acquire(keys, storeId, timeout);
+            });
       } else {
         FlowMongoLock mongoLock = new FlowMongoLock(supplier, this.mongoTemplate);
         // retryLock = new RetriableLock(mongoLock, retryTemplate);
@@ -153,14 +154,16 @@ public class LockManager {
         // return token;
         // });
 
-        return retryTemplate.execute(ctx -> {
-          final boolean lockExists = mongoLock.exists(storeId, keys.get(0));
-          if (lockExists) {
-            throw new LockNotAvailableException(
-                String.format("Lock hasn't been released yet for: %s in store %s", keys, storeId));
-          }
-          return mongoLock.acquire(keys, storeId, timeout);
-        });
+        return retryTemplate.execute(
+            ctx -> {
+              final boolean lockExists = mongoLock.exists(storeId, keys.get(0));
+              if (lockExists) {
+                throw new LockNotAvailableException(
+                    String.format(
+                        "Lock hasn't been released yet for: %s in store %s", keys, storeId));
+              }
+              return mongoLock.acquire(keys, storeId, timeout);
+            });
       }
     }
     // LOGGER.debug("Token: " + token);
@@ -185,7 +188,7 @@ public class LockManager {
 
   /*
    * Releases the lock
-   * 
+   *
    * - Under the covers, the token is the same as the key due to the suplier
    */
   private void releaseLock(List<String> keys, String tokenId) {

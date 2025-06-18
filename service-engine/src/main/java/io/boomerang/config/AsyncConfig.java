@@ -10,7 +10,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @Configuration
 @EnableAsync(proxyTargetClass = true)
-public class SpringAsyncConfig {
+public class AsyncConfig {
 
   private static final Logger LOGGER = LogManager.getLogger();
 
@@ -19,8 +19,10 @@ public class SpringAsyncConfig {
     int maxThreads = 200;
     int maxQueue = 100000;
 
-    LOGGER.info("Creating task executor service: (max concurrent threads: {}) (max queue: {})",
-        maxThreads, maxQueue);
+    LOGGER.info(
+        "Creating task executor service: (max concurrent threads: {}) (max queue: {})",
+        maxThreads,
+        maxQueue);
 
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setCorePoolSize(maxThreads);
@@ -31,14 +33,16 @@ public class SpringAsyncConfig {
     executor.initialize();
     return executor;
   }
-  
+
   @Bean(name = "asyncWorkflowExecutor")
   public Executor getWorkflowExecutor() {
     int maxThreads = 100;
     int maxQueue = 100000;
 
-    LOGGER.info("Creating workflow executor service: (max concurrent threads: {}) (max queue: {})",
-        maxThreads, maxQueue);
+    LOGGER.info(
+        "Creating workflow executor service: (max concurrent threads: {}) (max queue: {})",
+        maxThreads,
+        maxQueue);
 
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setCorePoolSize(maxThreads);
@@ -49,5 +53,4 @@ public class SpringAsyncConfig {
     executor.initialize();
     return executor;
   }
-
 }

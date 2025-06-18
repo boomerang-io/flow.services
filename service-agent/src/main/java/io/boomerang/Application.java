@@ -6,10 +6,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.context.annotation.Bean;
 import io.swagger.v3.oas.models.OpenAPI;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableAsync
 @SpringBootApplication
 @EnableAutoConfiguration
+@EnableScheduling
 public class Application {
 
   public static void main(String[] args) {
@@ -21,4 +23,3 @@ public class Application {
     return new OpenAPI();
   }
 }
-
