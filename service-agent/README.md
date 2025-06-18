@@ -1,16 +1,24 @@
-# Boomerang Handler Service
+# Boomerang Agent Service for Tekton
 
-This service handles and translates the Events from Workflow Service that go to TektonCD (Kubernetes). This is used by Boomerang CICD and Boomerang Flow.
+This service acts as a mechanism to execute tasks in a secure and highly performant way and connects to the Engine
+service to register and request a queue using a long poll mechanism.
 
-It uses the [Fabric8 Kubernetes Java Client](https://github.com/fabric8io/kubernetes-client) to interact with Kubernetes along with the Tekton extension to interact with the Tekton TaskRuns. When writing new controller integrations, it is recommended to look through the Kubernetes Client Docs to find the exact Client method to use and then look at the API code to see how it works for advance configurations such as the Watcher API.
+This specific agent is the Tekton agents, executing template, script, and custom tasks in a Kubernetes cluster using
+the [Fabric8 Kubernetes Java Client](https://github.com/fabric8io/kubernetes-client) to interact with Kubernetes
+along with the Tekton extension to interact with the Tekton TaskRuns. When writing new integrations, it is
+recommended to look through the Kubernetes Client Docs to find the exact Client method to use and then look at the API
+code to see how it works for advance configurations such as the Watcher API.
 
 ## Development
 
-When running the service locally you need access to a kubernetes API endpoint. This service is set up to use whatever the kubeconfig is pointing to.
+When running the service locally you need access to a kubernetes API endpoint. This service is set up to use whatever
+the kubeconfig is pointing to.
 
 ## RBAC
 
-The controller needs to run with special Kubernetes RBAC. Please see the helm charts [rbac-role-controller.yaml](https://github.com/boomerang-io/charts/blob/main/bmrg-flow/templates/rbac-role-controller.yaml) to see more about whats needed.
+The controller needs to run with special Kubernetes RBAC. Please see the helm
+charts [rbac-role-controller.yaml](https://github.com/boomerang-io/charts/blob/main/bmrg-flow/templates/rbac-role-controller.yaml)
+to see more about whats needed.
 
 ### Verification
 
@@ -19,6 +27,7 @@ The controller needs to run with special Kubernetes RBAC. Please see the helm ch
 ## References
 
 ### Fabric8 Kubernetes Java Client
+
 - [Client](https://github.com/fabric8io/kubernetes-client)
 - [Tekton extension](https://github.com/fabric8io/kubernetes-client/tree/master/extensions/tekton)
 - [Cheatsheet](https://github.com/fabric8io/kubernetes-client/blob/master/doc/CHEATSHEET.md)
@@ -26,14 +35,15 @@ The controller needs to run with special Kubernetes RBAC. Please see the helm ch
 - [Access Tekton Pipelines in Java using Fabric8 Tekton Client](https://itnext.io/access-tekton-pipelines-in-java-using-fabric8-tekton-client-bd727bd5806a)
 - [Difference between Fabric8 and Official Kubernetes Java Client](https://itnext.io/difference-between-fabric8-and-official-kubernetes-java-client-3e0a994fd4af)
 
-
 ### Kubernetes ConfigMap
 
 We currently use projected volumes however subpath was considered.
 
-- Projected Volumes: https://unofficial-kubernetes.readthedocs.io/en/latest/tasks/configure-pod-container/projected-volume/
+- Projected
+  Volumes: https://unofficial-kubernetes.readthedocs.io/en/latest/tasks/configure-pod-container/projected-volume/
 - Projected Volumes: https://docs.okd.io/latest/dev_guide/projected_volumes.html
-- Projected Volumes: https://stackoverflow.com/questions/49287078/how-to-merge-two-configmaps-using-volume-mount-in-kubernetes
+- Projected
+  Volumes: https://stackoverflow.com/questions/49287078/how-to-merge-two-configmaps-using-volume-mount-in-kubernetes
 - SubPath: https://blog.sebastian-daschner.com/entries/multiple-kubernetes-volumes-directory
 
 ### [Deprecated] Kubernetes Java Client
@@ -47,16 +57,20 @@ We currently use projected volumes however subpath was considered.
 
 ### Container States
 
-When monitoring the Job/Pod/Container there are additional error states in the waiting status that need to be accounted for
+When monitoring the Job/Pod/Container there are additional error states in the waiting status that need to be accounted
+for
 
 - https://stackoverflow.com/questions/57821723/list-of-all-reasons-for-container-states-in-kubernetes
 - https://github.com/kubernetes/kubernetes/blob/d24fe8a801748953a5c34fd34faa8005c6ad1770/pkg/kubelet/images/types.go
 
 ### Lifecycle Container Hooks
 
-The following code was written to interface with the container lifecycle hooks of postStart and preStop however there were two main issues:
+The following code was written to interface with the container lifecycle hooks of postStart and preStop however there
+were two main issues:
+
 1. no guarantee that postStart would execute before the main container code -> we went with an initContainer
-2. preStop was not executing on jobs when the pod didn't get sent a SIG as it completed successfully so was technically never terminated.
+2. preStop was not executing on jobs when the pod didn't get sent a SIG as it completed successfully so was technically
+   never terminated.
 
 ```
 V1Lifecycle lifecycle = new V1Lifecycle();
@@ -88,17 +102,21 @@ container.lifecycle(lifecycle);
 
 - Sidecar Containers in Jobs: https://github.com/kubernetes/kubernetes/issues/25908
 - Sidecar Containers in Jobs 2: https://stackoverflow.com/questions/36208211/sidecar-containers-in-kubernetes-jobs
-- Terminating a sidecar container: https://medium.com/@cotton_ori/how-to-terminate-a-side-car-container-in-kubernetes-job-2468f435ca99
+- Terminating a sidecar
+  container: https://medium.com/@cotton_ori/how-to-terminate-a-side-car-container-in-kubernetes-job-2468f435ca99
 - Sidecar Container Design Patterns: https://www.weave.works/blog/container-design-patterns-for-kubernetes/
-- KEP (Kubernetes Enhancement Proposal for Sidecars: https://github.com/kubernetes/enhancements/blob/master/keps/sig-apps/sidecarcontainers.md#upgrade--downgrade-strategy
+- KEP (Kubernetes Enhancement Proposal for
+  Sidecars: https://github.com/kubernetes/enhancements/blob/master/keps/sig-apps/sidecarcontainers.md#upgrade--downgrade-strategy
 - https://blog.bryantluk.com/post/2018/05/13/terminating-sidecar-containers-in-kubernetes-job-specs/
 
 ### Output Properties
+
 - Argo Variables: https://github.com/argoproj/argo/blob/master/docs/variables.md
 - Argo Output Parameters: https://github.com/argoproj/argo/blob/master/examples/README.md#output-parameters
 - Container Namespace Sharing: google it
 
 ### Process Namespace Sharing
+
 - https://github.com/kubernetes/kubernetes/issues/1615
 - https://github.com/kubernetes/enhancements/issues/495
 - https://kubernetes.io/docs/tasks/configure-pod-container/share-process-namespace/

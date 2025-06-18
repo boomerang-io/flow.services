@@ -5,7 +5,6 @@ import static io.boomerang.util.ConvertUtil.entityToModel;
 import io.boomerang.common.enums.RunPhase;
 import io.boomerang.common.enums.RunStatus;
 import io.boomerang.common.enums.TaskType;
-import io.boomerang.common.model.AgentQueueResponse;
 import io.boomerang.common.model.AgentRegistrationRequest;
 import io.boomerang.common.model.TaskRun;
 import io.boomerang.common.model.WorkflowRun;
@@ -86,7 +85,67 @@ public class AgentService {
    * @param agentId
    * @return
    */
-  public ResponseEntity<AgentQueueResponse> getQueue(String agentId) {
+  public ResponseEntity<List<WorkflowRun>> getWorkflowQueue(String agentId) {
+    // Validate the Agent
+    if (!agentRepository.existsById(agentId)) {
+      LOGGER.error("Agent {} not registered", agentId);
+      throw new IllegalArgumentException("Agent ID does not exist or is not registered.");
+    }
+    agentRepository.updateLastConnected(agentId, new Date());
+    // TODO add in future filtering of workflows based on labels or a setting
+    //    AgentEntity entity = agentRepository.findTaskTypesByAgentId(agentId);
+    //    if (entity != null && entity.getTaskTypes() != null && entity.getTaskTypes().isEmpty()) {
+    //      LOGGER.warn("Agent {} has no task types defined. Returning 204.", agentId);
+    //      return ResponseEntity.noContent().build();
+    //    }
+    //    LOGGER.debug("Entity: {}", entity);
+
+    // Long poll logic
+    Instant endTime = Instant.now().plusMillis(MAX_POLL_INTERVAL); // Keep connection open
+    LOGGER.debug("Starting long poll queue for agent: {}", agentId);
+    while (Instant.now().isBefore(endTime)) {
+      LOGGER.debug("Checking queue for agent: {}", agentId);
+      try {
+        // Retrieve workflows and tasks for the agent filtered as per agents capabilities
+        // Stream, convert, and collect WorkflowRunEntity to WorkflowRun
+        List<WorkflowRun> workflowRuns =
+            wfRunRepository
+                .findByPhaseInAndStatusInOrPhaseIn(
+                    List.of(RunPhase.pending),
+                    List.of(RunStatus.ready),
+                    List.of(RunPhase.completed))
+                .stream()
+                .map((e) -> entityToModel(e, WorkflowRun.class))
+                .collect(Collectors.toList());
+
+        // Update the WorkflowRuns so that they are assigned to the agent and set to queued phase
+        wfRunRepository.updatePhaseAndAgentRef(
+            List.of(RunPhase.pending), List.of(RunStatus.ready), agentId, RunPhase.queued);
+
+        LOGGER.debug("Found {} WorkflowRuns for Agent: {}", workflowRuns.size(), agentId);
+        if (workflowRuns.size() > 0) {
+          return ResponseEntity.ok(workflowRuns);
+        }
+        // Sleep for a short interval before checking again
+        Thread.sleep(MAX_SLEEP_INTERVAL);
+      } catch (Exception e) {
+        LOGGER.error("Error retrieving workflows for agent {}: {}", agentId, e.getMessage());
+      }
+    }
+    LOGGER.debug("Ending long poll queue for agent: {}", agentId);
+    return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * Retrieves the workflowruns and taskruns for the agent. This is a long poll endpoint.
+   *
+   * <p>TODO: figure out how to have multiple agents, probably a centralised lock, so no chance of
+   * collision in retrieving and assigning
+   *
+   * @param agentId
+   * @return
+   */
+  public ResponseEntity<List<TaskRun>> getTaskQueue(String agentId) {
     // Validate the Agent
     if (!agentRepository.existsById(agentId)) {
       LOGGER.error("Agent {} not registered", agentId);
@@ -109,25 +168,6 @@ public class AgentService {
       LOGGER.debug(
           "Checking queue for agent: {} with task types: {}", agentId, entity.getTaskTypes());
       try {
-        // Retrieve workflows and tasks for the agent filtered as per agents capabilities
-        // Stream, convert, and collect WorkflowRunEntity to WorkflowRun
-        List<WorkflowRun> workflowRuns =
-            wfRunRepository
-                .findByPhaseInAndStatusInOrPhaseIn(
-                    List.of(RunPhase.pending),
-                    List.of(RunStatus.ready),
-                    List.of(RunPhase.completed))
-                .stream()
-                .map((e) -> entityToModel(e, WorkflowRun.class))
-                .collect(Collectors.toList());
-        //        workflowRuns.addAll(
-        //            wfRunRepository.findByPhase(RunPhase.completed).stream()
-        //                .map((e) -> entityToModel(e, WorkflowRun.class))
-        //                .collect(Collectors.toList()));
-        // Update the WorkflowRuns so that they are assigned to the agent and set to queued phase
-        wfRunRepository.updatePhaseAndAgentRef(
-            List.of(RunPhase.pending), List.of(RunStatus.ready), agentId, RunPhase.queued);
-
         // Stream, convert, and collect TaskRuns that are ready
         List<TaskRun> taskRuns =
             taskRunRepository
@@ -147,19 +187,14 @@ public class AgentService {
             agentId,
             RunPhase.queued);
 
-        LOGGER.debug(
-            "Found {} WorkflowRuns and {} TaskRuns for Agent: {}",
-            workflowRuns.size(),
-            taskRuns.size(),
-            agentId);
-        if (workflowRuns.size() > 0 || taskRuns.size() > 0) {
-          return ResponseEntity.ok(new AgentQueueResponse(workflowRuns, taskRuns));
+        LOGGER.debug("Found {} {} TaskRuns for Agent: {}", taskRuns.size(), agentId);
+        if (taskRuns.size() > 0) {
+          return ResponseEntity.ok(taskRuns);
         }
         // Sleep for a short interval before checking again
         Thread.sleep(MAX_SLEEP_INTERVAL);
       } catch (Exception e) {
-        LOGGER.error(
-            "Error retrieving workflows or tasks for agent {}: {}", agentId, e.getMessage());
+        LOGGER.error("Error retrieving tasks for agent {}: {}", agentId, e.getMessage());
       }
     }
     LOGGER.debug("Ending long poll queue for agent: {}", agentId);

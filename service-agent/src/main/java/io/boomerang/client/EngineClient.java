@@ -10,12 +10,13 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -46,8 +47,11 @@ public class EngineClient {
   @Value("${flow.engine.agent.register.url}")
   private String agentRegisterURL;
 
-  @Value("${flow.engine.agent.queue.url}")
-  private String agentQueueURL;
+  @Value("${flow.engine.agent.taskqueue.url}")
+  private String agentQueueWorkflowURL;
+
+  @Value("${flow.engine.agent.workflowqueue.url}")
+  private String agentQueueTaskURL;
 
   @Value("${flow.agent.task-types}")
   private List<String> taskTypes;
@@ -153,9 +157,20 @@ public class EngineClient {
     }
   }
 
+  @Scheduled(fixedDelay = HEARTBEAT_INTERVAL)
+  public void retrieveAgentWorkflowQueue() {
+    String url = agentQueueWorkflowURL.replace("{agentId}", agentId);
+    retrieveAgentQueue(url, true);
+  }
+
+  @Scheduled(fixedDelay = HEARTBEAT_INTERVAL)
+  public void retrieveAgentTaskQueue() {
+    String url = agentQueueTaskURL.replace("{agentId}", agentId);
+    retrieveAgentQueue(url, false);
+  }
+
   /**
-   * Implements a heartbeat style workflows check. This should be run in a background thread and
-   * handle failure
+   * Implements a heartbeat style queue check
    *
    * <p>200 means there are workflow runs available
    *
@@ -163,43 +178,34 @@ public class EngineClient {
    *
    * <p>TODO in the future optimise the Async to have a LinkedBlockingQueue with maximum size of
    * what it can achieve
-   *
-   * <p>TODO: Separate the queues so that WorkflowRuns and TaskRuns are processed independently
    */
-  @Async
-  public void retrieveAgentQueue() {
-    String url = agentQueueURL.replace("{agentId}", agentId);
-    while (true) {
-      try {
-        ResponseEntity<AgentQueueResponse> response =
-            restTemplate.getForEntity(url, AgentQueueResponse.class);
-        if (response.getStatusCode().is2xxSuccessful()) {
-          if (response.getBody() != null && !response.getBody().getWorkflowRuns().isEmpty()) {
-            List<WorkflowRun> workflowRuns = response.getBody().getWorkflowRuns();
-            LOGGER.info("Received {} WorkflowRuns.", workflowRuns.size());
-            workflowRuns.forEach((workflowRun) -> queueService.processWorkflowRun(workflowRun));
-          } else {
-            LOGGER.debug("No WorkflowRuns available.");
-          }
-          if (response.getBody() != null && !response.getBody().getTaskRuns().isEmpty()) {
-            List<TaskRun> taskRuns = response.getBody().getTaskRuns();
-            LOGGER.info("Received {} TaskRuns.", taskRuns.size());
-            taskRuns.forEach((taskRun) -> queueService.processTaskRun(taskRun));
-          } else {
-            LOGGER.debug("No TaskRuns available.");
-          }
-        } else if (response.getStatusCodeValue() == 204) {
-          LOGGER.debug("Queue returned 204 - No content.");
-        }
-      } catch (Exception e) {
-        LOGGER.warn("Error retrieving queue: {}", e.getMessage());
+  private void retrieveAgentQueue(String url, boolean isWorkflow) {
+    try {
+      ResponseEntity<?> response =
+          restTemplate.exchange(
+              url,
+              HttpMethod.GET,
+              null,
+              (ParameterizedTypeReference<? extends List<?>>)
+                  (isWorkflow
+                      ? new ParameterizedTypeReference<List<WorkflowRun>>() {}
+                      : new ParameterizedTypeReference<List<TaskRun>>() {}));
+      if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+        List<?> runs = (List<?>) response.getBody();
+        LOGGER.info("Received {} {}Runs.", runs.size(), isWorkflow ? "Workflow" : "Task");
+        runs.forEach(
+            run -> {
+              if (isWorkflow) {
+                queueService.processWorkflowRun((WorkflowRun) run);
+              } else {
+                queueService.processTaskRun((TaskRun) run);
+              }
+            });
+      } else if (response.getStatusCodeValue() == 204) {
+        LOGGER.debug("Queue returned 204 - No content.");
       }
-      try {
-        Thread.sleep(HEARTBEAT_INTERVAL); // Heartbeat interval
-      } catch (InterruptedException e) {
-        LOGGER.error("Error sleeping queue check: {}", e.getMessage());
-        Thread.currentThread().interrupt();
-      }
+    } catch (Exception e) {
+      LOGGER.warn("Error retrieving queue: {}", e.getMessage());
     }
   }
 }
