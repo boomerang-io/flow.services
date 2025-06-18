@@ -17,7 +17,7 @@ public class TaskRunService {
 
   private static final Logger LOGGER = LogManager.getLogger();
 
-  @Value("${flow.hanlder.streamlogs.url}")
+  @Value("${flow.agent.streamlogs.url}")
   private String getStreamDownloadPath;
 
   private final RestTemplate restTemplate;
