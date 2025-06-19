@@ -43,10 +43,10 @@ public class EngineClient {
   @Value("${flow.engine.agent.register.url}")
   private String agentRegisterURL;
 
-  @Value("${flow.engine.agent.taskqueue.url}")
+  @Value("${flow.engine.agent.workflowqueue.url}")
   private String agentQueueWorkflowURL;
 
-  @Value("${flow.engine.agent.workflowqueue.url}")
+  @Value("${flow.engine.agent.taskqueue.url}")
   private String agentQueueTaskURL;
 
   @Value("${flow.agent.task-types}")
