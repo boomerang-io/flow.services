@@ -127,11 +127,12 @@ public class ParameterManager {
   private void buildContextParams(Map<String, Object> contextParams, Workflow workflow) {
     contextParams.put("workflowrun-trigger", "");
     contextParams.put("workflowrun-initiator", "");
-    contextParams.put("workflowrun-id", "");
+    contextParams.put("workflowrun-ref", "");
     contextParams.put("workflow-name", workflow.getName());
-    contextParams.put("workflow-id", workflow.getId());
+    contextParams.put("workflow-displayname", workflow.getDisplayName());
+    contextParams.put("workflow-ref", workflow.getId());
     contextParams.put("workflow-version", workflow.getVersion());
-    contextParams.put("taskrun-id", "");
+    contextParams.put("taskrun-ref", "");
     contextParams.put("taskrun-name", "");
     contextParams.put("taskrun-type", "");
     contextParams.put("webhook-url", this.settingsService.getWebhookURL());

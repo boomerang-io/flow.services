@@ -149,9 +149,9 @@ public class ParameterManager {
         Objects.isNull(wfRun.getInitiatedByRef()) || wfRun.getInitiatedByRef().isBlank()
             ? ""
             : wfRun.getInitiatedByRef());
-    contextParams.put("workflowrun-id", wfRun.getId());
+    contextParams.put("workflowrun-ref", wfRun.getId());
     if (optTaskRun.isPresent()) {
-      contextParams.put("taskrun-id", optTaskRun.get().getId());
+      contextParams.put("taskrun-ref", optTaskRun.get().getId());
       contextParams.put("taskrun-name", optTaskRun.get().getName());
       contextParams.put("taskrun-type", optTaskRun.get().getType());
     }
