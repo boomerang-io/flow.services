@@ -176,7 +176,7 @@ public class AgentService {
                     List.of(RunStatus.ready, RunStatus.cancelled, RunStatus.timedout),
                     entity.getTaskTypes())
                 .stream()
-                .map((e) -> entityToModel(e, TaskRun.class))
+                .map((e) -> new TaskRun(e))
                 .collect(Collectors.toList());
 
         taskRuns.forEach(tr -> LOGGER.debug("TaskRun: {}", tr));
