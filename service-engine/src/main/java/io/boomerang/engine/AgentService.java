@@ -179,6 +179,8 @@ public class AgentService {
                 .map((e) -> entityToModel(e, TaskRun.class))
                 .collect(Collectors.toList());
 
+        taskRuns.forEach(tr -> LOGGER.debug("TaskRun: {}", tr));
+
         // Update the TaskRuns so that they are assigned to the agent and set to queued phase
         taskRunRepository.updatePhaseAndAgentRef(
             List.of(RunPhase.pending),
