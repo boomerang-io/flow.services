@@ -68,6 +68,16 @@
 				<artifactId>spring-security-crypto</artifactId>
 				<version>6.3.8</version>
 			</dependency>
+			<dependency>
+				<groupId>org.apache.tomcat.embed</groupId>
+				<artifactId>tomcat-embed-core</artifactId>
+				<version>10.1.42</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-web</artifactId>
+				<version>6.2.8</version>
+			</dependency>
 
 		</dependencies>
 	</dependencyManagement>
