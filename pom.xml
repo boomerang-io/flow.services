@@ -303,6 +303,11 @@
 			<version>5.2</version>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.httpcomponents.core5</groupId>
+			<artifactId>httpcore5-h2</artifactId>
+			<version>5.2</version>
+		</dependency>
+		<dependency>
 			<groupId>io.boomerang</groupId>
 			<artifactId>lib-eventing</artifactId>
 			<version>0.2.5</version>
