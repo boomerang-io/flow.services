@@ -1,20 +1,22 @@
 package io.boomerang.common.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import io.boomerang.common.enums.WorkflowScheduleStatus;
+import io.boomerang.common.enums.WorkflowScheduleType;
+import io.boomerang.common.model.RunParam;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 import lombok.Data;
+import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import io.boomerang.common.model.RunParam;
-import io.boomerang.common.enums.WorkflowScheduleStatus;
-import io.boomerang.common.enums.WorkflowScheduleType;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -22,8 +24,13 @@ import io.boomerang.common.enums.WorkflowScheduleType;
 @Document(collection = "#{@mongoConfiguration.fullCollectionName('workflow_schedules')}")
 public class WorkflowScheduleEntity {
 
-  private String id;
+  @Id
+  private String id =
+      new ObjectId()
+          .toString(); // created by default as its passed to JobRunr and needed prior to saving
+
   private String workflowRef;
+  @Indexed private String schedulerRef;
   private String name;
   private String description;
 

@@ -3,14 +3,15 @@ package io.boomerang.core.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import io.boomerang.core.model.UserSettings;
 import io.boomerang.core.enums.UserStatus;
 import io.boomerang.core.enums.UserType;
+import io.boomerang.core.model.UserSettings;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
@@ -20,6 +21,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class UserEntity {
 
   @Id private String id;
+  @Indexed
   private String email;
   private String name;
   private String displayName;

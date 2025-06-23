@@ -343,8 +343,9 @@ public class RelationshipService {
     String from = identity.getPrincipal();
 
     // Check for special cases first
-    // All users have access to all tasks
     if (toType.equals(RelationshipType.TASK)) {
+      LOGGER.warn("Special case for Tasks available to all users");
+      // All users have access to all tasks
       fromType = RelationshipType.ROOT;
       from = "root";
       //    } else if (toType.equals(RelationshipType.TEAM)
@@ -362,6 +363,16 @@ public class RelationshipService {
           break;
         case workflow:
           fromType = RelationshipType.WORKFLOW;
+          if (fromType.equals(toType)
+              && toRefsOrSlugs.isPresent()
+              && toRefsOrSlugs.get().contains(from)) {
+            LOGGER.warn("Special case for Workflow Tokens trying to access itself");
+            // Special case for Workflow Tokens trying to access itself i.e. workflow -> team ->
+            // workflow
+            toRefsOrSlugs = Optional.of(List.of(from));
+            fromType = RelationshipType.ROOT;
+            from = "root";
+          }
           break;
         case team:
           fromType = RelationshipType.TEAM;

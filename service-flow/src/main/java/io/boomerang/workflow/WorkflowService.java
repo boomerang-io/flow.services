@@ -389,7 +389,9 @@ public class WorkflowService {
 
         // Update Schedule Triggers
         updateScheduleTriggers(
-            workflow, this.get(team, workflow.getName(), Optional.empty(), false).getTriggers());
+            team,
+            workflow,
+            this.get(team, workflow.getName(), Optional.empty(), false).getTriggers());
 
         // Default Triggers
         validateTriggerDefaults(workflow);
@@ -723,7 +725,8 @@ public class WorkflowService {
   /*
    * Determine if Schedules need to be disabled based on triggers
    */
-  private void updateScheduleTriggers(final Workflow request, WorkflowTrigger currentTriggers) {
+  private void updateScheduleTriggers(
+      final String team, final Workflow request, WorkflowTrigger currentTriggers) {
     if (!Objects.isNull(request.getTriggers())
         && !Objects.isNull(request.getTriggers().getSchedule())
         && !Objects.isNull(currentTriggers)
@@ -731,9 +734,9 @@ public class WorkflowService {
       boolean currentSchedulerEnabled = currentTriggers.getSchedule().getEnabled();
       boolean requestSchedulerEnabled = request.getTriggers().getSchedule().getEnabled();
       if (currentSchedulerEnabled != false && requestSchedulerEnabled == false) {
-        scheduleService.disableAllTriggerSchedules(request.getId());
+        scheduleService.disableAllTriggerSchedules(team, request.getId());
       } else if (currentSchedulerEnabled == false && requestSchedulerEnabled == true) {
-        scheduleService.enableAllTriggerSchedules(request.getId());
+        scheduleService.enableAllTriggerSchedules(team, request.getId());
       }
     }
   }

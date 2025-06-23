@@ -180,11 +180,6 @@
             <version>9.40</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.httpcomponents.client5</groupId>
-            <artifactId>httpclient5</artifactId>
-            <version>5.2</version>
-        </dependency>
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.36</version>
@@ -213,6 +208,11 @@
             <groupId>com.spotify</groupId>
             <artifactId>github-client</artifactId>
             <version>0.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jobrunr</groupId>
+            <artifactId>jobrunr-spring-boot-3-starter</artifactId>
+            <version>7.4.1</version>
         </dependency>
     </dependencies>
     <build>

@@ -30,8 +30,8 @@ public class CronService {
       parser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.CRON4J));
       try {
         Cron cron = parser.parse(cronString);
-        CronMapper quartzMapper = CronMapper.fromCron4jToQuartz();
-        Cron quartzCron = quartzMapper.map(cron);
+        CronMapper cronMapper = CronMapper.fromCron4jToQuartz();
+        Cron quartzCron = cronMapper.map(cron);
         cronString = quartzCron.asString();
         response.setCron(cronString);
         response.setValid(true);
