@@ -50,16 +50,12 @@ reliable event consumption and scheduled job execution.
 
 This service listen and consumes CloudEvents.
 
-### Quartz
+### Scheduled Jobs via JobRunr
 
-The Java Quartz library is used for running scheduled jobs via mongoDB and underpins the Schedule trigger.
+> Note: we migrated from Quartz MongoDB in V4 due to the project no longer being maintained. The jobs do not fire as accurately with an up to 5 second difference from schedule
 
-The following links will help provide guidance in development
-
-- http://www.quartz-scheduler.org/documentation/quartz-2.2.2/tutorials/tutorial-lesson-04.html
-- http://www.quartz-scheduler.org/documentation/2.4.0-SNAPSHOT/cookbook/UpdateTrigger.html
-- https://github.com/StackAbuse/spring-boot-quartz/blob/master/src/main/java/com/stackabuse/service/SchedulerJobService.java
-- https://stackabuse.com/guide-to-quartz-with-spring-boot-job-scheduling-and-automation/
+- https://www.jobrunr.io/en/
+- https://www.jobrunr.io/en/documentation/pro/real-time-scheduling/
 
 ## Packaging
 
