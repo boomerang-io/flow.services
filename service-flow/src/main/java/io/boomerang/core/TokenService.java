@@ -1,6 +1,8 @@
 package io.boomerang.core;
 
 import io.boomerang.common.entity.ActionEntity;
+import io.boomerang.common.error.BoomerangError;
+import io.boomerang.common.error.BoomerangException;
 import io.boomerang.core.entity.TokenEntity;
 import io.boomerang.core.entity.UserEntity;
 import io.boomerang.core.enums.RelationshipLabel;
@@ -11,8 +13,6 @@ import io.boomerang.core.enums.UserType;
 import io.boomerang.core.model.*;
 import io.boomerang.core.repository.RoleRepository;
 import io.boomerang.core.repository.TokenRepository;
-import io.boomerang.error.BoomerangError;
-import io.boomerang.error.BoomerangException;
 import io.boomerang.security.enums.AuthScope;
 import io.boomerang.security.enums.PermissionResource;
 import java.io.UnsupportedEncodingException;
@@ -287,7 +287,9 @@ public class TokenService {
 
     Page<Token> pages =
         PageableExecutionUtils.getPage(
-            response, pageable, () -> mongoTemplate.count(query, ActionEntity.class));
+            response,
+            pageable,
+            () -> mongoTemplate.count(new Query(allCriteria), ActionEntity.class));
 
     return pages;
   }

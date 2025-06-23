@@ -16,20 +16,20 @@ import org.springframework.data.mongodb.core.mapping.Document;
 /*
  * For now the Audit object is only that an action occurred.
  *
- * FUTURE: could include a previous and next elements of the objects themselves
+ * TODO (future): could include a previous and next elements of the objects themselves
  */
 @Data
 @JsonInclude(Include.NON_NULL)
 @Document(collection = "#{@mongoConfiguration.fullCollectionName('audit')}")
 public class AuditEntity {
   @Id private String id;
-  @Indexed private AuditScope scope;
+  @Indexed private AuditResource scope;
 
   @Indexed
   private String selfRef; // Reference to its own object in the DB (won't exist once deleted)
 
-  @Indexed private String selfName;
-  @Indexed private String parent; // Reference to the parent audit object
+  @Indexed private String selfLabel;
+  @Indexed private String parentRef; // Reference to the parent audit object
   private Date creationDate = new Date();
   private List<AuditEvent> events = new LinkedList<>();
   private Map<String, String> data = new HashMap<>();
@@ -39,7 +39,7 @@ public class AuditEntity {
   }
 
   public AuditEntity(
-      AuditScope scope,
+      AuditResource scope,
       String selfRef,
       Optional<String> selfName,
       Optional<String> parent,
@@ -48,11 +48,11 @@ public class AuditEntity {
     this.scope = scope;
     this.selfRef = selfRef;
     if (selfName.isPresent()) {
-      this.selfName = selfName.get();
+      this.selfLabel = selfName.get();
     }
     if (parent.isPresent()) {
       //      this.parent = new ObjectId(parent.get());
-      this.parent = parent.get();
+      this.parentRef = parent.get();
     }
     this.events.add(event);
     if (data.isPresent()) {
@@ -69,9 +69,9 @@ public class AuditEntity {
         + ", selfRef="
         + selfRef
         + ", selfName="
-        + selfName
+        + selfLabel
         + ", parent="
-        + parent
+        + parentRef
         + ", creationDate="
         + creationDate
         + ", events="

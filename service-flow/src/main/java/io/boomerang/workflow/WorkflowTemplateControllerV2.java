@@ -1,7 +1,5 @@
 package io.boomerang.workflow;
 
-import io.boomerang.client.EngineClient;
-import io.boomerang.client.WorkflowTemplateResponsePage;
 import io.boomerang.common.model.WorkflowTemplate;
 import io.boomerang.security.AuthCriteria;
 import io.boomerang.security.enums.AuthScope;
@@ -14,8 +12,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort.Direction;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,13 +26,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v2/workflowtemplate")
-@Tag(name = "Workflow Templates", description = "Create, List, and Manage your Workflows.")
+@Tag(name = "Workflow Templates", description = "Create, List, and Manage your Workflow Templates.")
 public class WorkflowTemplateControllerV2 {
 
-  EngineClient engineClient;
+  WorkflowTemplateService templateService;
 
-  public WorkflowTemplateControllerV2(EngineClient engineClient) {
-    this.engineClient = engineClient;
+  public WorkflowTemplateControllerV2(WorkflowTemplateService templateService) {
+    this.templateService = templateService;
   }
 
   @GetMapping(value = "/{name}")
@@ -51,7 +49,7 @@ public class WorkflowTemplateControllerV2 {
         @ApiResponse(responseCode = "200", description = "OK"),
         @ApiResponse(responseCode = "400", description = "Bad Request")
       })
-  public WorkflowTemplate get(
+  public WorkflowTemplate getWorkflowTemplate(
       @Parameter(name = "name", description = "Name of Workflow Template", required = true)
           @PathVariable
           String name,
@@ -61,7 +59,7 @@ public class WorkflowTemplateControllerV2 {
       @Parameter(name = "withTasks", description = "Include Tasks", required = false)
           @RequestParam(defaultValue = "true")
           boolean withTasks) {
-    return engineClient.getWorkflowTemplate(name, version, withTasks);
+    return templateService.get(name, version, withTasks);
   }
 
   @GetMapping(value = "/query")
@@ -75,7 +73,7 @@ public class WorkflowTemplateControllerV2 {
         @ApiResponse(responseCode = "200", description = "OK"),
         @ApiResponse(responseCode = "400", description = "Bad Request")
       })
-  public WorkflowTemplateResponsePage query(
+  public Page<WorkflowTemplate> queryWorkflowTemplates(
       @Parameter(
               name = "labels",
               description =
@@ -103,7 +101,7 @@ public class WorkflowTemplateControllerV2 {
               required = true)
           @RequestParam(defaultValue = "ASC")
           Optional<Direction> sort) {
-    return engineClient.queryWorkflowTemplates(limit, page, sort, labels, names);
+    return templateService.query(limit, page, sort, labels, names);
   }
 
   @PostMapping(value = "")
@@ -117,8 +115,8 @@ public class WorkflowTemplateControllerV2 {
         @ApiResponse(responseCode = "200", description = "OK"),
         @ApiResponse(responseCode = "400", description = "Bad Request")
       })
-  public WorkflowTemplate create(@RequestBody WorkflowTemplate request) {
-    return engineClient.createWorkflowTemplate(request);
+  public WorkflowTemplate createWorkflowTemplate(@RequestBody WorkflowTemplate request) {
+    return templateService.create(request);
   }
 
   @PutMapping(value = "")
@@ -132,12 +130,12 @@ public class WorkflowTemplateControllerV2 {
         @ApiResponse(responseCode = "200", description = "OK"),
         @ApiResponse(responseCode = "400", description = "Bad Request")
       })
-  public WorkflowTemplate apply(
+  public WorkflowTemplate applyWorkflowTemplate(
       @RequestBody WorkflowTemplate request,
       @Parameter(name = "replace", description = "Replace existing version", required = false)
           @RequestParam(required = false, defaultValue = "false")
           boolean replace) {
-    return engineClient.applyWorkflowTemplate(request, replace);
+    return templateService.apply(request, replace);
   }
 
   @DeleteMapping(value = "/{name}")
@@ -151,21 +149,25 @@ public class WorkflowTemplateControllerV2 {
         @ApiResponse(responseCode = "204", description = "OK"),
         @ApiResponse(responseCode = "400", description = "Bad Request")
       })
-  public ResponseEntity<Void> deleteWorkflow(
+  public void deleteWorkflowTemplate(
       @Parameter(name = "name", description = "Name of Workflow Template", required = true)
           @PathVariable
           String name) {
-    return engineClient.deleteWorkflowTemplate(name);
+    templateService.delete(name);
   }
-  //
-  //  @GetMapping(value = "/{name}/export", produces = "application/json")
-  //  @AuthScope(types = {TokenScope.global}, access = TokenAccess.read, object =
-  // TokenObject.workflowtemplate)
-  //  @Operation(summary = "Export the Workflow Template as JSON.")
-  //  public ResponseEntity<InputStreamResource> export(@Parameter(name = "name",
-  //      description = "Name of Workflow Template", required = true) @PathVariable String name) {
-  //    return engineClient.export(name);
-  //  }
+
+//  @GetMapping(value = "/{name}/export", produces = "application/json")
+//  @AuthCriteria(
+//      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.session},
+//      action = PermissionAction.READ,
+//      resource = PermissionResource.WORKFLOWTEMPLATE)
+//  @Operation(summary = "Export the Workflow Template as JSON.")
+//  public ResponseEntity<InputStreamResource> export(
+//      @Parameter(name = "name", description = "Name of Workflow Template", required = true)
+//          @PathVariable
+//          String name) {
+//    return templateService.export(name);
+//  }
   //
   //  @GetMapping(value = "/{workflowId}/compose")
   //  @AuthScope(types = {TokenScope.global}, access = TokenAccess.read, object =

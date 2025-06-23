@@ -1,5 +1,11 @@
 package io.boomerang.common.model;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,38 +13,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 
 /*
  * Holds the Param Layers to be built up and resolved
- * 
+ *
  * CAUTION: tightly coupled between Engine and Workflow services
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ParamLayers {
-  private static final Logger LOGGER = LogManager.getLogger();
+  @JsonIgnore private Map<String, Object> contextParams = new HashMap<>();
 
-  @JsonIgnore
-  private Map<String, Object> contextParams = new HashMap<>();
+  @JsonIgnore private Map<String, Object> globalParams = new HashMap<>();
 
-  @JsonIgnore
-  private Map<String, Object> globalParams = new HashMap<>();
+  @JsonIgnore private Map<String, Object> teamParams = new HashMap<>();
 
-  @JsonIgnore
-  private Map<String, Object> teamParams = new HashMap<>();
+  @JsonIgnore private Map<String, Object> workflowParams = new HashMap<>();
 
-  @JsonIgnore
-  private Map<String, Object> workflowParams = new HashMap<>();
-
-  @JsonIgnore
-  private Map<String, Object> taskParams = new HashMap<>();
+  @JsonIgnore private Map<String, Object> taskParams = new HashMap<>();
 
   @JsonIgnore
   public Map<String, Object> getTaskParams() {
@@ -94,9 +85,9 @@ public class ParamLayers {
     return finalProperties;
   }
 
-  private void copyFlatParams(Map<String, Object> source, Map<String, Object> target, String prefix) {
+  private void copyFlatParams(
+      Map<String, Object> source, Map<String, Object> target, String prefix) {
     for (Entry<String, Object> entry : source.entrySet()) {
-      LOGGER.debug("Parameter: " + entry.toString());
       String key = entry.getKey();
       Object value = entry.getValue();
       if (value != null) {
@@ -122,7 +113,6 @@ public class ParamLayers {
 
   private void copyFlatKeys(Map<String, Object> source, HashSet<String> target, String prefix) {
     for (Entry<String, Object> entry : source.entrySet()) {
-      LOGGER.debug("Parameter: " + entry.toString());
       String key = entry.getKey();
       Object value = entry.getValue();
       if (value != null) {

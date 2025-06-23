@@ -16,6 +16,8 @@ appropriate filtered Workflows and Tasks. The Agent that comes by default is the
 executes the Tasks using Tekton on Kubernetes. Additional implementations can be added, such as IBM
 Code Engine, Azure Container Apps, etc
 
+The [Common LIbrary](./lib-common) holds shared models, entities, repository, and util classes in use across the services.
+
 ```mermaid
 graph LR
     A[External Requests] -->|HTTP| B[Flow Service]
@@ -48,24 +50,21 @@ reliable event consumption and scheduled job execution.
 
 This service listen and consumes CloudEvents.
 
-### Quartz
+### Scheduled Jobs via JobRunr
 
-The Java Quartz library is used for running scheduled jobs via mongoDB and underpins the Schedule trigger.
+> Note: we migrated from Quartz MongoDB in V4 due to the project no longer being maintained. The jobs do not fire as accurately with an up to 5 second difference from schedule
 
-The following links will help provide guidance in development
-
-- http://www.quartz-scheduler.org/documentation/quartz-2.2.2/tutorials/tutorial-lesson-04.html
-- http://www.quartz-scheduler.org/documentation/2.4.0-SNAPSHOT/cookbook/UpdateTrigger.html
-- https://github.com/StackAbuse/spring-boot-quartz/blob/master/src/main/java/com/stackabuse/service/SchedulerJobService.java
-- https://stackabuse.com/guide-to-quartz-with-spring-boot-job-scheduling-and-automation/
+- https://www.jobrunr.io/en/
+- https://www.jobrunr.io/en/documentation/pro/real-time-scheduling/
 
 ## Packaging
 
 When ready to package the service(s) as a container, the tags will trigger the appropriate GitHub Action using the
 format `<svc>/<semver>`:
 
-- Engine Service: tag = `engine/1.0.0-beta.111`
-- Flow Service: tag = `flow/4.0.1`
+- Engine Service: tag = `engine@1.0.0-beta.111`
+- Flow Service: tag = `flow@4.0.1`
+- Handler Service: tag = `handler@7.0.1`
 
 ## Developing and Testing Locally
 
@@ -158,7 +157,7 @@ _future_)
 
 ### Security
 
-Security is enabled / disabled through the `flow.authorization.enabled` flag in the application.properties
+Security is enabled / disabled through the `flow.auth.enabled` flag in the application.properties
 
 The following classes are conditionally loaded based on this flag
 

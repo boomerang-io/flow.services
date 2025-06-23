@@ -6,10 +6,10 @@ import io.boomerang.common.entity.WorkflowRunEntity;
 import io.boomerang.common.enums.RunPhase;
 import io.boomerang.common.enums.RunStatus;
 import io.boomerang.common.enums.TaskType;
-import io.boomerang.engine.repository.WorkflowRevisionRepository;
-import io.boomerang.engine.repository.WorkflowRunRepository;
-import io.boomerang.error.BoomerangError;
-import io.boomerang.error.BoomerangException;
+import io.boomerang.common.error.BoomerangError;
+import io.boomerang.common.error.BoomerangException;
+import io.boomerang.common.repository.WorkflowRevisionRepository;
+import io.boomerang.common.repository.WorkflowRunRepository;
 import io.boomerang.util.GraphProcessor;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -62,13 +62,18 @@ public class WorkflowExecutionService {
   TaskExecutor asyncWorkflowExecutor;
 
   public void queue(WorkflowRunEntity wfRunEntity) {
-    LOGGER.debug("[{}] Received queue WorkflowRun request.", wfRunEntity.getId());
+    LOGGER.debug(
+        "[{}] Received queue WorkflowRun request for {}@{}.",
+        wfRunEntity.getId(),
+        wfRunEntity.getWorkflowRef(),
+        wfRunEntity.getWorkflowVersion());
     // Resolve Parameter Substitutions
-    // TODO: check if we need this
+    // TODO: check if we need this anymore
     paramManager.resolveParamLayers(wfRunEntity, Optional.empty());
 
     final Optional<WorkflowRevisionEntity> optWorkflowRevisionEntity =
-        this.workflowRevisionRepository.findById(wfRunEntity.getWorkflowRevisionRef());
+        this.workflowRevisionRepository.findByWorkflowRefAndVersion(
+            wfRunEntity.getWorkflowRef(), wfRunEntity.getWorkflowVersion());
     if (optWorkflowRevisionEntity.isPresent()) {
       WorkflowRevisionEntity wfRevisionEntity = optWorkflowRevisionEntity.get();
       final List<TaskRunEntity> tasks = dagUtility.createTaskList(wfRevisionEntity, wfRunEntity);
@@ -286,7 +291,8 @@ public class WorkflowExecutionService {
   private void cancelPendingAndRunningTasks(WorkflowRunEntity wfRunEntity) {
     // Cancel Running Tasks
     Optional<WorkflowRevisionEntity> wfRevisionEntity =
-        workflowRevisionRepository.findById(wfRunEntity.getWorkflowRevisionRef());
+        workflowRevisionRepository.findByWorkflowRefAndVersion(
+            wfRunEntity.getWorkflowRef(), wfRunEntity.getWorkflowVersion());
     List<TaskRunEntity> tasks = dagUtility.createTaskList(wfRevisionEntity.get(), wfRunEntity);
 
     // If running tasks are found, the TaskRun execution loop will automatically cancel in

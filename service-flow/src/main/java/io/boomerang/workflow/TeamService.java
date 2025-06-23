@@ -2,6 +2,8 @@ package io.boomerang.workflow;
 
 import static io.boomerang.common.util.DataAdapterUtil.filterValueByFieldType;
 
+import io.boomerang.common.error.BoomerangError;
+import io.boomerang.common.error.BoomerangException;
 import io.boomerang.common.model.AbstractParam;
 import io.boomerang.common.model.WorkflowCount;
 import io.boomerang.common.model.WorkflowRunInsight;
@@ -11,13 +13,14 @@ import io.boomerang.core.RelationshipService;
 import io.boomerang.core.SettingsService;
 import io.boomerang.core.TokenService;
 import io.boomerang.core.UserService;
+import io.boomerang.core.audit.Audit;
+import io.boomerang.core.audit.AuditAction;
+import io.boomerang.core.audit.AuditResource;
 import io.boomerang.core.entity.RoleEntity;
 import io.boomerang.core.entity.UserEntity;
 import io.boomerang.core.enums.*;
 import io.boomerang.core.model.*;
 import io.boomerang.core.repository.RoleRepository;
-import io.boomerang.error.BoomerangError;
-import io.boomerang.error.BoomerangException;
 import io.boomerang.security.IdentityService;
 import io.boomerang.workflow.entity.ApproverGroupEntity;
 import io.boomerang.workflow.entity.TeamEntity;
@@ -66,7 +69,7 @@ public class TeamService {
   private static final Logger LOGGER = LogManager.getLogger();
 
   public static final List<String> RESERVED_TEAM_NAMES =
-      List.of("home", "admin", "system", "profile", "connect");
+      List.of("home", "admin", "system", "profile", "callback");
   public static final String TEAMS_SETTINGS_KEY = "teams";
   public static final String QUOTA_MAX_WORKFLOW_COUNT = "max.workflow.count";
   public static final String QUOTA_MAX_WORKFLOW_STORAGE = "max.workflow.storage";
@@ -154,6 +157,7 @@ public class TeamService {
    * - Name must not be blank
    * - Display name must not be blank
    */
+  @Audit(scope = AuditResource.team, action = AuditAction.create)
   public Team create(TeamRequest request) {
     if (!request.getName().isBlank() && !request.getDisplayName().isBlank()) {
       // Validate name - will throw exception if not valid
@@ -210,6 +214,7 @@ public class TeamService {
   /*
    * Patch team
    */
+  @Audit(scope = AuditResource.team, action = AuditAction.update)
   public Team patch(String team, TeamRequest request) {
     if (request != null) {
       LOGGER.debug("Request: " + request.toString());
@@ -281,6 +286,7 @@ public class TeamService {
   /*
    * Destructive cascade Team deletion
    */
+  @Audit(scope = AuditResource.team, action = AuditAction.delete)
   public void delete(String team) {
     if (team == null || team.isBlank()) {
       throw new BoomerangException(BoomerangError.TEAM_INVALID_REF);
@@ -420,7 +426,7 @@ public class TeamService {
 
     Page<Team> pages =
         PageableExecutionUtils.getPage(
-            teams, pageable, () -> mongoTemplate.count(query, TeamEntity.class));
+            teams, pageable, () -> mongoTemplate.count(new Query(allCriteria), TeamEntity.class));
 
     return pages;
   }
@@ -464,6 +470,7 @@ public class TeamService {
    *
    *  TODO: ensure the remaining owner cannot leave the team
    */
+  @Audit(scope = AuditResource.team, action = AuditAction.leave)
   public void leave(String team) {
     if (team == null || team.isBlank()) {
       throw new BoomerangException(BoomerangError.TEAM_INVALID_REF);
@@ -503,6 +510,7 @@ public class TeamService {
   /*
    * Delete parameters by key
    */
+  @Audit(scope = AuditResource.team, action = AuditAction.update)
   public void deleteParameter(String team, String name) {
     if (team == null || team.isBlank()) {
       throw new BoomerangException(BoomerangError.TEAM_INVALID_REF);

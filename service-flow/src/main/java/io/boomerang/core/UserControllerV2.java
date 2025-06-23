@@ -3,6 +3,7 @@ package io.boomerang.core;
 import io.boomerang.core.model.User;
 import io.boomerang.core.model.UserRequest;
 import io.boomerang.security.AuthCriteria;
+import io.boomerang.security.IdentityService;
 import io.boomerang.security.enums.AuthScope;
 import io.boomerang.security.enums.PermissionAction;
 import io.boomerang.security.enums.PermissionResource;
@@ -37,6 +38,8 @@ public class UserControllerV2 {
 
   @Autowired private UserService userService;
 
+  @Autowired private IdentityService identityService;
+
   @GetMapping(value = "/{userId}")
   @AuthCriteria(
       action = PermissionAction.READ,
@@ -68,7 +71,7 @@ public class UserControllerV2 {
         @ApiResponse(responseCode = "200", description = "OK"),
         @ApiResponse(responseCode = "400", description = "Bad Request")
       })
-  public Page<User> getUsers(
+  public Page<User> queryUsers(
       @Parameter(
               name = "labels",
               description =
@@ -129,16 +132,19 @@ public class UserControllerV2 {
   @AuthCriteria(
       action = PermissionAction.WRITE,
       resource = PermissionResource.USER,
-      assignableScopes = {AuthScope.global})
+      assignableScopes = {AuthScope.global, AuthScope.user, AuthScope.session})
   @Operation(summary = "Update a Boomerang Flow Users details")
   @ApiResponses(
       value = {
         @ApiResponse(responseCode = "200", description = "OK"),
         @ApiResponse(responseCode = "400", description = "Bad Request")
       })
-  public ResponseEntity<Void> apply(@PathVariable String userId, @RequestBody UserRequest user) {
+  public ResponseEntity<Void> updateUser(
+      @PathVariable String userId, @RequestBody UserRequest user) {
     user.setId(userId);
-    if (isUserManagementAvaliable()) {
+    if (isUserManagementAvaliable()
+        && (userService.isCurrentUserAdmin()
+            || identityService.getCurrentScope().equals(AuthScope.global))) {
       userService.apply(user);
       return ResponseEntity.ok().build();
     } else {
@@ -157,8 +163,10 @@ public class UserControllerV2 {
         @ApiResponse(responseCode = "200", description = "OK"),
         @ApiResponse(responseCode = "400", description = "Bad Request")
       })
-  public ResponseEntity<Void> deleteFlowUser(@PathVariable String userId) {
-    if (isUserManagementAvaliable()) {
+  public ResponseEntity<Void> deleteUser(@PathVariable String userId) {
+    if (isUserManagementAvaliable()
+        && (userService.isCurrentUserAdmin()
+            || identityService.getCurrentScope().equals(AuthScope.global))) {
       userService.delete(userId);
       return ResponseEntity.ok().build();
     } else {

@@ -1,8 +1,7 @@
 package io.boomerang.error.model;
 
-
 public class BoomerangError {
-  
+
   private ErrorDetail error;
 
   public ErrorDetail getError() {

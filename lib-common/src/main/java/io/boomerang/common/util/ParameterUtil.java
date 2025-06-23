@@ -18,14 +18,9 @@ public class ParameterUtil {
    *
    * @return the parameter list
    */
-  public static List<RunParam> paramSpecToRunParam(List<ParamSpec> parameterList) {
+  public static List<RunParam> paramSpecToRunParam(List<AbstractParam> parameterList) {
     return parameterList.stream()
-        .map(
-            p ->
-                new RunParam(
-                    p.getName(),
-                    p.getDefaultValue(),
-                    p.getType() != null ? p.getType() : ParamType.string))
+        .map(p -> new RunParam(p.getName(), p.getDefaultValue(), getTektonParamType(p.getType())))
         .collect(Collectors.toList());
   }
 
@@ -208,31 +203,31 @@ public class ParameterUtil {
     return reducedParamList;
   }
 
-//  /*
-//   * Turns the AbstractParam used by the UI into ParamSpec used by the Engine and Handlers
-//   */
-//  public static List<ParamSpec> abstractParamsToParamSpecs(List<AbstractParam> abstractParams) {
-//    List<ParamSpec> params = new LinkedList<>();
-//    if (abstractParams != null && !abstractParams.isEmpty()) {
-//      for (AbstractParam ap : abstractParams) {
-//        ParamSpec param = new ParamSpec();
-//        param.setName(ap.getKey());
-//        param.setDescription(ap.getDescription());
-//        switch (ConfigType.getConfigType(ap.getType())) {
-//          case MULTISELECT -> param.setType(ParamType.array);
-//          case JSON -> param.setType(ParamType.object);
-//          default -> param.setType(ParamType.string);
-//        }
-//        param.setDefaultValue(ap.getDefaultValue());
-//        Config config = new Config();
-//        BeanUtils.copyProperties(ap, config);
-//        param.setConfig(config);
-//        params.add(param);
-//      }
-//      ;
-//    }
-//    return params;
-//  }
+  //  /*
+  //   * Turns the AbstractParam used by the UI into ParamSpec used by the Engine and Handlers
+  //   */
+  //  public static List<ParamSpec> abstractParamsToParamSpecs(List<AbstractParam> abstractParams) {
+  //    List<ParamSpec> params = new LinkedList<>();
+  //    if (abstractParams != null && !abstractParams.isEmpty()) {
+  //      for (AbstractParam ap : abstractParams) {
+  //        ParamSpec param = new ParamSpec();
+  //        param.setName(ap.getKey());
+  //        param.setDescription(ap.getDescription());
+  //        switch (ConfigType.getConfigType(ap.getType())) {
+  //          case MULTISELECT -> param.setType(ParamType.array);
+  //          case JSON -> param.setType(ParamType.object);
+  //          default -> param.setType(ParamType.string);
+  //        }
+  //        param.setDefaultValue(ap.getDefaultValue());
+  //        Config config = new Config();
+  //        BeanUtils.copyProperties(ap, config);
+  //        param.setConfig(config);
+  //        params.add(param);
+  //      }
+  //      ;
+  //    }
+  //    return params;
+  //  }
 
   //
   //  // Loop through the newAPs and if of password type with empty defaultValue, retrieve the

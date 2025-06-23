@@ -1,9 +1,9 @@
 package io.boomerang.client;
 
+import io.boomerang.common.error.BoomerangException;
 import io.boomerang.common.model.WorkflowRun;
 import io.boomerang.common.model.WorkflowRunRequest;
 import io.boomerang.common.model.WorkflowSchedule;
-import io.boomerang.error.BoomerangException;
 import java.net.URI;
 import java.util.Optional;
 import org.apache.logging.log4j.LogManager;

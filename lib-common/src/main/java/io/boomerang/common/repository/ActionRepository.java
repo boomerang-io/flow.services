@@ -1,26 +1,22 @@
-package io.boomerang.workflow.repository;
+package io.boomerang.common.repository;
 
 import io.boomerang.common.entity.ActionEntity;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-
 import io.boomerang.common.enums.ActionStatus;
 import io.boomerang.common.enums.ActionType;
+import java.util.Date;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.mongodb.repository.Update;
 
 public interface ActionRepository extends MongoRepository<ActionEntity, String> {
 
-  Optional<ActionEntity> findByTaskRunRef(String taskRunRef);
+  ActionEntity findByTaskRunRef(String taskRunRef);
 
   long countByWorkflowRunRefAndStatus(String workflowRunRef, ActionStatus status);
 
   long countByCreationDateBetween(Date from, Date to);
 
-  long countByTypeAndCreationDateBetweenAndWorkflowRefInAndStatus(
-      ActionType type, Date from, Date to, List<String> workflowRefs, ActionStatus status);
+  long countByTypeAndCreationDateBetween(ActionType type, Date from, Date to);
 
   long countByType(ActionType type);
 

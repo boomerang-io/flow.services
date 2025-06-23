@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.boomerang.common.enums.TriggerEnum;
-import io.boomerang.error.BoomerangException;
+import io.boomerang.common.error.BoomerangException;
 import io.boomerang.misc.FlowTests;
 import io.boomerang.workflow.ExecutionController;
 import io.boomerang.workflow.model.FlowActivity;

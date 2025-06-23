@@ -4,19 +4,20 @@ import io.boomerang.core.entity.RelationshipEdgeEntity;
 import io.boomerang.core.entity.RelationshipNodeEntity;
 import io.boomerang.core.enums.RelationshipLabel;
 import io.boomerang.core.enums.RelationshipType;
+import io.boomerang.core.message.Message;
 import io.boomerang.core.model.RelationshipGraphEdge;
 import io.boomerang.core.model.ResolvedPermissions;
 import io.boomerang.core.model.Token;
 import io.boomerang.core.repository.RelationshipEdgeRepository;
 import io.boomerang.core.repository.RelationshipNodeRepository;
 import io.boomerang.security.IdentityService;
-import io.boomerang.security.enums.AuthScope;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.shortestpath.BFSShortestPath;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,29 +26,41 @@ public class RelationshipService {
 
   private static final Logger LOGGER = LogManager.getLogger();
 
+  private static final String MESSAGE_CREATED = "relationship.created";
+  private static final String MESSAGE_UPDATED = "relationship.updated";
+  private static final String MESSAGE_REMOVED = "relationship.removed";
+
   private RelationshipGraph graphCache = RelationshipGraph.getInstance();
   private final RelationshipNodeRepository nodeRepository;
   private final RelationshipEdgeRepository edgeRepository;
   private final IdentityService identityService;
+  private final ApplicationEventPublisher eventPublisher;
 
-  // TODO make sure the graph should be initialised here or better on start of service.
-  // How many times does this service get created?
   public RelationshipService(
       RelationshipNodeRepository nodeRepository,
       RelationshipEdgeRepository edgeRepository,
-      IdentityService identityService) {
+      IdentityService identityService,
+      ApplicationEventPublisher eventPublisher) {
     this.nodeRepository = nodeRepository;
     this.edgeRepository = edgeRepository;
     this.identityService = identityService;
+    this.eventPublisher = eventPublisher;
+    this.graphCache.buildGraph(nodeRepository.findAll(), edgeRepository.findAll());
+  }
+
+  public void buildGraph() {
     this.graphCache.buildGraph(nodeRepository.findAll(), edgeRepository.findAll());
   }
 
   /*
    * Creates the Relationship Node mapped to an object in the system
    */
-  public RelationshipNodeEntity createNode(
+  @Transactional
+  public void createNode(
       RelationshipType type, String ref, String slug, Optional<Map<String, String>> data) {
-    return nodeRepository.save(new RelationshipNodeEntity(type.getLabel(), ref, slug, data));
+    nodeRepository.save(new RelationshipNodeEntity(type.getLabel(), ref, slug, data));
+    eventPublisher.publishEvent(
+        new Message(MESSAGE_CREATED, "Created relationship node " + type.getLabel() + ":" + ref));
   }
 
   /*
@@ -69,29 +82,23 @@ public class RelationshipService {
     }
     edgeRepository.save(
         new RelationshipEdgeEntity(fromResult.getId(), label, toResult.getId(), data));
-    this.graphCache.buildGraph(nodeRepository.findAll(), edgeRepository.findAll());
-  }
-
-  /*
-   * Creates the Relationship Edge for the current principal
-   */
-  @Transactional
-  public void createEdge(RelationshipType toType, String to, Optional<Map<String, String>> data) {
-    Token identity = identityService.getCurrentIdentity();
-    LOGGER.debug("Creating edge for: {}", identity.getPrincipal());
-    RelationshipType fromType = null;
-    if (AuthScope.session.equals(identity.getType())) {
-      fromType = RelationshipType.USER;
-    } else {
-      fromType = RelationshipType.valueOfLabel(identity.getType().getLabel());
-    }
-    this.createEdge(
-        fromType, identity.getPrincipal(), RelationshipLabel.MEMBER_OF, toType, to, data);
+    eventPublisher.publishEvent(
+        new Message(
+            MESSAGE_CREATED,
+            "Created relationship between "
+                + fromType.getLabel()
+                + ":"
+                + from
+                + " to "
+                + toType.getLabel()
+                + ":"
+                + to));
   }
 
   /*
    * Creates the Relationship Node mapped to an object in the system
    */
+  @Transactional
   public void createNodeAndEdge(
       RelationshipType fromType,
       String from,
@@ -106,10 +113,21 @@ public class RelationshipService {
     if (Objects.isNull(fromResult)) {
       throw new IllegalArgumentException("From node does not exist");
     }
-    RelationshipNodeEntity toNode = this.createNode(toType, toRef, toSlug, nodeData);
+    RelationshipNodeEntity toNode =
+        nodeRepository.save(new RelationshipNodeEntity(toType.getLabel(), toRef, toSlug, nodeData));
     edgeRepository.save(
         new RelationshipEdgeEntity(fromResult.getId(), label, toNode.getId(), edgeData));
-    this.graphCache.buildGraph(nodeRepository.findAll(), edgeRepository.findAll());
+    eventPublisher.publishEvent(
+        new Message(
+            MESSAGE_CREATED,
+            "Created relationship between "
+                + fromType.getLabel()
+                + ":"
+                + from
+                + " to "
+                + toType.getLabel()
+                + ":"
+                + toRef));
   }
 
   /*
@@ -129,34 +147,17 @@ public class RelationshipService {
         fromNode.getType() + ":" + fromNode.getRef(),
         toNode.getType() + ":" + toNode.getRef(),
         data);
-    this.graphCache.buildGraph(nodeRepository.findAll(), edgeRepository.findAll());
-  }
-
-  /*
-   * Update the Relationship Edge's data for current principal
-   */
-  @Transactional
-  public void updateEdgeData(RelationshipType toType, String to, Map<String, String> data) {
-    Token identity = identityService.getCurrentIdentity();
-    this.updateEdgeData(
-        RelationshipType.valueOfLabel(identity.getType().getLabel()),
-        identity.getPrincipal(),
-        toType,
-        to,
-        data);
-  }
-
-  /*
-   * Removes the Relationship Edge
-   */
-  @Transactional
-  public void removeEdge(RelationshipType fromType, String from, RelationshipType toType, String to)
-      throws IllegalArgumentException {
-    RelationshipNodeEntity fromNode = this.getNodeFromGraph(fromType, from, graphCache.getGraph());
-    RelationshipNodeEntity toNode = this.getNodeFromGraph(toType, to, graphCache.getGraph());
-    edgeRepository.deleteByFromAndTo(
-        fromNode.getType() + ":" + fromNode.getRef(), toNode.getType() + ":" + toNode.getRef());
-    this.graphCache.buildGraph(nodeRepository.findAll(), edgeRepository.findAll());
+    eventPublisher.publishEvent(
+        new Message(
+            MESSAGE_UPDATED,
+            "Updated relationship between "
+                + fromType.getLabel()
+                + ":"
+                + from
+                + " to "
+                + toType.getLabel()
+                + ":"
+                + to));
   }
 
   /*
@@ -173,13 +174,38 @@ public class RelationshipService {
   }
 
   /*
+   * Removes the Relationship Edge
+   */
+  @Transactional
+  public void removeEdge(RelationshipType fromType, String from, RelationshipType toType, String to)
+      throws IllegalArgumentException {
+    RelationshipNodeEntity fromNode = this.getNodeFromGraph(fromType, from, graphCache.getGraph());
+    RelationshipNodeEntity toNode = this.getNodeFromGraph(toType, to, graphCache.getGraph());
+    edgeRepository.deleteByFromAndTo(
+        fromNode.getType() + ":" + fromNode.getRef(), toNode.getType() + ":" + toNode.getRef());
+    eventPublisher.publishEvent(
+        new Message(
+            MESSAGE_REMOVED,
+            "Removed relationship between "
+                + fromType.getLabel()
+                + ":"
+                + from
+                + " to "
+                + toType.getLabel()
+                + ":"
+                + to));
+  }
+
+  /*
    * Removes the Relationship Node and all Edges linked to it
    */
   @Transactional
   public void removeNodeAndEdgeByRefOrSlug(RelationshipType type, String refOrSlug) {
     RelationshipNodeEntity node = nodeRepository.deleteByRefOrSlug(type.getLabel(), refOrSlug);
     edgeRepository.deleteByFromOrTo(node.getId());
-    this.graphCache.buildGraph(nodeRepository.findAll(), edgeRepository.findAll());
+    eventPublisher.publishEvent(
+        new Message(
+            MESSAGE_REMOVED, "Removed relationship note " + type.getLabel() + ":" + refOrSlug));
   }
 
   /*
@@ -189,16 +215,20 @@ public class RelationshipService {
   public void removeNodeAndEdgeByRef(RelationshipType type, String ref) {
     RelationshipNodeEntity node = nodeRepository.deleteByTypeAndRef(type.getLabel(), ref);
     edgeRepository.deleteByFromOrTo(node.getId());
-    this.graphCache.buildGraph(nodeRepository.findAll(), edgeRepository.findAll());
+    eventPublisher.publishEvent(
+        new Message(MESSAGE_REMOVED, "Removed relationship note " + type.getLabel() + ":" + ref));
   }
 
   /*
-   * Removes the Relationship Node and all Edges linked to it
+   * Updates the Nodes slug
    */
   @Transactional
   public void updateNodeByRefOrSlug(RelationshipType type, String refOrSlug, String newSlug) {
     nodeRepository.updateSlugByTypeAndRefOrSlug(type.getLabel(), refOrSlug, newSlug);
-    this.graphCache.buildGraph(nodeRepository.findAll(), edgeRepository.findAll());
+    eventPublisher.publishEvent(
+        new Message(
+            MESSAGE_UPDATED,
+            "Updates slug for node " + type.getLabel() + ":" + refOrSlug + " to " + newSlug));
   }
 
   /*
